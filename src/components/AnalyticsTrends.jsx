@@ -59,9 +59,6 @@ const AnalyticsTrends = ({
               showStats={false}
             />
           </div>
-          <div className={styles.chartInsight}>
-            <p>Shows the pattern of task completion over the selected time period</p>
-          </div>
         </div>
 
         <div className={styles.chartCard}>
@@ -75,9 +72,6 @@ const AnalyticsTrends = ({
               showTitle={false}
               showLegend={false}
             />
-          </div>
-          <div className={styles.chartInsight}>
-            <p>Tracks how priority levels change over time</p>
           </div>
         </div>
       </div>
