@@ -241,8 +241,10 @@ const Analytics = () => {
                     tasks={filteredTasks}
                     chartType={chartType}
                     title=""
+                    compact={true}
                     showTitle={false}
-                    showLegend={true}
+                    showLegend={false}
+                    showStats={false}
                   />
                 </div>
               </div>
@@ -254,8 +256,9 @@ const Analytics = () => {
                     tasks={filteredTasks}
                     chartType={chartType}
                     title=""
+                    compact={true}
                     showTitle={false}
-                    showLegend={true}
+                    showLegend={false}
                   />
                 </div>
               </div>
