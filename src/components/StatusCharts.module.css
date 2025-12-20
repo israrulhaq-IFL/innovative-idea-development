@@ -3,6 +3,8 @@
   height: 100%;
   position: relative;
   overflow: hidden;
+  background-color: var(--card-bg);
+  border-radius: var(--border-radius);
 }
 
 .chartWrapper {
@@ -66,4 +68,40 @@
   .stat {
     text-align: left;
   }
+}
+
+/* Compact mode stats */
+.compactStats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background-color: var(--bg-secondary);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-color);
+}
+
+.compactStat {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--text-color);
+}
+
+.compactStatColor {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.compactStatLabel {
+  font-weight: 500;
+}
+
+.compactStatValue {
+  font-weight: bold;
+  color: var(--primary-color);
 }

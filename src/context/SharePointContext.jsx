@@ -193,16 +193,6 @@ export const SharePointProvider = ({ children }) => {
     }
   }, [permissions, computeAnalyticsFromTasks])
 
-  // Get analytics data
-  const getAnalyticsData = useCallback(async (departmentFilter = null, departmentId = null) => {
-    try {
-      return await sharePointService.getAnalyticsData(permissions, departmentFilter, departmentId)
-    } catch (err) {
-      console.error('Failed to get analytics data:', err)
-      throw err
-    }
-  }, [permissions])
-
   useEffect(() => {
     if (permissions && !permissionsLoading && !initialized) {
       initializeSharePoint();
@@ -226,7 +216,6 @@ export const SharePointProvider = ({ children }) => {
     refreshData,
     filterTasksByDepartment,
     updateTaskStatus,
-    getAnalyticsData,
     showToast,
     hideToast
   }

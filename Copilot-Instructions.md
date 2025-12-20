@@ -234,6 +234,7 @@ src/
 - Ensure responsive design with mobile-first approach
 - Maintain consistent spacing and typography
 - **Split Screen Animations**: Use `cubic-bezier(0.4, 0, 0.2, 1)` for smooth transitions
+- **Dynamic Grid Layout**: Use React-based responsive design instead of CSS media queries for grid layouts
 - **Layout positioning**: 
   - Sidebar: `position: fixed; left: 0; width: 60px; z-index: 1000`
   - Utility bar: `position: fixed; left: 60px; right: 0; z-index: 1001`
@@ -256,6 +257,11 @@ src/
 - **Smooth closing animations** for split panels
 - **Full-width expansion** (fixed previous 2-column constraint)
 - **Proper scroll positioning** during panel transitions
+- **Dynamic responsive grid layout** for department headers and content:
+  - Pure React implementation using screen width detection (`useState` + `useEffect`)
+  - Dynamic `gridTemplateColumns` calculation based on department count and screen size
+  - No CSS media queries - all responsive behavior handled in JavaScript
+  - Consistent behavior between headers and content in both split-screen and normal view modes
 
 ### Component Architecture ✅
 - **DepartmentColumnContent.jsx**: Content wrapper for split-screen layout
@@ -264,6 +270,17 @@ src/
 - **AssigneeCharts.jsx**: Horizontal bar charts with click handlers
 - **StatusCharts.jsx**: Donut charts for status distribution
 - **PriorityCharts.jsx**: Horizontal bar charts for priority breakdown
+
+### Dynamic Grid Layout System ✅
+- **Pure React Implementation**: No CSS media queries - all responsive behavior handled in JavaScript
+- **Screen Width Detection**: Uses `useState(window.innerWidth)` and `useEffect` with resize listener
+- **Dynamic Grid Calculation**: `getGridTemplateColumns(departmentCount)` function:
+  - `screenWidth <= 900`: Single column (`1fr`)
+  - `screenWidth <= 1200`: Auto-fit with min 320px (`repeat(auto-fit, minmax(320px, 1fr))`)
+  - `screenWidth > 1200`: Dynamic columns based on department count (`repeat(${count}, 1fr)`)
+- **Inline Style Application**: Applied via `style={{ gridTemplateColumns: getGridTemplateColumns(count) }}`
+- **Consistent Behavior**: Same logic applied to both department headers and content containers
+- **Permission-Based Columns**: Grid adapts automatically based on user's allowed departments (1-4 columns)
 
 ### Known Issues & TODOs
 - Test split screen functionality across different screen sizes
@@ -297,3 +314,4 @@ src/
 - **Permission issues**: Check SharePoint group memberships and pattern matching in `getUserPermissions()`
 - **Layout positioning**: Sidebar is fixed at 60px width, utility bar starts at 60px with no gap
 - **Responsive layout**: Mobile sidebar is 50px, utility bar adjusts accordingly
+- **Grid Layout Issues**: Department headers and content use React-based responsive design - check `getGridTemplateColumns()` function and screen width detection in `Dashboard.jsx`

@@ -1,187 +1,126 @@
 import React from 'react';
-import { Bar, Pie, Line, Doughnut } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  ArcElement,
-  PointElement,
-  LineElement,
-} from 'chart.js';
 import styles from './AssigneeCharts.module.css';
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  ArcElement,
-  PointElement,
-  LineElement
-);
-
-const AssigneeCharts = ({ tasks, chartType = 'bar', onBarClick }) => {
-  const assigneeCounts = tasks.reduce((acc, task) => {
-    // Handle AssignedTo field - it's already processed into an array of assignee objects
+const AssigneeCharts = ({ tasks }) => {
+  // Calculate assignee workload statistics
+  const assigneeStats = tasks.reduce((acc, task) => {
     let assigneeNames = ['Unassigned'];
-    
+
     if (task.AssignedTo && Array.isArray(task.AssignedTo) && task.AssignedTo.length > 0) {
-      // AssignedTo is an array of {Id, Title, Email} objects
       assigneeNames = task.AssignedTo.map(assignee => assignee.Title || 'Unknown');
     }
-    
-    // Count each assignee
+
     assigneeNames.forEach(name => {
       acc[name] = (acc[name] || 0) + 1;
     });
-    
+
     return acc;
   }, {});
 
-  // Sort by task count descending
-  const sortedEntries = Object.entries(assigneeCounts)
-    .sort(([,a], [,b]) => b - a);
+  const assigneeEntries = Object.entries(assigneeStats);
+  const totalAssignees = assigneeEntries.length;
+  const totalTasks = tasks.length;
+  const averageTasksPerAssignee = totalAssignees > 0 ? (totalTasks / totalAssignees).toFixed(1) : 0;
 
-  const labels = sortedEntries.map(([assignee]) => assignee);
-  const data = sortedEntries.map(([,count]) => count);
+  // Find most loaded assignee
+  const mostLoaded = assigneeEntries.reduce((max, [name, count]) =>
+    count > max.count ? { name, count } : max,
+    { name: 'None', count: 0 }
+  );
 
-  // Generate colors for assignees
-  const generateColors = (count) => {
-    const baseColors = [
-      '#007bff', '#28a745', '#ffc107', '#dc3545', '#6f42c1',
-      '#e83e8c', '#fd7e14', '#20c997', '#6c757d', '#17a2b8'
-    ];
+  // Calculate workload distribution
+  const workloadDistribution = assigneeEntries.reduce((acc, [, count]) => {
+    if (count >= 5) acc.high++;
+    else if (count >= 2) acc.medium++;
+    else acc.low++;
+    return acc;
+  }, { high: 0, medium: 0, low: 0 });
 
-    const colors = [];
-    for (let i = 0; i < count; i++) {
-      colors.push(baseColors[i % baseColors.length]);
-    }
-    return colors;
-  };
-
-  const backgroundColors = generateColors(labels.length);
-  const borderColors = backgroundColors.map(color => color);
-
-  const chartData = {
-    labels,
-    datasets: [{
-      label: 'Tasks by Assignee',
-      data,
-      backgroundColor: backgroundColors,
-      borderColor: borderColors,
-      borderWidth: 1,
-    }],
-  };
-
-  const options = {
-    responsive: true,
-    maintainAspectRatio: false,
-    indexAxis: 'y', // This makes it horizontal
-    onClick: (event, elements) => {
-      if (elements.length > 0 && onBarClick) {
-        const dataIndex = elements[0].index;
-        const assigneeName = labels[dataIndex];
-        onBarClick(assigneeName);
-      }
-    },
-    plugins: {
-      legend: {
-        position: 'bottom',
-        labels: {
-          padding: 20,
-          usePointStyle: true,
-        },
-      },
-      title: {
-        display: true,
-        text: 'Assignee Workload',
-        font: {
-          size: 16,
-          weight: 'bold',
-        },
-      },
-      tooltip: {
-        callbacks: {
-          label: (context) => {
-            return `${context.label}: ${context.parsed.x} tasks`;
-          },
-        },
-      },
-    },
-    scales: {
-      x: {
-        beginAtZero: true,
-        ticks: {
-          stepSize: 1,
-        },
-        title: {
-          display: true,
-          text: 'Number of Tasks'
-        }
-      },
-      y: {
-        title: {
-          display: true,
-          text: 'Assignee'
-        },
-        ticks: {
-          maxRotation: 0,
-          minRotation: 0,
-        },
-      },
-    },
-  };
-
-  const renderChart = () => {
-    switch (chartType) {
-      case 'pie':
-        return <Pie data={chartData} options={options} />;
-      case 'line':
-        return <Line data={chartData} options={options} />;
-      case 'doughnut':
-        return <Doughnut data={chartData} options={options} />;
-      default:
-        return <Bar data={chartData} options={options} />;
-    }
-  };
-
-  if (tasks.length === 0) {
-    return (
-      <div className={styles.chartContainer}>
-        <div className={styles.noData}>
-          <p>No task data available</p>
-        </div>
-      </div>
-    );
-  }
+  const highWorkloadPercentage = totalAssignees > 0 ? ((workloadDistribution.high / totalAssignees) * 100).toFixed(0) : 0;
+  const mediumWorkloadPercentage = totalAssignees > 0 ? ((workloadDistribution.medium / totalAssignees) * 100).toFixed(0) : 0;
+  const lowWorkloadPercentage = totalAssignees > 0 ? ((workloadDistribution.low / totalAssignees) * 100).toFixed(0) : 0;
 
   return (
-    <div className={styles.chartContainer}>
-      <div className={styles.chartWrapper}>
-        {renderChart()}
+    <div className={styles.assigneeOverview}>
+      <div className={styles.overviewGrid}>
+        <div className={styles.metricCard}>
+          <div className={styles.metricIcon}>👥</div>
+          <div className={styles.metricContent}>
+            <h3>{totalAssignees}</h3>
+            <p>Total Assignees</p>
+          </div>
+        </div>
+
+        <div className={styles.metricCard}>
+          <div className={styles.metricIcon}>📊</div>
+          <div className={styles.metricContent}>
+            <h3>{averageTasksPerAssignee}</h3>
+            <p>Avg Tasks/Assignee</p>
+          </div>
+        </div>
+
+        <div className={styles.metricCard}>
+          <div className={styles.metricIcon}>🏆</div>
+          <div className={styles.metricContent}>
+            <h3>{mostLoaded.count}</h3>
+            <p>Most Loaded ({mostLoaded.name})</p>
+          </div>
+        </div>
       </div>
-      <div className={styles.assigneeStats}>
-        <div className={styles.stat}>
-          <span className={styles.statLabel}>Total Assignees:</span>
-          <span className={styles.statValue}>{labels.length}</span>
-        </div>
-        <div className={styles.stat}>
-          <span className={styles.statLabel}>Most Assigned:</span>
-          <span className={styles.statValue}>
-            {labels[0]} ({data[0]})
-          </span>
-        </div>
-        <div className={styles.stat}>
-          <span className={styles.statLabel}>Unassigned:</span>
-          <span className={styles.statValue}>
-            {assigneeCounts['Unassigned'] || 0}
-          </span>
+
+      <div className={styles.workloadDistribution}>
+        <h4>Workload Distribution</h4>
+        <div className={styles.distributionBars}>
+          <div className={styles.distributionItem}>
+            <div className={styles.distributionLabel}>
+              <span className={styles.highDot}></span>
+              High (5+ tasks)
+            </div>
+            <div className={styles.distributionBar}>
+              <div
+                className={styles.distributionFill}
+                style={{
+                  width: `${highWorkloadPercentage}%`,
+                  backgroundColor: '#dc3545'
+                }}
+              ></div>
+            </div>
+            <span className={styles.distributionValue}>{workloadDistribution.high} ({highWorkloadPercentage}%)</span>
+          </div>
+
+          <div className={styles.distributionItem}>
+            <div className={styles.distributionLabel}>
+              <span className={styles.mediumDot}></span>
+              Medium (2-4 tasks)
+            </div>
+            <div className={styles.distributionBar}>
+              <div
+                className={styles.distributionFill}
+                style={{
+                  width: `${mediumWorkloadPercentage}%`,
+                  backgroundColor: '#ffc107'
+                }}
+              ></div>
+            </div>
+            <span className={styles.distributionValue}>{workloadDistribution.medium} ({mediumWorkloadPercentage}%)</span>
+          </div>
+
+          <div className={styles.distributionItem}>
+            <div className={styles.distributionLabel}>
+              <span className={styles.lowDot}></span>
+              Low (1 task)
+            </div>
+            <div className={styles.distributionBar}>
+              <div
+                className={styles.distributionFill}
+                style={{
+                  width: `${lowWorkloadPercentage}%`,
+                  backgroundColor: '#28a745'
+                }}
+              ></div>
+            </div>
+            <span className={styles.distributionValue}>{workloadDistribution.low} ({lowWorkloadPercentage}%)</span>
+          </div>
         </div>
       </div>
     </div>

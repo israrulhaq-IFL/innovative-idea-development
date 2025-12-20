@@ -47,6 +47,8 @@ code {
   --text-color: #1a202c;
   --text-muted: #64748b;
   --text-light: #94a3b8;
+  --text-secondary: #64748b;
+  --chart-text: #1a202c;
 
   --border-color: #e2e8f0;
   --border-light: #f1f5f9;
@@ -73,6 +75,8 @@ code {
   --text-color: #f8fafc;
   --text-muted: #94a3b8;
   --text-light: #64748b;
+  --text-secondary: #cbd5e1;
+  --chart-text: #ffffff;
 
   --border-color: #334155;
   --border-light: #475569;

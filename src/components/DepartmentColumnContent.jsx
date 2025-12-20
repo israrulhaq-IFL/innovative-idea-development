@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react'
 import StatusCharts from './StatusCharts'
 import PriorityCharts from './PriorityCharts'
-import AssigneeCharts from './AssigneeCharts'
-import DelayedTasks from './DelayedTasks'
+import AssigneeWorkload from './AssigneeWorkload'
+import DelayedTasksList from './DelayedTasksList'
 import styles from './DepartmentColumn.module.css'
 
 const computeAnalytics = (tasks) => {
@@ -186,19 +186,16 @@ const DepartmentColumnContent = ({
       <div className={styles.card}>
         <div className={styles.cardTitle}>Assignee Workload</div>
         <div className={styles.chartArea}>
-          <AssigneeCharts
-            tasks={tasks}
-            chartType="bar"
-            showLegend={false}
-            showTitle={false}
-            onBarClick={onAssigneeDrill}
-          />
+        <AssigneeWorkload
+          tasks={tasks}
+          onAssigneeClick={onAssigneeDrill}
+        />
         </div>
       </div>
 
       <div className={styles.card}>
         <div className={styles.cardTitle}>Delayed</div>
-        <DelayedTasks tasks={tasks} onViewDetails={onDelayedDrill} />
+        <DelayedTasksList tasks={tasks} onViewDetails={onDelayedDrill} />
       </div>
     </div>
   )

@@ -1,205 +1,385 @@
 .analytics {
-  padding: 2rem 0;
-  max-width: 1400px;
+  padding: 1rem 0;
+  max-width: 1600px;
   margin: 0 auto;
+  animation: fadeIn 0.3s ease-out;
 }
 
-.header {
+/* Compact Header */
+.compactHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
-  padding: 0 1rem;
+  padding: 0 1rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 1rem;
+  gap: 2rem;
 }
 
-.header h1 {
+.headerLeft h1 {
   margin: 0;
   color: var(--text-color);
-  font-size: 2rem;
-  font-weight: 700;
+  font-size: 1.8rem;
+  font-weight: 600;
 }
 
-.filters {
+.headerRight {
   display: flex;
   gap: 1rem;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .filterGroup {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-}
-
-.filterGroup label {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--text-color);
-}
-
-.select {
-  padding: 0.5rem;
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
-  background-color: var(--bg-color);
-  color: var(--text-color);
-  font-size: 0.875rem;
   min-width: 120px;
 }
 
-.stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  margin-bottom: 2rem;
+.select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-size: 0.85rem;
+  font-weight: 500;
+  min-width: 120px;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.select:hover {
+  border-color: var(--primary-color);
+}
+
+.select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+/* Minimalistic Tabs */
+.minimalTabs {
+  display: flex;
+  background: var(--bg-color);
+  border-radius: 8px;
+  padding: 0.25rem;
+  margin: 0 1rem 1rem;
+  border: 1px solid var(--border-color);
+}
+
+.minimalTab {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex: 1;
+  justify-content: center;
+  min-height: 40px;
+}
+
+.minimalTab:hover {
+  background: var(--bg-hover);
+  color: var(--text-color);
+}
+
+.minimalTabActive {
+  background: var(--primary-color);
+  color: white;
+}
+
+.tabIcon {
+  font-size: 1.1rem;
+}
+
+.tabLabel {
+  font-weight: 500;
+}
+
+/* Content Area */
+.content {
+  animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* Overview Section */
+.overviewSection {
   padding: 0 1rem;
 }
 
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
 .statCard {
-  background-color: var(--bg-secondary);
+  background: var(--card-bg);
   border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
-  padding: 1.5rem;
-  text-align: center;
-  box-shadow: var(--shadow);
-  transition: var(--transition);
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: all 0.2s ease;
 }
 
-.statCard:hover {
-  box-shadow: var(--shadow-hover);
+.statIcon {
+  font-size: 1.5rem;
+  opacity: 0.8;
+  color: var(--text-secondary);
 }
 
-.statCard h3 {
-  margin: 0 0 0.5rem 0;
-  font-size: 0.875rem;
-  font-weight: 500;
+.statContent {
+  flex: 1;
+}
+
+.statContent h3 {
+  margin: 0 0 0.25rem 0;
+  font-size: 0.8rem;
+  font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .statValue {
-  font-size: 2rem;
+  display: block;
+  font-size: 1.5rem;
   font-weight: 700;
-  color: var(--primary-color);
+  color: var(--text-color);
+  margin-bottom: 0.25rem;
 }
 
-.charts {
+.statChange {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--success-color, #28a745);
+}
+
+/* Chart Grid */
+.chartGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-  gap: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 1rem;
   padding: 0 1rem;
 }
 
-.chartSection {
-  background-color: var(--bg-secondary);
+.chartCard {
+  background: var(--card-bg);
   border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
-  padding: 1.5rem;
-  box-shadow: var(--shadow);
-  transition: var(--transition);
+  border-radius: 8px;
+  padding: 0.5rem;
+  transition: all 0.2s ease;
 }
 
-.chartSection:hover {
-  box-shadow: var(--shadow-hover);
+.chartCard:hover {
+  border-color: var(--primary-color);
 }
 
-.chartSection h2 {
-  margin: 0 0 1.5rem 0;
+.chartCard h3 {
+  margin: 0 0 0.5rem 0;
   color: var(--text-color);
-  font-size: 1.25rem;
+  font-size: 1rem;
   font-weight: 600;
+  text-align: center;
 }
 
-/* Responsive design */
-@media (max-width: 768px) {
+.chartContainer {
+  height: 280px;
+  position: relative;
+  margin: 0 auto;
+  max-width: 100%;
+}
+
+/* Performance Section */
+.performanceSection {
+  padding: 0 1rem;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
   .analytics {
-    padding: 1rem 0;
+    padding: 1.5rem 0;
   }
 
   .header {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
+    align-items: stretch;
+    gap: 1.5rem;
     padding: 0 0.5rem;
   }
 
-  .header h1 {
-    font-size: 1.5rem;
+  .headerContent h1 {
+    font-size: 2rem;
+  }
+
+  .headerSubtitle {
+    font-size: 1rem;
   }
 
   .filters {
-    width: 100%;
-    justify-content: space-between;
-    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
   }
 
-  .stats {
-    grid-template-columns: repeat(2, 1fr);
+  .filterGroup {
+    min-width: 120px;
+  }
+
+  .tabs {
+    margin: 0 0.5rem 1.5rem;
+    padding: 0.25rem;
+  }
+
+  .tab {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .statsGrid {
+    grid-template-columns: repeat(3, 1fr);
     padding: 0 0.5rem;
-    gap: 0.75rem;
+    gap: 1rem;
+    margin-bottom: 2rem;
   }
 
   .statCard {
-    padding: 1rem;
+    padding: 1.5rem;
+    gap: 1rem;
+  }
+
+  .statIcon {
+    font-size: 2rem;
   }
 
   .statValue {
-    font-size: 1.5rem;
+    font-size: 2rem;
   }
 
-  .charts {
+  .chartGrid {
     grid-template-columns: 1fr;
     padding: 0 0.5rem;
     gap: 1.5rem;
   }
 
-  .chartSection {
-    padding: 1rem;
+  .chartContainer {
+    height: 350px;
   }
 }
 
-@media (max-width: 480px) {
-  .header h1 {
-    font-size: 1.25rem;
+@media (max-width: 768px) {
+  .analytics {
+    padding: 1rem 0;
   }
 
-  .stats {
-    grid-template-columns: 1fr;
+  .headerContent h1 {
+    font-size: 1.75rem;
+  }
+
+  .filters {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
   }
 
   .filterGroup {
+    min-width: unset;
     width: 100%;
   }
 
   .select {
     width: 100%;
+    min-width: unset;
+  }
+
+  .tabs {
+    flex-direction: column;
+    margin: 0 0.25rem 1rem;
+  }
+
+  .tab {
+    justify-content: flex-start;
+    padding: 1rem;
+  }
+
+  .statsGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .statCard {
+    padding: 1.25rem;
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+
+  .chartContainer {
+    height: 300px;
   }
 }
 
-/* Loading styles */
+@media (max-width: 480px) {
+  .headerContent h1 {
+    font-size: 1.5rem;
+  }
+
+  .headerSubtitle {
+    font-size: 0.95rem;
+  }
+
+  .statValue {
+    font-size: 1.75rem;
+  }
+
+  .chartContainer {
+    height: 250px;
+  }
+}
+
+/* Loading Styles */
 .loading {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 4rem 2rem;
+  padding: 6rem 2rem;
   text-align: center;
+  background: var(--bg-secondary);
+  border-radius: 16px;
+  margin: 2rem 1rem;
+  border: 1px solid var(--border-color);
 }
 
 .spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid var(--border-color);
-  border-top: 3px solid var(--primary-color);
+  width: 50px;
+  height: 50px;
+  border: 4px solid var(--border-color);
+  border-top: 4px solid var(--primary-color);
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 .loading p {
   color: var(--text-secondary);
-  font-size: 1rem;
+  font-size: 1.1rem;
+  font-weight: 500;
   margin: 0;
 }
 

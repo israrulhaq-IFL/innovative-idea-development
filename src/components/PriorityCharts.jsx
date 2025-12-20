@@ -104,6 +104,7 @@ const PriorityCharts = ({
           padding: 12,
           usePointStyle: true,
           font: { size: 12 },
+          color: 'var(--chart-text)',
         },
       } : { display: false },
       title: {
@@ -114,6 +115,7 @@ const PriorityCharts = ({
           weight: 'bold',
         },
         padding: { top: 10, bottom: 10 },
+        color: 'var(--chart-text)',
       },
       tooltip: {
         callbacks: {
@@ -124,17 +126,52 @@ const PriorityCharts = ({
             return `${context.label}: ${value} (${percentage}%)`;
           },
         },
+        backgroundColor: 'var(--card-bg)',
+        titleColor: 'var(--chart-text)',
+        bodyColor: 'var(--chart-text)',
+        borderColor: 'var(--border-color)',
+        borderWidth: 1,
       },
     },
     scales: chartType === 'bar' ? {
       x: horizontal ? {
         beginAtZero: true,
-        ticks: { stepSize: 1 },
-        grid: { display: false },
-      } : undefined,
-      y: horizontal ? undefined : {
+        ticks: {
+          stepSize: 1,
+          color: 'var(--chart-text)',
+          font: { size: 11 },
+        },
+        grid: {
+          color: 'var(--border-color)',
+          display: false
+        },
+      } : {
+        ticks: {
+          color: 'var(--chart-text)',
+          font: { size: 11 },
+        },
+        grid: {
+          color: 'var(--border-color)',
+        },
+      },
+      y: horizontal ? {
+        ticks: {
+          color: 'var(--chart-text)',
+          font: { size: 11 },
+        },
+        grid: {
+          color: 'var(--border-color)',
+        },
+      } : {
         beginAtZero: true,
-        ticks: { stepSize: 1 },
+        ticks: {
+          stepSize: 1,
+          color: 'var(--chart-text)',
+          font: { size: 11 },
+        },
+        grid: {
+          color: 'var(--border-color)',
+        },
       },
     } : undefined,
   };
@@ -167,6 +204,25 @@ const PriorityCharts = ({
       <div className={styles.chartWrapper}>
         {renderChart()}
       </div>
+      {compact && (
+        <div className={styles.compactStats}>
+          {labels.slice(0, 3).map((label, index) => (
+            <div key={label} className={styles.compactStat}>
+              <span
+                className={styles.compactStatColor}
+                style={{ backgroundColor: backgroundColors[index] }}
+              ></span>
+              <span className={styles.compactStatLabel}>{label}</span>
+              <span className={styles.compactStatValue}>{data[index]}</span>
+            </div>
+          ))}
+          {labels.length > 3 && (
+            <div className={styles.compactStat}>
+              <span className={styles.compactStatLabel}>+{labels.length - 3} more</span>
+            </div>
+          )}
+        </div>
+      )}
       {showLegend && !compact && (
         <div className={styles.priorityLegend}>
           {labels.map((priority, index) => (

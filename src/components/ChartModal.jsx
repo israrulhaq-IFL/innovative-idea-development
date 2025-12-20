@@ -2,8 +2,6 @@ import React from 'react';
 import styles from './ChartModal.module.css';
 
 const ChartModal = ({ isOpen, onClose, title, children }) => {
-  if (!isOpen) return null;
-
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget) {
       onClose();
@@ -31,7 +29,9 @@ const ChartModal = ({ isOpen, onClose, title, children }) => {
       document.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = previousOverflow;
     };
-  }, [isOpen]);
+  }, [isOpen, handleKeyDown]);
+
+  if (!isOpen) return null;
 
   return (
     <div className={styles.modal} onClick={handleBackdropClick}>

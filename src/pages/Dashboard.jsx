@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { useSharePoint } from '../context/SharePointContext'
 import { FiMaximize, FiMinimize, FiChevronRight, FiChevronLeft } from 'react-icons/fi'
@@ -220,6 +220,14 @@ const Dashboard = () => {
 
   const [departmentPage, setDepartmentPage] = useState(0) // 0 for first 2, 1 for last 2 departments
   const [isExpanded, setIsExpanded] = useState(false)
+  const [screenWidth, setScreenWidth] = useState(window.innerWidth)
+
+  // Track screen width for responsive grid calculations
+  useEffect(() => {
+    const handleResize = () => setScreenWidth(window.innerWidth)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   const visibleDepartmentIds = useMemo(() => {
     if (!permissions) return []
@@ -337,6 +345,19 @@ const Dashboard = () => {
     return permissions.canEditDepartments?.includes(drill.departmentId)
   }, [permissions, drill.departmentId])
 
+  // Calculate grid columns based on screen width and department count
+  const getGridTemplateColumns = (departmentCount) => {
+    if (screenWidth <= 900) {
+      return '1fr' // Single column on very small screens
+    } else if (screenWidth <= 1200) {
+      // Auto-fit with minimum width on medium screens
+      return `repeat(auto-fit, minmax(320px, 1fr))`
+    } else {
+      // Dynamic columns based on department count on large screens
+      return `repeat(${departmentCount}, 1fr)`
+    }
+  }
+
   const openDrill = (departmentId, filterType, filterValue = null) => {
     // Open split view immediately
     setDrill({ open: true, closing: false, departmentId, filterType, filterValue });
@@ -423,7 +444,12 @@ const Dashboard = () => {
 
             {/* Department headers - outside scroll area */}
             {(drill.open && !drill.closing) && (
-              <div className={`${styles.departmentsHeadersSplit} ${isExpanded ? styles.departmentsHeadersExpanded : ''}`}>
+              <div 
+                className={`${styles.departmentsHeadersSplit} ${isExpanded ? styles.departmentsHeadersExpanded : ''}`}
+                style={{
+                  gridTemplateColumns: getGridTemplateColumns(displayedDepartments.length)
+                }}
+              >
                 {/* DEBUG: Headers should be hidden when expanded */}
                 {displayedDepartments.map((d) => {
                   const canEdit = permissions?.canEditDepartments?.includes(d.id)
@@ -455,7 +481,7 @@ const Dashboard = () => {
               <div 
                 className={styles.departmentsGridNormal}
                 style={{
-                  gridTemplateColumns: `repeat(${displayedDepartments.length}, 1fr)`
+                  gridTemplateColumns: getGridTemplateColumns(displayedDepartments.length)
                 }}
               >
                 {displayedDepartments.map((d) => {
