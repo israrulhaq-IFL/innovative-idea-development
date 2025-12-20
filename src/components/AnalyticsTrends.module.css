@@ -264,12 +264,12 @@
   }
 
   .chartContainer {
-    height: 200px;
+    height: 250px;
   }
 }
 
 .chartContainer {
-  height: 300px;
+  height: 350px;
   position: relative;
 }
 

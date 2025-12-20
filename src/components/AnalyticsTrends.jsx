@@ -53,8 +53,10 @@ const AnalyticsTrends = ({
               tasks={tasks}
               chartType="line"
               title=""
+              compact={true}
               showTitle={false}
-              showLegend={true}
+              showLegend={false}
+              showStats={false}
             />
           </div>
           <div className={styles.chartInsight}>
@@ -69,8 +71,9 @@ const AnalyticsTrends = ({
               tasks={tasks}
               chartType="line"
               title=""
+              compact={true}
               showTitle={false}
-              showLegend={true}
+              showLegend={false}
             />
           </div>
           <div className={styles.chartInsight}>
