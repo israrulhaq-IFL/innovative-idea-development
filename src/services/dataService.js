@@ -180,9 +180,8 @@ const getDataService = () => {
   return _dataService;
 };
 
-// For backward compatibility, export the singleton
-const dataService = getDataService();
-export default dataService;
+// Export the getter function as default
+export default getDataService;
 
 // Export class for testing purposes
-export { DataService, getDataService };
+export { DataService };

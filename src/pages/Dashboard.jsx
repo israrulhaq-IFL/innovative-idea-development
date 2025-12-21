@@ -143,7 +143,7 @@ const ExpandedTaskView = ({ tasks, subtitle }) => {
   )
 }
 
-const DEPARTMENTS = dataService.getDepartments().map(dept => ({
+const DEPARTMENTS = dataService().getDepartments().map(dept => ({
   id: dept.id,
   label: dept.name.split(' ')[0], // Take first word as label (DCI, ERP, etc.)
   subtitle: dept.name,

@@ -83,7 +83,7 @@ export const SharePointProvider = ({ children }) => {
   const loadTasks = useCallback(async (departmentFilter = null, departmentId = null) => {
     try {
       // Determine which departments this user can access
-      const allDepartments = dataService.getDepartments();
+      const allDepartments = dataService().getDepartments();
       const allowedDepartments = permissions.canViewAll
         ? allDepartments
         : (permissions.allowedDepartments && permissions.allowedDepartments.length > 0)
@@ -109,7 +109,7 @@ export const SharePointProvider = ({ children }) => {
       const allTasks = [];
       for (const dept of departmentsToFetch) {
         try {
-          const deptTasks = await dataService.getTasks(dept.id);
+          const deptTasks = await dataService().getTasks(dept.id);
           allTasks.push(...deptTasks);
         } catch (error) {
           console.error(`Failed to fetch tasks for department ${dept.id}:`, error);
@@ -141,19 +141,19 @@ export const SharePointProvider = ({ children }) => {
       setError(null);
 
       // Get current user
-      const userInfo = await dataService.getCurrentUser();
+      const userInfo = await dataService().getCurrentUser();
       setUser(userInfo);
 
       // Get site groups
-      const groups = await dataService.getSiteGroups();
+      const groups = await dataService().getSiteGroups();
       setSiteGroups(groups);
 
       // Get current user's group memberships
-      const currentUserGroups = await dataService.getCurrentUserGroups();
+      const currentUserGroups = await dataService().getCurrentUserGroups();
       setUserGroups(currentUserGroups);
 
       // Load departments based on permissions
-      const availableDepartments = await dataService.getDepartments();
+      const availableDepartments = await dataService().getDepartments();
       setDepartments(availableDepartments);
 
       // Load initial tasks
@@ -212,7 +212,7 @@ export const SharePointProvider = ({ children }) => {
         throw new Error('You do not have permission to edit tasks for this department.');
       }
 
-      await dataService.updateTaskStatus(taskId, newStatus, effectiveDepartmentId)
+      await dataService().updateTaskStatus(taskId, newStatus, effectiveDepartmentId)
       // Refresh tasks after update
       await loadTasks(null, effectiveDepartmentId)
     } catch (err) {
