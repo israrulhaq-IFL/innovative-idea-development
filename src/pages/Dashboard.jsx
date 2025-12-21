@@ -8,6 +8,7 @@ import ExecutiveDashboardControls from '../components/ExecutiveDashboardControls
 import TaskDrilldownPanel from '../components/TaskDrilldownPanel'
 import AssigneeAvatars from '../components/AssigneeAvatars'
 import DashboardSkeleton from '../components/DashboardSkeleton'
+import dataService from '../services/dataService'
 import styles from './Dashboard.module.css'
 
 // Utility function to strip HTML tags and clean up text
@@ -142,32 +143,12 @@ const ExpandedTaskView = ({ tasks, subtitle }) => {
   )
 }
 
-const DEPARTMENTS = [
-  {
-    id: 'infra',
-    label: 'DCI',
-    subtitle: 'Data Center & Cloud Infrastructure',
-    listName: 'si_tasklist',
-  },
-  {
-    id: 'erp',
-    label: 'ERP',
-    subtitle: 'ERP & Software Development',
-    listName: 'erp_tasklist',
-  },
-  {
-    id: 'ops',
-    label: 'Operations',
-    subtitle: 'ITG Operations',
-    listName: 'ops_tasklist',
-  },
-  {
-    id: 'network',
-    label: 'Networks',
-    subtitle: 'Networks & Security',
-    listName: 'networks_tasklist',
-  },
-]
+const DEPARTMENTS = dataService.getDepartments().map(dept => ({
+  id: dept.id,
+  label: dept.name.split(' ')[0], // Take first word as label (DCI, ERP, etc.)
+  subtitle: dept.name,
+  listName: dept.listName
+}));
 
 const applyTimeRange = (tasks, timeRange) => {
   if (timeRange === 'all') return tasks

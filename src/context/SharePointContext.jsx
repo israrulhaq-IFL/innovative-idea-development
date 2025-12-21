@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
-import sharePointService from '../services/sharePointService';
+import dataService from '../services/dataService';
 import useUserPermissions from '../hooks/useUserPermissions';
 
 const SharePointContext = createContext()
@@ -82,14 +82,49 @@ export const SharePointProvider = ({ children }) => {
   // Load tasks based on current permissions
   const loadTasks = useCallback(async (departmentFilter = null, departmentId = null) => {
     try {
-      const taskData = await sharePointService.getTasks(permissions, departmentFilter, departmentId)
-      setTasks(taskData)
-      setAnalytics(computeAnalyticsFromTasks(taskData))
+      // Determine which departments this user can access
+      const allDepartments = dataService.getDepartments();
+      const allowedDepartments = permissions.canViewAll
+        ? allDepartments
+        : (permissions.allowedDepartments && permissions.allowedDepartments.length > 0)
+            ? allDepartments.filter(d => permissions.allowedDepartments.includes(d.id))
+            : [allDepartments[0]]; // Default to first department
+
+      const requestedDepartmentId = departmentId || departmentFilter;
+      if (requestedDepartmentId && !allowedDepartments.find(d => d.id === requestedDepartmentId)) {
+        console.log(`🚫 User does not have access to department: ${requestedDepartmentId}`);
+        setTasks([]);
+        setAnalytics(computeAnalyticsFromTasks([]));
+        return;
+      }
+
+      // If a specific department is requested, fetch only that one; otherwise fetch all allowed.
+      const departmentsToFetch = requestedDepartmentId
+        ? [allowedDepartments.find(d => d.id === requestedDepartmentId)]
+        : allowedDepartments;
+
+      console.log('🔍 Fetching tasks for departments:', departmentsToFetch.map(d => d.id));
+
+      // Fetch tasks for all allowed departments
+      const allTasks = [];
+      for (const dept of departmentsToFetch) {
+        try {
+          const deptTasks = await dataService.getTasks(dept.id);
+          allTasks.push(...deptTasks);
+        } catch (error) {
+          console.error(`Failed to fetch tasks for department ${dept.id}:`, error);
+        }
+      }
+
+      setTasks(allTasks);
+      setAnalytics(computeAnalyticsFromTasks(allTasks));
     } catch (err) {
-      console.error('Failed to load tasks:', err)
-      setError('Failed to load tasks')
+      console.error('Failed to load tasks:', err);
+      setError('Failed to load tasks');
+      setTasks([]);
+      setAnalytics(computeAnalyticsFromTasks([]));
     }
-  }, [permissions, computeAnalyticsFromTasks])
+  }, [permissions, computeAnalyticsFromTasks]);
 
   // Initialize SharePoint connection
   const initializeSharePoint = useCallback(async () => {
@@ -106,24 +141,23 @@ export const SharePointProvider = ({ children }) => {
       setError(null);
 
       // Get current user
-      const userInfo = await sharePointService.getCurrentUser();
+      const userInfo = await dataService.getCurrentUser();
       setUser(userInfo);
 
       // Get site groups
-      const groups = await sharePointService.getSiteGroups();
+      const groups = await dataService.getSiteGroups();
       setSiteGroups(groups);
 
       // Get current user's group memberships
-      const currentUserGroups = await sharePointService.getCurrentUserGroups();
+      const currentUserGroups = await dataService.getCurrentUserGroups();
       setUserGroups(currentUserGroups);
 
       // Load departments based on permissions
-      const availableDepartments = await sharePointService.getDepartments(permissions);
+      const availableDepartments = await dataService.getDepartments();
       setDepartments(availableDepartments);
 
       // Load initial tasks
-      const taskData = await sharePointService.getTasks(permissions);
-      setTasks(taskData);
+      await loadTasks();
       setAnalytics(computeAnalyticsFromTasks(taskData));
 
       setInitialized(true);
@@ -144,9 +178,7 @@ export const SharePointProvider = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
-      const taskData = await sharePointService.getTasks(permissions);
-      setTasks(taskData);
-      setAnalytics(computeAnalyticsFromTasks(taskData));
+      await loadTasks();
       showToast('Dashboard data updated successfully', 'success');
     } catch (err) {
       console.error('Failed to refresh tasks:', err)
@@ -160,14 +192,12 @@ export const SharePointProvider = ({ children }) => {
   // Filter tasks by department
   const filterTasksByDepartment = useCallback(async (departmentId) => {
     try {
-      const taskData = await sharePointService.getTasks(permissions, null, departmentId)
-      setTasks(taskData)
-      setAnalytics(computeAnalyticsFromTasks(taskData));
+      await loadTasks(null, departmentId);
     } catch (err) {
-      console.error('Failed to filter tasks by department:', err)
-      setError('Failed to filter tasks')
+      console.error('Failed to filter tasks by department:', err);
+      setError('Failed to filter tasks');
     }
-  }, [permissions, computeAnalyticsFromTasks])
+  }, [loadTasks]);
 
   // Update task status
   const updateTaskStatus = useCallback(async (taskId, newStatus, departmentId = null) => {
@@ -182,11 +212,9 @@ export const SharePointProvider = ({ children }) => {
         throw new Error('You do not have permission to edit tasks for this department.');
       }
 
-      await sharePointService.updateTaskStatus(taskId, newStatus, effectiveDepartmentId)
+      await dataService.updateTaskStatus(taskId, newStatus, effectiveDepartmentId)
       // Refresh tasks after update
-      const taskData = await sharePointService.getTasks(permissions, null, effectiveDepartmentId)
-      setTasks(taskData)
-      setAnalytics(computeAnalyticsFromTasks(taskData));
+      await loadTasks(null, effectiveDepartmentId)
     } catch (err) {
       console.error('Failed to update task status:', err)
       throw err

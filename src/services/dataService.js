@@ -1,11 +1,8 @@
 // Abstract data service layer for deployment flexibility
 // This provides a unified interface regardless of backend (SharePoint or REST API)
 
-import { CONFIG, validateConfig } from '../config/environment.js';
-import SharePointService from '../services/sharePointService.js';
-
-// Validate configuration on import
-validateConfig();
+import { CONFIG } from '../config/environment.js';
+import SharePointService from './sharePointService.js';
 
 class DataService {
   constructor() {
@@ -67,6 +64,15 @@ class DataService {
       return await this.service.updateTask(taskId, updates, departmentId);
     } catch (error) {
       console.error(`Failed to update task ${taskId}:`, error);
+      throw error;
+    }
+  }
+
+  async updateTaskStatus(taskId, newStatus, departmentId = CONFIG.APP.DEFAULT_DEPARTMENT) {
+    try {
+      return await this.service.updateTaskStatus(taskId, newStatus, departmentId);
+    } catch (error) {
+      console.error(`Failed to update task ${taskId} status:`, error);
       throw error;
     }
   }
@@ -145,8 +151,22 @@ class DataService {
     return CONFIG.DEPLOYMENT.API_URL;
   }
 
-  getSiteUrl() {
-    return CONFIG.SHAREPOINT.SITE_URL;
+  async getSiteGroups() {
+    try {
+      return await this.service.getSiteGroups();
+    } catch (error) {
+      console.error('Failed to get site groups:', error);
+      return [];
+    }
+  }
+
+  async getCurrentUserGroups() {
+    try {
+      return await this.service.getCurrentUserGroups();
+    } catch (error) {
+      console.error('Failed to get current user groups:', error);
+      return [];
+    }
   }
 }
 
