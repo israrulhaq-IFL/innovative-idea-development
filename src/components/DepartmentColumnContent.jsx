@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react'
-import StatusCharts from './StatusCharts'
-import PriorityCharts from './PriorityCharts'
+import { LazyStatusCharts, LazyPriorityCharts } from './LazyCharts'
 import AssigneeWorkload from './AssigneeWorkload'
 import DelayedTasksList from './DelayedTasksList'
 import styles from './DepartmentColumn.module.css'
@@ -157,7 +156,7 @@ const DepartmentColumnContent = ({
       <div className={styles.card}>
         <div className={styles.cardTitle}>Status</div>
         <div className={styles.chartArea}>
-          <StatusCharts
+          <LazyStatusCharts
             tasks={tasks}
             chartType="doughnut"
             compact={true}
@@ -172,7 +171,7 @@ const DepartmentColumnContent = ({
       <div className={styles.card}>
         <div className={styles.cardTitle}>Priority</div>
         <div className={styles.chartArea}>
-          <PriorityCharts
+          <LazyPriorityCharts
             tasks={tasks}
             chartType="doughnut"
             compact={true}

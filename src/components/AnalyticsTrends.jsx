@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
 import { FiTrendingUp, FiTarget, FiClock } from 'react-icons/fi';
-import StatusCharts from './StatusCharts';
-import PriorityCharts from './PriorityCharts';
+import { LazyStatusCharts, LazyPriorityCharts } from './LazyCharts';
 import styles from './AnalyticsTrends.module.css';
 
 const AnalyticsTrends = ({
@@ -49,7 +48,7 @@ const AnalyticsTrends = ({
         <div className={styles.chartCard}>
           <h3>Task Completion Trend</h3>
           <div className={styles.chartContainer}>
-            <StatusCharts
+            <LazyStatusCharts
               tasks={tasks}
               chartType="line"
               title=""
@@ -64,7 +63,7 @@ const AnalyticsTrends = ({
         <div className={styles.chartCard}>
           <h3>Priority Distribution Trend</h3>
           <div className={styles.chartContainer}>
-            <PriorityCharts
+            <LazyPriorityCharts
               tasks={tasks}
               chartType="line"
               title=""

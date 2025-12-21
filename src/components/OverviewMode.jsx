@@ -1,6 +1,6 @@
 import React from 'react';
 import KPISection from './KPISection';
-import StatusCharts from './StatusCharts';
+import { LazyStatusCharts } from './LazyCharts';
 import DelayedTasks from './DelayedTasks';
 import styles from './OverviewMode.module.css';
 
@@ -81,7 +81,7 @@ const OverviewMode = ({ tasks, analytics, filters }) => {
 
       <div className={styles.chartsSection}>
         <div className={styles.chartCard}>
-          <StatusCharts tasks={tasks} chartType="doughnut" />
+          <LazyStatusCharts tasks={tasks} chartType="doughnut" />
         </div>
       </div>
 
