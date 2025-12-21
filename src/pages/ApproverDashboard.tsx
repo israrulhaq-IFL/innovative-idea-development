@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { motion, AnimatePresence, PanInfo, useMotionValue, useTransform } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle, XCircle, Eye, Download, User, Calendar, FileText, Paperclip } from "lucide-react";
 import { useIdeaData } from "../contexts/DataContext";
 import { useUser } from "../contexts/UserContext";
@@ -27,10 +27,7 @@ const ApproverDashboard: React.FC = () => {
   const [selectedIdea, setSelectedIdea] = useState<Idea | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const [pendingAction, setPendingAction] = useState<{idea: Idea, action: 'approve' | 'reject'} | null>(null);
-
-  // Motion values for drag tilting
-  const dragX = useMotionValue(0);
-  const dragRotate = useTransform(dragX, [-300, 300], [-15, 15]);
+  const [animatingCard, setAnimatingCard] = useState<string | null>(null);
 
   // Filter and sort pending ideas by creation date (FIFO - oldest first)
   const pendingIdeas = useMemo(() => {
@@ -58,29 +55,9 @@ const ApproverDashboard: React.FC = () => {
       }));
   }, [data?.ideas]);
 
-  const handleDragStart = (idea: Idea) => {
-    console.log('Drag started for idea:', idea.id);
-  };
-
-  const handleDragEnd = async (idea: Idea, event: any, info: PanInfo) => {
-    console.log('Drag ended for idea:', idea.id, 'Offset:', info.offset, 'Point:', info.point);
-
-    const { offset } = info;
-    const swipeThreshold = 40; // Reduced threshold for easier triggering
-
-    console.log('Swipe check - offset.x:', offset.x, 'threshold:', swipeThreshold, 'abs(offset.x) > threshold:', Math.abs(offset.x) > swipeThreshold);
-
-    if (Math.abs(offset.x) > swipeThreshold) {
-      if (offset.x > 0) {
-        console.log('Swiping right - Approving idea:', idea.id);
-        setPendingAction({ idea, action: 'approve' });
-      } else {
-        console.log('Swiping left - Rejecting idea:', idea.id);
-        setPendingAction({ idea, action: 'reject' });
-      }
-    } else {
-      console.log('Swipe not far enough');
-    }
+  const handleCardAction = async (idea: Idea, action: 'approve' | 'reject') => {
+    // Show modal immediately without animation
+    setPendingAction({ idea, action });
   };
 
   const handleExpand = (idea: Idea) => {
@@ -113,8 +90,16 @@ const ApproverDashboard: React.FC = () => {
   const handleConfirmAction = async () => {
     if (!pendingAction || !updateIdeaStatus) return;
     const { idea, action } = pendingAction;
-    await updateIdeaStatus(parseInt(idea.id), action === 'approve' ? "Approved" : "Rejected");
-    setPendingAction(null);
+    
+    // Start animation
+    setAnimatingCard(idea.id);
+    
+    // Wait for animation to complete before updating status
+    setTimeout(async () => {
+      await updateIdeaStatus(parseInt(idea.id), action === 'approve' ? "Approved" : "Rejected");
+      setPendingAction(null);
+      setAnimatingCard(null);
+    }, 600); // Match animation duration
   };
 
   const handleCancelAction = () => {
@@ -179,27 +164,42 @@ const ApproverDashboard: React.FC = () => {
         ) : (
           <motion.div className={styles.cardStack} layout>
             {pendingIdeas.map((idea, index) => (
-              <motion.div
-                key={idea.id}
-                className={styles.ideaCard}
-                style={{
-                  x: index === 0 ? dragX : 0,
-                  rotate: index === 0 ? dragRotate : index * 0.5,
-                  zIndex: pendingIdeas.length - index,
-                }}
-                drag={index === 0 ? "x" : false}
-                dragConstraints={index === 0 ? { left: -300, right: 300 } : false}
-                onDragStart={() => handleDragStart(idea)}
-                onDragEnd={(event, info) => handleDragEnd(idea, event, info)}
-                whileHover={index === 0 ? { scale: 1.02 } : {}}
-                whileDrag={index === 0 ? { scale: 1.05 } : {}}
-                dragElastic={index === 0 ? 0.2 : 0}
-                dragTransition={index === 0 ? { bounceStiffness: 300, bounceDamping: 30 } : {}}
-                initial={{ opacity: 0, y: 50 + index * 8 }}
-                animate={{ opacity: 1, y: index * 8 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                layout={false}
-              >
+              <div key={`button-container-${idea.id}`} className={styles.cardContainer}>
+                {/* Left side reject button */}
+                {index === 0 && (
+                  <button
+                    className={`${styles.sideButton} ${styles.rejectButton}`}
+                    onClick={() => handleCardAction(idea, 'reject')}
+                    disabled={animatingCard !== null}
+                  >
+                    <XCircle size={24} />
+                    <span>Reject</span>
+                  </button>
+                )}
+
+                <motion.div
+                  className={styles.ideaCard}
+                  style={{
+                    zIndex: pendingIdeas.length - index,
+                  }}
+                  initial={{ opacity: 0, y: 50 + index * 8, rotate: 0 }}
+                  animate={
+                    animatingCard === idea.id && pendingAction?.idea.id === idea.id
+                      ? pendingAction.action === 'approve'
+                        ? { opacity: 0, x: 400, rotate: 20, scale: 0.8 }
+                        : { opacity: 0, x: -400, rotate: -20, scale: 0.8 }
+                      : {
+                          opacity: 1,
+                          y: index * 8,
+                          rotate: index === 0 ? 0 : index * 0.5,
+                          x: 0,
+                          scale: 1
+                        }
+                  }
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  layout={false}
+                >
+
                 <div className={styles.cardHeader}>
                   <div className={styles.cardMeta}>
                     <div className={styles.creator}>
@@ -215,6 +215,7 @@ const ApproverDashboard: React.FC = () => {
                     className={styles.expandButton}
                     onClick={() => handleExpand(idea)}
                     title="View Details"
+                    disabled={animatingCard !== null}
                   >
                     <Eye size={16} />
                   </button>
@@ -231,7 +232,7 @@ const ApproverDashboard: React.FC = () => {
 
                   <div className={styles.cardTags}>
                     <span className={`${styles.tag} ${styles.category}`}>{idea.category}</span>
-                    <span className={`${styles.tag} ${styles.priority} ${styles[`priority${idea.priority}`]}`}>
+                    <span className={`${styles.tag} ${styles.priority} ${idea.priority === 'Critical' ? styles.priorityCritical : idea.priority === 'High' ? styles.priorityHigh : idea.priority === 'Medium' ? styles.priorityMedium : styles.priorityLow}`}>
                       {idea.priority}
                     </span>
                   </div>
@@ -243,18 +244,20 @@ const ApproverDashboard: React.FC = () => {
                     </div>
                   )}
                 </div>
+              </motion.div>
 
-                <div className={styles.swipeIndicators} style={{ marginTop: '20px' }}>
-                  <div className={styles.rejectIndicator}>
-                    <XCircle size={24} />
-                    <span>Reject</span>
-                  </div>
-                  <div className={styles.approveIndicator}>
+                {/* Right side approve button */}
+                {index === 0 && (
+                  <button
+                    className={`${styles.sideButton} ${styles.approveButton}`}
+                    onClick={() => handleCardAction(idea, 'approve')}
+                    disabled={animatingCard !== null}
+                  >
                     <CheckCircle size={24} />
                     <span>Approve</span>
-                  </div>
-                </div>
-              </motion.div>
+                  </button>
+                )}
+              </div>
             ))}
           </motion.div>
         )}
@@ -330,11 +333,10 @@ const ApproverDashboard: React.FC = () => {
                 )}
               </div>
 
-              <div className={styles.modalActions}>
+              <div className={styles.modalActions} style={{ display: 'flex', gap: '20px', justifyContent: 'center' }}>
                 <button
                   className={`${styles.actionButton} ${styles.reject}`}
                   onClick={handleReject}
-                  style={{ marginRight: '20px' }}
                 >
                   <XCircle size={18} />
                   Reject
@@ -370,18 +372,17 @@ const ApproverDashboard: React.FC = () => {
               onClick={(e) => e.stopPropagation()}
             >
               <div className={styles.confirmationHeader}>
-                <h3>Confirm {pendingAction.action === 'approve' ? 'Approval' : 'Rejection'}</h3>
+                <h3 style={{ color: '#ffffffff', fontWeight: '600' }}>Confirm {pendingAction.action === 'approve' ? 'Approval' : 'Rejection'}</h3>
               </div>
               <div className={styles.confirmationBody}>
-                <p>Are you sure you want to <strong>{pendingAction.action}</strong> the idea:</p>
-                <h4>{pendingAction.idea.title}</h4>
-                <p>{pendingAction.idea.description.length > 150 ? `${pendingAction.idea.description.substring(0, 150)}...` : pendingAction.idea.description}</p>
+                <p style={{ color: '#f0f0f0ff', fontWeight: '500' }}>Are you sure you want to <strong style={{ color: 'hsla(120, 72%, 70%, 1.00)', fontWeight: '600' }}>{pendingAction.action}</strong> the idea:</p>
+                <h4 style={{ color: '#ffffffff', fontWeight: '600' }}>{pendingAction.idea.title}</h4>
+                <p style={{ color: '#ffffffff', fontWeight: '400' }}>{pendingAction.idea.description.length > 150 ? `${pendingAction.idea.description.substring(0, 150)}...` : pendingAction.idea.description}</p>
               </div>
-              <div className={styles.confirmationActions}>
+              <div className={styles.confirmationActions} style={{ display: 'flex', gap: '20px', justifyContent: 'center' }}>
                 <button
                   className={`${styles.actionButton} ${styles.cancel}`}
                   onClick={handleCancelAction}
-                  style={{ marginRight: '20px' }}
                 >
                   Cancel
                 </button>
