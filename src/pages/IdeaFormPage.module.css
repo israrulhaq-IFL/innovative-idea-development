@@ -1,0 +1,612 @@
+/* IdeaFormPage.module.css */
+.container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #eff6ff 0%, #ffffff 50%, #faf5ff 100%);
+  padding: 1rem 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .container {
+    padding: 1.5rem 2.5rem;
+  }
+}
+
+.content {
+  max-width: 80rem;
+  margin: 0 auto;
+}
+
+.header {
+  margin-bottom: 2rem;
+}
+
+.backButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #6b7280;
+  margin-bottom: 1.5rem;
+  transition: color 0.2s;
+  font-weight: 500;
+}
+
+.backButton:hover {
+  color: #111827;
+}
+
+.backButton:hover svg {
+  transform: translateX(-4px);
+}
+
+.heroSection {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.heroIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 5rem;
+  height: 5rem;
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  border-radius: 50%;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.heroTitle {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 0.75rem;
+}
+
+.heroSubtitle {
+  font-size: 1.25rem;
+  color: #6b7280;
+  max-width: 42rem;
+  margin: 0 auto;
+}
+
+.formContainer {
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  border: 1px solid #f3f4f6;
+  overflow: hidden;
+}
+
+.formHeader {
+  background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+  padding: 1.5rem;
+}
+
+.formHeader h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  margin: 0;
+}
+
+.formHeader p {
+  color: #dbeafe;
+  margin: 0.25rem 0 0 0;
+  font-size: 0.875rem;
+}
+
+.form {
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.formSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.formLabel {
+  display: block;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.required {
+  color: #dc2626;
+}
+
+.inputGroup {
+  position: relative;
+}
+
+.formInput,
+.formSelect,
+.formTextarea {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  font-size: 1.125rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.75rem;
+  transition: all 0.2s;
+  background: white;
+}
+
+.formInput:hover,
+.formSelect:hover,
+.formTextarea:hover {
+  border-color: #d1d5db;
+}
+
+.formInput:focus,
+.formSelect:focus,
+.formTextarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+.formSelect {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.75rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5rem;
+  padding-right: 3rem;
+}
+
+.formTextarea {
+  resize: none;
+  min-height: 10rem;
+}
+
+.inputError {
+  border-color: #dc2626 !important;
+  box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.1) !important;
+}
+
+.charCounter {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.formHelp {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.formHelpRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.errorMessage {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #dc2626;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+@media (min-width: 768px) {
+  .formGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.submitSection {
+  padding-top: 1.5rem;
+  border-top: 1px solid #f3f4f6;
+}
+
+.submitButton {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1.25rem 2rem;
+  background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+  color: white;
+  font-weight: 700;
+  font-size: 1.25rem;
+  border-radius: 0.75rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.submitButton:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1d4ed8 0%, #6d28d9 100%);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  transform: translateY(-2px);
+}
+
+.submitButton:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2), 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.submitButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.spinner {
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 3px solid white;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.processInfo {
+  margin-top: 2rem;
+  background: linear-gradient(135deg, #f0fdf4 0%, #eff6ff 100%);
+  border-radius: 0.75rem;
+  padding: 2rem;
+  border: 1px solid #f3f4f6;
+}
+
+.processHeader {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.processTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 0.5rem;
+}
+
+.processSubtitle {
+  color: #6b7280;
+}
+
+.processGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .processGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.processStep {
+  text-align: center;
+}
+
+.stepIcon {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 0.75rem;
+  font-size: 1.5rem;
+}
+
+.stepIcon.review {
+  background-color: #dbeafe;
+  color: #2563eb;
+}
+
+.stepIcon.implementation {
+  background-color: #dcfce7;
+  color: #16a34a;
+}
+
+.stepIcon.tracking {
+  background-color: #faf5ff;
+  color: #7c3aed;
+}
+
+.stepTitle {
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.5rem;
+}
+
+.stepDescription {
+  font-size: 0.875rem;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+/* Success Page Styles */
+.successContainer {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 50%, #eff6ff 100%);
+}
+
+.successContent {
+  max-width: 32rem;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.successIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 6rem;
+  height: 6rem;
+  background: linear-gradient(135deg, #16a34a 0%, #2563eb 100%);
+  border-radius: 50%;
+  margin-bottom: 2rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.successTitle {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 1rem;
+}
+
+.successMessage {
+  font-size: 1.25rem;
+  color: #6b7280;
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+.successCard {
+  background: white;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #f3f4f6;
+  margin-bottom: 1.5rem;
+}
+
+.successCard p:first-child {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 0.5rem;
+}
+
+.successCard p:last-child {
+  color: #374151;
+  font-weight: 500;
+}
+
+.redirectMessage {
+  font-size: 1.125rem;
+  color: #6b7280;
+}
+
+/* Attachments Styles */
+.optional {
+  color: #6b7280;
+  font-weight: normal;
+  font-size: 0.875rem;
+}
+
+.dropZone {
+  border: 2px dashed #d1d5db;
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: #fafafa;
+  position: relative;
+  overflow: hidden;
+}
+
+.dropZone::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.05), rgba(147, 51, 234, 0.05));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.dropZone:hover {
+  border-color: #3b82f6;
+  background: #f0f9ff;
+}
+
+.dropZone:hover::before {
+  opacity: 1;
+}
+
+.dropZoneActive {
+  border-color: #3b82f6;
+  background: #eff6ff;
+  transform: scale(1.02);
+}
+
+.dropZoneActive::before {
+  opacity: 1;
+}
+
+.dropZoneIcon {
+  color: #6b7280;
+  margin-bottom: 1rem;
+  transition: color 0.3s ease;
+}
+
+.dropZone:hover .dropZoneIcon,
+.dropZoneActive .dropZoneIcon {
+  color: #3b82f6;
+}
+
+.dropZoneText {
+  color: #6b7280;
+}
+
+.dropZoneTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #374151;
+}
+
+.dropZoneSubtitle {
+  font-size: 0.875rem;
+  margin: 0;
+  color: #6b7280;
+}
+
+.fileInput {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.attachmentsList {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.attachmentItem {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.attachmentItem:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-color: #3b82f6;
+}
+
+.attachmentPreview {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+
+.attachmentIcon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3f4f6;
+  border-radius: 6px;
+  color: #6b7280;
+}
+
+.attachmentInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.attachmentName {
+  font-weight: 500;
+  color: #374151;
+  margin: 0 0 0.25rem 0;
+  word-break: break-word;
+}
+
+.attachmentSize {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.removeAttachment {
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.removeAttachment:hover {
+  background: #dc2626;
+  transform: scale(1.1);
+}
+
+.removeAttachment:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Responsive adjustments for attachments */
+@media (max-width: 768px) {
+  .dropZone {
+    padding: 1.5rem 1rem;
+  }
+
+  .dropZoneTitle {
+    font-size: 1rem;
+  }
+
+  .dropZoneSubtitle {
+    font-size: 0.8rem;
+  }
+
+  .attachmentItem {
+    padding: 0.75rem;
+    gap: 0.75rem;
+  }
+
+  .attachmentPreview,
+  .attachmentIcon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .attachmentName {
+    font-size: 0.9rem;
+  }
+
+  .attachmentSize {
+    font-size: 0.8rem;
+  }
+}

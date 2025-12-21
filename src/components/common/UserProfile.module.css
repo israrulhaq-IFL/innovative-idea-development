@@ -1,0 +1,493 @@
+/* UserProfile.module.css - Minimalistic User Profile Component */
+
+.userProfile {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.userProfileButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.userProfileButton::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  transition: left 0.5s;
+}
+
+.userProfileButton:hover::before {
+  left: 100%;
+}
+
+.userProfileButton:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.userProfileButton:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.userProfileButton:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+}
+
+.userProfileAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.userProfileAvatar:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
+}
+
+.userProfileAvatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.userProfileInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  margin-right: 4px;
+}
+
+.userProfileName {
+  font-size: 13px;
+  font-weight: 500;
+  color: white;
+  line-height: 1.2;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
+}
+
+.userProfileRole {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
+}
+
+.userProfileChevron {
+  color: rgba(255, 255, 255, 0.7);
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.userProfileButton:hover .userProfileChevron {
+  color: white;
+  transform: translateY(1px);
+}
+
+.userProfileDropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  width: 280px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  z-index: 1000;
+  overflow: hidden;
+  animation: slideDown 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.userProfileHeader {
+  padding: 16px;
+  background: linear-gradient(
+    135deg,
+    rgba(0, 120, 212, 0.05),
+    rgba(0, 120, 212, 0.02)
+  );
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.userProfileHeaderContent {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.userProfileHeaderAvatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0078d4, #005a9e);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 600;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 120, 212, 0.2);
+}
+
+.userProfileHeaderAvatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.userProfileHeaderInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.userProfileHeaderName {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.userProfileHeaderEmail {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.userProfileHeaderRole {
+  font-size: 12px;
+  color: #0078d4;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.userProfileMenu {
+  padding: 8px 0;
+}
+
+.userProfileMenuItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  font-size: 14px;
+  color: #333;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+}
+
+.userProfileMenuItem:hover {
+  background: rgba(0, 120, 212, 0.05);
+  color: #0078d4;
+}
+
+.userProfileMenuItem:focus {
+  outline: none;
+  background: rgba(0, 120, 212, 0.08);
+}
+
+.userProfileMenuIcon {
+  color: #666;
+  transition: color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.userProfileMenuItem:hover .userProfileMenuIcon {
+  color: #0078d4;
+}
+
+.userProfileMenuItem.danger {
+  color: #dc3545;
+}
+
+.userProfileMenuItem.danger:hover {
+  background: rgba(220, 53, 69, 0.05);
+  color: #dc3545;
+}
+
+.userProfileMenuItem.danger .userProfileMenuIcon {
+  color: #dc3545;
+}
+
+/* Dark theme adjustments */
+[data-theme="dark"] .userProfileDropdown {
+  background: rgba(30, 30, 30, 0.95);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .userProfileHeader {
+  background: linear-gradient(
+    135deg,
+    rgba(0, 120, 212, 0.1),
+    rgba(0, 120, 212, 0.05)
+  );
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .userProfileHeaderName,
+[data-theme="dark"] .userProfileHeaderEmail {
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .userProfileHeaderRole {
+  color: #4dabf7;
+}
+
+[data-theme="dark"] .userProfileMenuItem {
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .userProfileMenuItem:hover {
+  background: rgba(0, 120, 212, 0.1);
+  color: #4dabf7;
+}
+
+[data-theme="dark"] .userProfileMenuIcon {
+  color: #999;
+}
+
+[data-theme="dark"] .userProfileMenuItem.danger {
+  color: #ff6b7d;
+}
+
+[data-theme="dark"] .userProfileMenuItem.danger:hover {
+  background: rgba(255, 107, 125, 0.1);
+  color: #ff6b7d;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .userProfileDropdown {
+    width: 260px;
+    right: -8px;
+  }
+
+  .userProfileInfo {
+    display: none;
+  }
+
+  .userProfileButton {
+    padding: 6px;
+  }
+
+  .userProfileName,
+  .userProfileRole {
+    display: none;
+  }
+}
+
+/* User Badges */
+.userProfileBadges {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.userBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.adminBadge {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  color: white;
+  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.3);
+}
+
+.approverBadge {
+  background: linear-gradient(135deg, #059669, #047857);
+  color: white;
+  box-shadow: 0 2px 4px rgba(5, 150, 105, 0.3);
+}
+
+.contributorBadge {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: white;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
+}
+
+.roleBadge {
+  background: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: 0.65rem;
+  font-weight: 500;
+  text-transform: none;
+}
+
+/* Permission Indicators */
+.userPermissions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.permissionBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.groupCount {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+}
+
+/* Loading and Error States */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  animation: pulse 2s infinite;
+}
+
+.loadingSpinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.error {
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* Dark Theme Adjustments */
+[data-theme="dark"] .userProfileButton {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+[data-theme="dark"] .userProfileButton:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="dark"] .roleBadge {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+[data-theme="dark"] .permissionBadge {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+@media (max-width: 768px) {
+  .userProfileDropdown {
+    width: 240px;
+  }
+}
