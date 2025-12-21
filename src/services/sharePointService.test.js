@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import sharePointService from '../services/sharePointService'
+import { SharePointService } from '../services/sharePointService'
 
 // Mock fetch globally
 global.fetch = vi.fn()
@@ -10,7 +10,7 @@ describe('SharePointService', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     // Create a new service instance with mocked URL
-    service = new sharePointService.constructor()
+    service = new SharePointService()
     service.siteUrl = 'http://test.sharepoint.com'
   })
 

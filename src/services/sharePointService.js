@@ -474,8 +474,8 @@ class SharePointService {
       // Return departments from our configuration
       const allDepartments = Object.entries(this.departments).map(([id, dept]) => ({
         id: id,
-        name: dept.name,
-        listName: dept.listName,
+        name: dept.displayName,
+        listName: dept.name,
         guid: dept.guid
       }));
 
@@ -490,8 +490,8 @@ class SharePointService {
       console.error('Failed to get departments:', error);
       return [{
         id: this.defaultDepartment,
-        name: this.departments[this.defaultDepartment].name,
-        listName: this.departments[this.defaultDepartment].listName
+        name: this.departments[this.defaultDepartment].displayName,
+        listName: this.departments[this.defaultDepartment].name
       }];
     }
   }
@@ -790,3 +790,6 @@ const getSharePointService = () => {
 };
 
 export default getSharePointService;
+
+// Export the class for testing purposes
+export { SharePointService };
