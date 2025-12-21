@@ -1,4 +1,3 @@
-import React from 'react';
 import { SkeletonCard, SkeletonChart, SkeletonTable } from './Skeleton';
 import styles from './AnalyticsSkeleton.module.css';
 

@@ -33,6 +33,25 @@ const stripHtml = (html) => {
     .trim()
 }
 
+// Helper function to normalize priority values consistently
+const normalizePriority = (rawPriority) => {
+  if (!rawPriority) return 'Unknown'
+  
+  // Handle SharePoint priorities that may have numeric prefixes like "(1) High"
+  const priorityMatch = rawPriority.match(/^\(\d+\)\s*(.+)$/)
+  const extractedPriority = priorityMatch ? priorityMatch[1] : rawPriority
+  
+  // Map SharePoint priority names to display values
+  const priorityMap = {
+    'High': 'High',
+    'Normal': 'Medium', // SharePoint "Normal" maps to display "Medium"
+    'Low': 'Low',
+    'Critical': 'Critical'
+  }
+  
+  return priorityMap[extractedPriority] || extractedPriority
+}
+
 // Expanded Task View Component
 const ExpandedTaskView = ({ tasks, subtitle }) => {
   const sortedTasks = useMemo(() => {
@@ -143,47 +162,37 @@ const ExpandedTaskView = ({ tasks, subtitle }) => {
   )
 }
 
-const DEPARTMENTS = dataService().getDepartments().map(dept => ({
-  id: dept.id,
-  label: dept.name.split(' ')[0], // Take first word as label (DCI, ERP, etc.)
-  subtitle: dept.name,
-  listName: dept.listName
-}));
-
-const applyTimeRange = (tasks, timeRange) => {
-  if (timeRange === 'all') return tasks
-
-  const now = new Date()
-  const days = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 90
-  return tasks.filter((t) => {
-    if (!t.Created) return true
-    const created = new Date(t.Created)
-    const diffDays = (now - created) / (1000 * 60 * 60 * 24)
-    return diffDays <= days
-  })
-}
-
-// Helper function to normalize priority values consistently
-const normalizePriority = (rawPriority) => {
-  if (!rawPriority) return 'Unknown'
-  
-  // Handle SharePoint priorities that may have numeric prefixes like "(1) High"
-  const priorityMatch = rawPriority.match(/^\(\d+\)\s*(.+)$/)
-  const extractedPriority = priorityMatch ? priorityMatch[1] : rawPriority
-  
-  // Map SharePoint priority names to display values
-  const priorityMap = {
-    'High': 'High',
-    'Normal': 'Medium', // SharePoint "Normal" maps to display "Medium"
-    'Low': 'Low',
-    'Critical': 'Critical'
-  }
-  
-  return priorityMap[extractedPriority] || extractedPriority
-}
-
 const Dashboard = () => {
   const { permissions, tasks, refreshData, updateTaskStatus, error, loading } = useSharePoint()
+
+  // Get departments dynamically to avoid module-level initialization issues
+  const DEPARTMENTS = React.useMemo(() => {
+    try {
+      return dataService().getDepartments().map(dept => ({
+        id: dept.id,
+        label: dept.name.split(' ')[0], // Take first word as label (DCI, ERP, etc.)
+        subtitle: dept.name,
+        listName: dept.listName
+      }));
+    } catch (error) {
+      console.error('Failed to load departments:', error);
+      // Fallback to empty array if service not ready
+      return [];
+    }
+  }, []);
+
+  const applyTimeRange = (tasks, timeRange) => {
+    if (timeRange === 'all') return tasks
+
+    const now = new Date()
+    const days = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 90
+    return tasks.filter((t) => {
+      if (!t.Created) return true
+      const created = new Date(t.Created)
+      const diffDays = (now - created) / (1000 * 60 * 60 * 24)
+      return diffDays <= days
+    })
+  }
 
   const [filters, setFilters] = useState({
     status: 'all',

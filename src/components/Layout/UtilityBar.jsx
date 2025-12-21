@@ -3,6 +3,7 @@ import { FiRefreshCw, FiMoon, FiSun } from 'react-icons/fi';
 import { useSharePoint } from '../../context/SharePointContext';
 import { useTheme } from '../../context/ThemeContext';
 import UserInfo from '../UserInfo';
+import ReloadStatus from './ReloadStatus';
 import styles from './UtilityBar.module.css';
 
 const UtilityBar = () => {
@@ -30,6 +31,9 @@ const UtilityBar = () => {
           >
             <FiRefreshCw className={styles.refreshIcon} />
           </button>
+
+          {/* Reload Status */}
+          <ReloadStatus />
 
           <div className={styles.divider}></div>
 

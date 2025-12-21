@@ -24,7 +24,7 @@ const Sidebar = ({ currentPath }) => {
       path: '/settings',
       label: 'Settings',
       icon: <FiSettings />,
-      permission: 'admin'
+      permission: 'view'
     }
   ];
 

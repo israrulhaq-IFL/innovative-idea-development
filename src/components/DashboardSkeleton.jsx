@@ -1,4 +1,3 @@
-import React from 'react';
 import { SkeletonCard, SkeletonChart } from './Skeleton';
 import styles from './DashboardSkeleton.module.css';
 

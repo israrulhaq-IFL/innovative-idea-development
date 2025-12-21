@@ -1,8 +1,9 @@
 // SharePoint REST API Service for task management dashboard
-import { CONFIG } from '../config/environment.js';
+import { getConfig } from '../config/environment.js';
 
 class SharePointService {
   constructor() {
+    const CONFIG = getConfig();
     this.siteUrl = CONFIG.SHAREPOINT.SITE_URL;
 
     // Department-specific task list configuration from centralized config
@@ -37,6 +38,7 @@ class SharePointService {
 
   // Get list GUID for a specific department
   getListGuid(departmentId = null) {
+    const CONFIG = getConfig();
     const deptId = departmentId || CONFIG.APP.DEFAULT_DEPARTMENT;
     const department = this.departments[deptId];
     return department ? department.guid : null;
@@ -44,6 +46,7 @@ class SharePointService {
 
   // Get list name for a specific department
   getListName(departmentId = null) {
+    const CONFIG = getConfig();
     const deptId = departmentId || CONFIG.APP.DEFAULT_DEPARTMENT;
     const department = this.departments[deptId];
     return department ? department.name : null;
@@ -51,6 +54,7 @@ class SharePointService {
 
   // Get department name for display
   getDepartmentName(departmentId = null) {
+    const CONFIG = getConfig();
     const deptId = departmentId || CONFIG.APP.DEFAULT_DEPARTMENT;
     const department = this.departments[deptId];
     return department ? department.displayName : 'Unknown Department';
@@ -775,6 +779,14 @@ class SharePointService {
   }
 }
 
-// Export singleton instance
-const sharePointService = new SharePointService();
-export default sharePointService;
+// Export lazy-initialized singleton getter
+let _sharePointService = null;
+
+const getSharePointService = () => {
+  if (!_sharePointService) {
+    _sharePointService = new SharePointService();
+  }
+  return _sharePointService;
+};
+
+export default getSharePointService;

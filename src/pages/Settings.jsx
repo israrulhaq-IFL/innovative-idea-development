@@ -6,59 +6,45 @@ import GroupInfo from '../components/GroupInfo';
 import styles from './Settings.module.css';
 
 const Settings = () => {
-  const { user, permissions, refreshData } = useSharePoint();
-  const { theme, toggleTheme } = useTheme();
-  const [settings, setSettings] = useState({
-    autoRefresh: true,
-    refreshInterval: 300, // 5 minutes
-    notifications: true,
-    compactView: false,
-    showCompletedTasks: true,
-    exportFormat: 'excel'
-  });
+  const { user, permissions, settings, updateSettings } = useSharePoint();
+  const { theme, toggleTheme, setThemeMode } = useTheme();
 
   const handleSettingChange = (key, value) => {
-    setSettings(prev => ({ ...prev, [key]: value }));
-  };
+    // Validate refresh interval
+    if (key === 'refreshInterval') {
+      const numValue = parseInt(value);
+      if (isNaN(numValue) || numValue < 60 || numValue > 3600) {
+        alert('Refresh interval must be between 60 and 3600 seconds (1-60 minutes)');
+        return;
+      }
+      value = numValue;
+    }
 
-  const handleSaveSettings = () => {
-    // Save settings to localStorage or SharePoint
-    localStorage.setItem('dashboardSettings', JSON.stringify(settings));
-    alert('Settings saved successfully!');
+    // Show warning when disabling auto-refresh
+    if (key === 'autoRefresh' && value === false) {
+      const confirmed = window.confirm(
+        '⚠️ WARNING: Disabling auto-refresh means you will not receive new task updates automatically.\n\n' +
+        'You will need to manually refresh the page to see new tasks, status changes, or updates from other users.\n\n' +
+        'This may cause you to miss important task assignments or status updates.\n\n' +
+        'Are you sure you want to disable auto-refresh?'
+      );
+      if (!confirmed) {
+        return; // Don't update the setting
+      }
+    }
+
+    updateSettings({ [key]: value });
   };
 
   const handleResetSettings = () => {
     const defaultSettings = {
       autoRefresh: true,
       refreshInterval: 300,
-      notifications: true,
-      compactView: false,
-      showCompletedTasks: true,
-      exportFormat: 'excel'
+      notifications: true
     };
-    setSettings(defaultSettings);
-    localStorage.removeItem('dashboardSettings');
+    updateSettings(defaultSettings);
+    alert('Settings reset to defaults!');
   };
-
-  const exportData = async (format) => {
-    try {
-      // This would integrate with SharePoint export functionality
-      alert(`Exporting data as ${format.toUpperCase()}...`);
-    } catch (error) {
-      alert('Export failed. Please try again.');
-    }
-  };
-
-  if (!permissions || !permissions.isManagement) {
-    return (
-      <div className={styles.settings}>
-        <div className={styles.accessDenied}>
-          <h1>Access Denied</h1>
-          <p>You need administrator permissions to access settings.</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <>
@@ -82,23 +68,12 @@ const Settings = () => {
               <select
                 id="theme"
                 value={theme}
-                onChange={(e) => toggleTheme()}
+                onChange={(e) => setThemeMode(e.target.value)}
                 className={styles.select}
               >
                 <option value="light">Light</option>
                 <option value="dark">Dark</option>
               </select>
-            </div>
-
-            <div className={styles.setting}>
-              <label htmlFor="compactView">Compact View</label>
-              <input
-                type="checkbox"
-                id="compactView"
-                checked={settings.compactView}
-                onChange={(e) => handleSettingChange('compactView', e.target.checked)}
-                className={styles.checkbox}
-              />
             </div>
           </div>
         </section>
@@ -129,17 +104,6 @@ const Settings = () => {
                 className={styles.input}
               />
             </div>
-
-            <div className={styles.setting}>
-              <label htmlFor="showCompletedTasks">Show Completed Tasks</label>
-              <input
-                type="checkbox"
-                id="showCompletedTasks"
-                checked={settings.showCompletedTasks}
-                onChange={(e) => handleSettingChange('showCompletedTasks', e.target.checked)}
-                className={styles.checkbox}
-              />
-            </div>
           </div>
         </section>
 
@@ -155,34 +119,6 @@ const Settings = () => {
                 onChange={(e) => handleSettingChange('notifications', e.target.checked)}
                 className={styles.checkbox}
               />
-            </div>
-          </div>
-        </section>
-
-        <section className={styles.section}>
-          <h2>Data Export</h2>
-          <div className={styles.settingGroup}>
-            <div className={styles.setting}>
-              <label htmlFor="exportFormat">Default Export Format</label>
-              <select
-                id="exportFormat"
-                value={settings.exportFormat}
-                onChange={(e) => handleSettingChange('exportFormat', e.target.value)}
-                className={styles.select}
-              >
-                <option value="excel">Excel (.xlsx)</option>
-                <option value="csv">CSV (.csv)</option>
-                <option value="json">JSON (.json)</option>
-              </select>
-            </div>
-
-            <div className={styles.exportActions}>
-              <button
-                onClick={() => exportData(settings.exportFormat)}
-                className={styles.exportBtn}
-              >
-                Export Current Data
-              </button>
             </div>
           </div>
         </section>
@@ -214,9 +150,6 @@ const Settings = () => {
         </section>
 
         <div className={styles.actions}>
-          <button onClick={handleSaveSettings} className={styles.saveBtn}>
-            Save Settings
-          </button>
           <button onClick={handleResetSettings} className={styles.resetBtn}>
             Reset to Defaults
           </button>

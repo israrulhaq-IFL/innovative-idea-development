@@ -1,14 +1,17 @@
 // Abstract data service layer for deployment flexibility
 // This provides a unified interface regardless of backend (SharePoint or REST API)
 
-import { CONFIG } from '../config/environment.js';
-import SharePointService from './sharePointService.js';
+import { getConfig } from '../config/environment.js';
+import getSharePointService from './sharePointService.js';
 
 class DataService {
   constructor() {
+    // Get config lazily to avoid initialization issues
+    const CONFIG = getConfig();
+
     // Initialize the appropriate service based on deployment type
     if (CONFIG.DEPLOYMENT.TYPE === 'sharepoint') {
-      this.service = new SharePointService();
+      this.service = getSharePointService();
     } else if (CONFIG.DEPLOYMENT.TYPE === 'standalone') {
       // TODO: Implement REST API service
       throw new Error('Standalone API service not yet implemented. Use SharePoint deployment for now.');
@@ -19,6 +22,7 @@ class DataService {
 
   // Department management
   getDepartments() {
+    const CONFIG = getConfig();
     return Object.keys(CONFIG.SHAREPOINT.LIST_CONFIG).map(key => ({
       id: key,
       name: CONFIG.SHAREPOINT.LIST_CONFIG[key].displayName,
@@ -27,21 +31,23 @@ class DataService {
   }
 
   getDepartmentName(departmentId) {
+    const CONFIG = getConfig();
     const dept = CONFIG.SHAREPOINT.LIST_CONFIG[departmentId];
     return dept ? dept.displayName : 'Unknown Department';
   }
 
   // Task operations
-  async getTasks(departmentId = CONFIG.APP.DEFAULT_DEPARTMENT, options = {}) {
+  async getTasks(departmentId = getConfig().APP.DEFAULT_DEPARTMENT, options = {}) {
     try {
-      return await this.service.getTasks(departmentId, options);
+      // SharePointService expects: (permissions, departmentFilter, departmentId)
+      return await this.service.getTasks((options && options.permissions) || {}, null, departmentId);
     } catch (error) {
       console.error(`Failed to get tasks for department ${departmentId}:`, error);
       throw error;
     }
   }
 
-  async getTaskById(taskId, departmentId = CONFIG.APP.DEFAULT_DEPARTMENT) {
+  async getTaskById(taskId, departmentId = getConfig().APP.DEFAULT_DEPARTMENT) {
     try {
       return await this.service.getTaskById(taskId, departmentId);
     } catch (error) {
@@ -50,7 +56,7 @@ class DataService {
     }
   }
 
-  async createTask(taskData, departmentId = CONFIG.APP.DEFAULT_DEPARTMENT) {
+  async createTask(taskData, departmentId = getConfig().APP.DEFAULT_DEPARTMENT) {
     try {
       return await this.service.createTask(taskData, departmentId);
     } catch (error) {
@@ -59,7 +65,7 @@ class DataService {
     }
   }
 
-  async updateTask(taskId, updates, departmentId = CONFIG.APP.DEFAULT_DEPARTMENT) {
+  async updateTask(taskId, updates, departmentId = getConfig().APP.DEFAULT_DEPARTMENT) {
     try {
       return await this.service.updateTask(taskId, updates, departmentId);
     } catch (error) {
@@ -68,7 +74,7 @@ class DataService {
     }
   }
 
-  async updateTaskStatus(taskId, newStatus, departmentId = CONFIG.APP.DEFAULT_DEPARTMENT) {
+  async updateTaskStatus(taskId, newStatus, departmentId = getConfig().APP.DEFAULT_DEPARTMENT) {
     try {
       return await this.service.updateTaskStatus(taskId, newStatus, departmentId);
     } catch (error) {
@@ -77,7 +83,7 @@ class DataService {
     }
   }
 
-  async deleteTask(taskId, departmentId = CONFIG.APP.DEFAULT_DEPARTMENT) {
+  async deleteTask(taskId, departmentId = getConfig().APP.DEFAULT_DEPARTMENT) {
     try {
       return await this.service.deleteTask(taskId, departmentId);
     } catch (error) {
@@ -87,7 +93,7 @@ class DataService {
   }
 
   // Analytics operations
-  async getTaskAnalytics(departmentId = CONFIG.APP.DEFAULT_DEPARTMENT, dateRange = null) {
+  async getTaskAnalytics(departmentId = getConfig().APP.DEFAULT_DEPARTMENT, dateRange = null) {
     try {
       return await this.service.getTaskAnalytics(departmentId, dateRange);
     } catch (error) {
@@ -96,7 +102,7 @@ class DataService {
     }
   }
 
-  async getAssigneeAnalytics(departmentId = CONFIG.APP.DEFAULT_DEPARTMENT) {
+  async getAssigneeAnalytics(departmentId = getConfig().APP.DEFAULT_DEPARTMENT) {
     try {
       return await this.service.getAssigneeAnalytics(departmentId);
     } catch (error) {
@@ -106,7 +112,7 @@ class DataService {
   }
 
   // List management
-  async checkListExists(departmentId = CONFIG.APP.DEFAULT_DEPARTMENT) {
+  async checkListExists(departmentId = getConfig().APP.DEFAULT_DEPARTMENT) {
     try {
       return await this.service.checkListExists(departmentId);
     } catch (error) {
@@ -125,7 +131,7 @@ class DataService {
     }
   }
 
-  async checkUserPermissions(departmentId = CONFIG.APP.DEFAULT_DEPARTMENT) {
+  async checkUserPermissions(departmentId = getConfig().APP.DEFAULT_DEPARTMENT) {
     try {
       return await this.service.checkUserPermissions(departmentId);
     } catch (error) {
@@ -136,19 +142,19 @@ class DataService {
 
   // Utility methods
   getDefaultDepartment() {
-    return CONFIG.APP.DEFAULT_DEPARTMENT;
+    return getConfig().APP.DEFAULT_DEPARTMENT;
   }
 
   isSharePointDeployment() {
-    return CONFIG.DEPLOYMENT.TYPE === 'sharepoint';
+    return getConfig().DEPLOYMENT.TYPE === 'sharepoint';
   }
 
   isStandaloneDeployment() {
-    return CONFIG.DEPLOYMENT.TYPE === 'standalone';
+    return getConfig().DEPLOYMENT.TYPE === 'standalone';
   }
 
   getApiUrl() {
-    return CONFIG.DEPLOYMENT.API_URL;
+    return getConfig().DEPLOYMENT.API_URL;
   }
 
   async getSiteGroups() {

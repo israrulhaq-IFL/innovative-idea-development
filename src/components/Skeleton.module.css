@@ -1,6 +1,6 @@
 /* Skeleton Loading Component Styles */
 .skeleton {
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background: var(--skeleton-bg);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   display: inline-block;
@@ -17,16 +17,16 @@
 
 /* Variants */
 .text {
-  background: linear-gradient(90deg, #f8f9fa 25%, #e9ecef 50%, #f8f9fa 75%);
+  background: var(--skeleton-text);
 }
 
 .card {
-  background: linear-gradient(90deg, #ffffff 25%, #f8f9fa 50%, #ffffff 75%);
-  border: 1px solid #e9ecef;
+  background: var(--skeleton-card);
+  border: 1px solid var(--border-color);
 }
 
 .chart {
-  background: linear-gradient(90deg, #f8f9fa 25%, #e9ecef 50%, #f8f9fa 75%);
+  background: var(--skeleton-chart);
 }
 
 /* Text skeleton */

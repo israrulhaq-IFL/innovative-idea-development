@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import sharePointService from '../services/sharePointService';
+import getSharePointService from '../services/sharePointService';
 
 const useUserPermissions = () => {
   const [permissions, setPermissions] = useState(null); // Start with null to force loading
@@ -12,6 +12,7 @@ const useUserPermissions = () => {
         setLoading(true);
         setError(null);
         console.log('🔄 Fetching fresh user permissions...');
+        const sharePointService = getSharePointService();
         const userPermissions = await sharePointService.getUserPermissions();
         console.log('✅ Permissions loaded:', userPermissions);
         setPermissions(userPermissions);
