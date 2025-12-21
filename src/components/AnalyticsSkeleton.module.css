@@ -1,0 +1,101 @@
+.analyticsSkeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 1rem;
+}
+
+.headerSkeleton {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-color);
+}
+
+.titleSkeleton {
+  width: 250px;
+  height: 32px;
+  background: var(--skeleton-bg);
+  border-radius: var(--border-radius);
+  animation: shimmer 2s infinite linear;
+}
+
+.controlsSkeleton {
+  width: 200px;
+  height: 40px;
+  background: var(--skeleton-bg);
+  border-radius: var(--border-radius);
+  animation: shimmer 2s infinite linear;
+}
+
+.overviewGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.overviewCard {
+  height: 140px;
+}
+
+.chartsSection,
+.trendsSection,
+.comparisonSection {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.sectionTitleSkeleton {
+  width: 200px;
+  height: 28px;
+  background: var(--skeleton-bg);
+  border-radius: var(--border-radius);
+  animation: shimmer 2s infinite linear;
+}
+
+.chartsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 1.5rem;
+}
+
+.chartSkeleton {
+  height: 300px;
+}
+
+.trendsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.trendChart {
+  height: 250px;
+}
+
+.comparisonGrid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.5rem;
+}
+
+.comparisonTable {
+  height: 300px;
+}
+
+.insightsCard {
+  height: 300px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}

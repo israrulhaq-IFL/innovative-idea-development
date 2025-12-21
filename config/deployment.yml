@@ -1,0 +1,72 @@
+# Deployment Configuration for Different Environments
+# This file contains settings for various deployment scenarios
+
+environments:
+  # Current SharePoint Server
+  current:
+    sharepoint_url: "http://hospp16srv:34334"
+    document_library: "SiteAssets"
+    subfolder: "modern_dashboard"
+    deployment_type: "sharepoint"
+    base_path: "/SiteAssets/modern_dashboard/"
+
+  # New SharePoint Server (example)
+  new_sharepoint:
+    sharepoint_url: "https://newsharepoint.company.com"
+    document_library: "SiteAssets"
+    subfolder: "modern_dashboard"
+    deployment_type: "sharepoint"
+    base_path: "/SiteAssets/modern_dashboard/"
+
+  # Azure Static Web App (future)
+  azure:
+    deployment_type: "azure"
+    resource_group: "itg-dashboard-rg"
+    location: "East US"
+    sku: "Free"
+    build_preset: "React"
+
+  # Standalone Web Application (future)
+  standalone:
+    deployment_type: "standalone"
+    api_url: "https://api.company.com"
+    base_path: "/"
+    web_server: "nginx"
+    domain: "dashboard.company.com"
+
+# Build configurations for different environments
+build_configs:
+  development:
+    base_path: "/"
+    sourcemap: true
+    minify: false
+
+  staging:
+    base_path: "/staging/modern_dashboard/"
+    sourcemap: true
+    minify: true
+
+  production:
+    base_path: "/SiteAssets/modern_dashboard/"
+    sourcemap: false
+    minify: true
+
+# Migration settings
+migration:
+  # Data export settings
+  export:
+    batch_size: 1000
+    include_attachments: true
+    export_format: "json"
+
+  # Data import settings
+  import:
+    batch_size: 500
+    validate_data: true
+    create_backups: true
+
+  # Testing settings
+  testing:
+    smoke_tests: true
+    performance_tests: false
+    load_tests: false

@@ -1,0 +1,125 @@
+/* AssigneeWorkload.module.css */
+.assigneeWorkload {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.workloadList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+  padding-right: 0.25rem; /* Add some padding for scrollbar */
+  transition: max-height 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+  overflow: hidden;
+}
+
+/* Collapsed state */
+.workloadList.collapsed {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+/* Expanded state */
+.workloadList.expanded {
+  max-height: 2000px; /* Large enough to accommodate many assignees */
+  overflow-y: visible;
+}
+
+/* Custom scrollbar for collapsed state */
+.workloadList.collapsed::-webkit-scrollbar {
+  width: 6px;
+}
+
+.workloadList.collapsed::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+  border-radius: 3px;
+}
+
+.workloadList.collapsed::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
+
+.workloadList.collapsed::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+.workloadItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+}
+
+.assigneeName {
+  min-width: 120px;
+  font-weight: 500;
+  color: var(--text-color);
+  font-size: 0.875rem;
+  flex-shrink: 0;
+}
+
+.workloadBar {
+  flex: 1;
+  height: 20px;
+  background-color: var(--bg-secondary);
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+}
+
+.workloadFill {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.8s ease;
+}
+
+.taskCount {
+  min-width: 30px;
+  text-align: right;
+  font-weight: 600;
+  color: var(--text-color);
+  font-size: 0.875rem;
+  flex-shrink: 0;
+}
+
+.noAssignees {
+  text-align: center;
+  padding: 1rem;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.expandButton {
+  margin-top: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: var(--bg-secondary);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: scale(1);
+}
+
+.expandButton:hover {
+  background-color: var(--accent-color);
+  color: white;
+  transform: scale(1.02);
+}
+
+.expandButton:active {
+  transform: scale(0.98);
+}
+
+.clickable {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.clickable:hover {
+  background-color: var(--bg-hover);
+}

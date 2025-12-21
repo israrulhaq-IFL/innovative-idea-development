@@ -1,0 +1,318 @@
+/* UtilityBar.module.css */
+.utilityBar {
+  position: fixed;
+  top: 0;
+  left: 60px; /* Position right after the 60px sidebar */
+  right: 0;
+  height: 55px;
+  background-color: var(--bg-primary);
+  border-bottom: 1px solid var(--border-color);
+  z-index: 1000; /* Equal to sidebar to prevent overlap issues */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.utilityBarContent {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem 0 0; /* Remove left padding to eliminate gap */
+  max-width: 100%;
+  margin: 0; /* Remove auto centering */
+}
+
+/* User Section */
+.userSection {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  margin-right: 1.5rem;
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--border-radius);
+  transition: var(--transition);
+}
+
+.userInfo:hover {
+  background-color: var(--bg-hover);
+}
+
+.userAvatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.userDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.userName {
+  font-weight: 600;
+  color: var(--text-color);
+  font-size: 0.875rem;
+  line-height: 1.2;
+}
+
+.userRole {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+/* Actions Section */
+.actionsSection {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.menuButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  background: none;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  color: var(--text-color);
+  cursor: pointer;
+  transition: var(--transition);
+  font-size: 1rem;
+}
+
+.menuButton:hover {
+  background-color: var(--bg-hover);
+  border-color: var(--primary-color);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.refreshButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--text-color);
+  cursor: pointer;
+  transition: var(--transition);
+  font-size: 1rem;
+}
+
+.refreshButton:hover {
+  color: var(--primary-color);
+  transform: scale(1.1);
+}
+
+.refreshIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+}
+
+.refreshIcon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.menuIcon {
+  font-size: 1.125rem;
+  line-height: 1;
+}
+
+.themeToggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--text-color);
+  cursor: pointer;
+  transition: var(--transition);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.themeToggle:hover {
+  color: var(--primary-color);
+  transform: scale(1.1);
+}
+
+.themeIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+}
+
+.themeIcon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.themeText {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.divider {
+  width: 1px;
+  height: 24px;
+  background-color: var(--border-color);
+  margin: 0 0.5rem;
+}
+
+/* Status Indicator */
+.statusIndicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  background-color: var(--success-bg);
+  border: 1px solid var(--success-color);
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--success-color);
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--success-color);
+  animation: pulse 2s infinite;
+}
+
+.statusText {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* Animations */
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .utilityBarContent {
+    padding: 0 1rem;
+  }
+
+  .userDetails {
+    display: none;
+  }
+
+  .userInfo {
+    padding: 0.5rem;
+  }
+
+  .userAvatar {
+    width: 32px;
+    height: 32px;
+    font-size: 0.875rem;
+  }
+
+  .themeText {
+    display: none;
+  }
+
+  .themeToggle {
+    padding: 0.5rem;
+    min-width: 40px;
+    justify-content: center;
+  }
+
+  .actionsSection {
+    gap: 0.5rem;
+  }
+
+  .statusIndicator {
+    display: none;
+  }
+}
+
+@media (min-width: 769px) {
+  .utilityBar {
+    left: 60px; /* Account for sidebar width */
+  }
+
+  .menuButton {
+    display: none; /* Hide menu button on desktop */
+  }
+}
+
+/* Dark mode specific styles */
+[data-theme="dark"] .utilityBar {
+  background-color: rgba(18, 18, 18, 0.95);
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .userInfo:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .themeToggle:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: var(--primary-color);
+}
+
+/* Focus states for accessibility */
+.themeToggle:focus,
+.userInfo:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* Loading state */
+.utilityBar.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* Animation for theme toggle */
+.themeToggle:active {
+  transform: translateY(0);
+  transition: transform 0.1s ease;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .utilityBar {
+    left: 50px; /* Account for mobile compact sidebar width */
+  }
+}
