@@ -1,12 +1,12 @@
 param(
     [Parameter(Mandatory=$false)]
-    [string]$SharePointSiteUrl = "http://hospp16srv:34334",
+    [string]$SharePointSiteUrl = $env:SHAREPOINT_URL,
 
     [Parameter(Mandatory=$false)]
-    [string]$DocumentLibrary = "SiteAssets",
+    [string]$DocumentLibrary = $env:DOCUMENT_LIBRARY,
 
     [Parameter(Mandatory=$false)]
-    [string]$SubFolder = "modern_dashboard",
+    [string]$SubFolder = $env:SUBFOLDER,
 
     [Parameter(Mandatory=$false)]
     [switch]$UseCredentials,
@@ -15,8 +15,24 @@ param(
     [string]$Username,
 
     [Parameter(Mandatory=$false)]
-    [string]$Password
+    [string]$Password,
+
+    [Parameter(Mandatory=$false)]
+    [string]$DeploymentType = $env:DEPLOYMENT_TYPE
 )
+
+# Set defaults if environment variables are not set
+if (-not $SharePointSiteUrl) { $SharePointSiteUrl = "http://hospp16srv:34334" }
+if (-not $DocumentLibrary) { $DocumentLibrary = "SiteAssets" }
+if (-not $SubFolder) { $SubFolder = "modern_dashboard" }
+if (-not $DeploymentType) { $DeploymentType = "sharepoint" }
+
+Write-Host "Deployment Configuration:" -ForegroundColor Green
+Write-Host "  Site URL: $SharePointSiteUrl" -ForegroundColor Gray
+Write-Host "  Document Library: $DocumentLibrary" -ForegroundColor Gray
+Write-Host "  Subfolder: $SubFolder" -ForegroundColor Gray
+Write-Host "  Deployment Type: $DeploymentType" -ForegroundColor Gray
+Write-Host ""
 
 # Function to get SharePoint request digest
 function Get-SharePointRequestDigest {

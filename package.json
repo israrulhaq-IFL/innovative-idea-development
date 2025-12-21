@@ -10,7 +10,8 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 100",
-    "deploy": "powershell -ExecutionPolicy Bypass -File deploy.ps1"
+    "deploy": "powershell -ExecutionPolicy Bypass -File deploy.ps1",
+    "migrate": "powershell -ExecutionPolicy Bypass -File migrate.ps1"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^7.1.0",

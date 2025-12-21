@@ -6,8 +6,8 @@ export default defineConfig({
   plugins: [
     react()
   ],
-  // Configure base path for SharePoint deployment
-  base: process.env.NODE_ENV === 'production' ? '/SiteAssets/modern_dashboard/' : '/',
+  // Configure base path for deployment flexibility
+  base: process.env.VITE_BASE_PATH || (process.env.NODE_ENV === 'production' ? '/SiteAssets/modern_dashboard/' : '/'),
   build: {
     outDir: 'dist',
     assetsDir: 'assets',

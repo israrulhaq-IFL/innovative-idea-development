@@ -1,34 +1,12 @@
 // SharePoint REST API Service for task management dashboard
+import { CONFIG } from '../config/environment.js';
+
 class SharePointService {
   constructor() {
-    this.siteUrl = window.location.origin;
+    this.siteUrl = CONFIG.SHAREPOINT.SITE_URL;
 
-    // Department-specific task list configuration
-    this.departments = {
-      'infra': {
-        name: 'Data Center & Cloud Infrastructure',
-        listName: 'si_tasklist',
-        guid: 'e41bb365-20be-4724-8ff8-18438d9c2354'
-      },
-      'erp': {
-        name: 'ERP & Software Development',
-        listName: 'erp_tasklist',
-        guid: '4693a94b-4a71-4821-b8c1-3a6fc8cdac69'
-      },
-      'ops': {
-        name: 'ITG Operations',
-        listName: 'ops_tasklist',
-        guid: '6eb2cec0-f94f-47ae-8745-5e48cd52ffd9'
-      },
-      'network': {
-        name: 'Networks & Security',
-        listName: 'networks_tasklist',
-        guid: '1965d5a7-b9f0-4066-b2c5-8d9b8a442537'
-      }
-    };
-
-    // Default department (can be changed based on user permissions)
-    this.defaultDepartment = 'infra';
+    // Department-specific task list configuration from centralized config
+    this.departments = CONFIG.SHAREPOINT.LIST_CONFIG;
 
     this.listExists = null; // Cache for list existence check
     this.checkingList = null; // Promise for ongoing list check
@@ -59,23 +37,23 @@ class SharePointService {
 
   // Get list GUID for a specific department
   getListGuid(departmentId = null) {
-    const deptId = departmentId || this.defaultDepartment;
+    const deptId = departmentId || CONFIG.APP.DEFAULT_DEPARTMENT;
     const department = this.departments[deptId];
     return department ? department.guid : null;
   }
 
   // Get list name for a specific department
   getListName(departmentId = null) {
-    const deptId = departmentId || this.defaultDepartment;
+    const deptId = departmentId || CONFIG.APP.DEFAULT_DEPARTMENT;
     const department = this.departments[deptId];
-    return department ? department.listName : this.departments[this.defaultDepartment].listName;
+    return department ? department.name : null;
   }
 
   // Get department name for display
   getDepartmentName(departmentId = null) {
-    const deptId = departmentId || this.defaultDepartment;
+    const deptId = departmentId || CONFIG.APP.DEFAULT_DEPARTMENT;
     const department = this.departments[deptId];
-    return department ? department.name : this.departments[this.defaultDepartment].name;
+    return department ? department.displayName : 'Unknown Department';
   }
 
   // Check if SharePoint list exists for a specific department
