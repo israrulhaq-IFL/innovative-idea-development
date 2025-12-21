@@ -170,9 +170,19 @@ class DataService {
   }
 }
 
-// Export singleton instance
-const dataService = new DataService();
+// Export singleton instance (lazy initialization)
+let _dataService = null;
+
+const getDataService = () => {
+  if (!_dataService) {
+    _dataService = new DataService();
+  }
+  return _dataService;
+};
+
+// For backward compatibility, export the singleton
+const dataService = getDataService();
 export default dataService;
 
 // Export class for testing purposes
-export { DataService };
+export { DataService, getDataService };
