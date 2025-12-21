@@ -1,0 +1,142 @@
+/* Skeleton Loading Component Styles */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  display: inline-block;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Variants */
+.text {
+  background: linear-gradient(90deg, #f8f9fa 25%, #e9ecef 50%, #f8f9fa 75%);
+}
+
+.card {
+  background: linear-gradient(90deg, #ffffff 25%, #f8f9fa 50%, #ffffff 75%);
+  border: 1px solid #e9ecef;
+}
+
+.chart {
+  background: linear-gradient(90deg, #f8f9fa 25%, #e9ecef 50%, #f8f9fa 75%);
+}
+
+/* Text skeleton */
+.skeletonText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.textLine {
+  margin-bottom: 0.25rem;
+}
+
+.textLine:last-child {
+  width: 60% !important;
+}
+
+/* Card skeleton */
+.skeletonCard {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.cardTitle {
+  width: 70% !important;
+}
+
+.cardContent {
+  flex: 1;
+  border-radius: 6px;
+}
+
+.cardFooter {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+/* Chart skeleton */
+.skeletonChart {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.chartTitle {
+  width: 60% !important;
+}
+
+.chartArea {
+  border-radius: 6px;
+}
+
+.chartStats {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+/* Table skeleton */
+.skeletonTable {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.tableHeader {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.tableRow {
+  display: flex;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.tableRow:last-child {
+  border-bottom: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .skeletonCard,
+  .skeletonChart {
+    padding: 0.75rem;
+  }
+
+  .tableHeader,
+  .tableRow {
+    padding: 0.5rem;
+    gap: 0.5rem;
+  }
+
+  .chartStats {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}

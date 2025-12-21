@@ -7,6 +7,7 @@ import DepartmentColumnContent from '../components/DepartmentColumnContent'
 import ExecutiveDashboardControls from '../components/ExecutiveDashboardControls'
 import TaskDrilldownPanel from '../components/TaskDrilldownPanel'
 import AssigneeAvatars from '../components/AssigneeAvatars'
+import DashboardSkeleton from '../components/DashboardSkeleton'
 import styles from './Dashboard.module.css'
 
 // Utility function to strip HTML tags and clean up text
@@ -201,7 +202,7 @@ const normalizePriority = (rawPriority) => {
 }
 
 const Dashboard = () => {
-  const { permissions, tasks, refreshData, updateTaskStatus, error } = useSharePoint()
+  const { permissions, tasks, refreshData, updateTaskStatus, error, loading } = useSharePoint()
 
   const [filters, setFilters] = useState({
     status: 'all',
@@ -376,6 +377,18 @@ const Dashboard = () => {
         });
       }
     }, 100); // Small delay to allow split panel to render
+  }
+
+  if (loading) {
+    return (
+      <>
+        <Helmet>
+          <title>ITG Dashboard — Executive Overview</title>
+          <meta name="description" content="Executive ITG SharePoint task dashboard with per-department KPI and drilldowns" />
+        </Helmet>
+        <DashboardSkeleton />
+      </>
+    )
   }
 
   return (

@@ -7,6 +7,7 @@ import PriorityCharts from '../components/PriorityCharts';
 import DelayedTasks from '../components/DelayedTasks';
 import AnalyticsTrends from '../components/AnalyticsTrends';
 import AnalyticsComparison from '../components/AnalyticsComparison';
+import AnalyticsSkeleton from '../components/AnalyticsSkeleton';
 import styles from './Analytics.module.css';
 
 const Analytics = () => {
@@ -357,10 +358,7 @@ const Analytics = () => {
         {/* Tab Content */}
         <div className={styles.content}>
           {loading ? (
-            <div className={styles.loading}>
-              <div className={styles.spinner}></div>
-              <p>Analyzing your data...</p>
-            </div>
+            <AnalyticsSkeleton />
           ) : (
             renderTabContent()
           )}
