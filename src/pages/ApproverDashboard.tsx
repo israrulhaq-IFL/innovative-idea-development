@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle, XCircle, Eye, Download, User, Calendar, FileText, Paperclip } from "lucide-react";
 import { useIdeaData } from "../contexts/DataContext";
 import { useUser } from "../contexts/UserContext";
+import { useToast } from "../components/common/Toast";
 import styles from "./ApproverDashboard.module.css";
 
 interface Idea {
@@ -24,20 +25,55 @@ interface Idea {
 const ApproverDashboard: React.FC = () => {
   const { data, loading, updateIdeaStatus } = useIdeaData();
   const { user } = useUser();
+  const { addToast } = useToast();
   const [selectedIdea, setSelectedIdea] = useState<Idea | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [pendingAction, setPendingAction] = useState<{idea: Idea, action: 'approve' | 'reject'} | null>(null);
   const [animatingCard, setAnimatingCard] = useState<string | null>(null);
+  const [isProcessingAction, setIsProcessingAction] = useState(false);
+  const [lastAction, setLastAction] = useState<{
+    ideaId: string;
+    action: 'approve' | 'reject';
+    originalStatus: string;
+    timestamp: Date;
+    ideaTitle: string;
+  } | null>(() => {
+    // Load lastAction from localStorage on component mount
+    try {
+      const saved = localStorage.getItem('approverDashboard_lastAction');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Only restore if it's from the last 5 minutes
+        const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+        if (new Date(parsed.timestamp) > fiveMinutesAgo) {
+          return {
+            ...parsed,
+            timestamp: new Date(parsed.timestamp)
+          };
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to load lastAction from localStorage:', error);
+    }
+    return null;
+  });
 
-  // Filter and sort pending ideas by creation date (FIFO - oldest first)
+  // Keyboard shortcut for undo (Ctrl+Z)
+  React.useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key === 'z' && lastAction) {
+        event.preventDefault();
+        handleUndo();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [lastAction]);
   const pendingIdeas = useMemo(() => {
     if (!data?.ideas || !Array.isArray(data.ideas)) return [];
 
     const filtered = data.ideas
       .filter((idea: any) => idea.status === "Pending Approval" || idea.Status === "Pending Approval");
-
-    console.log('All ideas:', data.ideas.map(i => ({ id: i.id, status: i.status })));
-    console.log('Filtered pending ideas:', filtered.map(i => ({ id: i.id, status: i.status })));
 
     return filtered
       .sort((a: any, b: any) => new Date(a.created || a.Created).getTime() - new Date(b.created || b.Created).getTime())
@@ -56,11 +92,104 @@ const ApproverDashboard: React.FC = () => {
   }, [data?.ideas]);
 
   const handleCardAction = async (idea: Idea, action: 'approve' | 'reject') => {
-    // Show modal immediately without animation
-    setPendingAction({ idea, action });
+    if (isProcessingAction) return; // Prevent multiple simultaneous actions
+
+    // Store the original status for undo
+    const originalStatus = idea.status;
+
+    // Store last action for undo immediately (before any async operations)
+    const actionData = {
+      ideaId: idea.id,
+      action,
+      originalStatus,
+      timestamp: new Date(),
+      ideaTitle: idea.title
+    };
+    setLastAction(actionData);
+
+    // Set processing state
+    setIsProcessingAction(true);
+
+    // Start animation immediately
+    setAnimatingCard(idea.id);
+
+    try {
+      // Update status and show toast with undo option
+      setTimeout(async () => {
+        const newStatus = action === 'approve' ? "Approved" : "Rejected";
+        await updateIdeaStatus(parseInt(idea.id), newStatus);
+
+        // Show toast with undo option
+        addToast({
+          type: action === 'approve' ? 'success' : 'error',
+          title: `Idea ${action === 'approve' ? 'Approved' : 'Rejected'}`,
+          message: `"${idea.title}" has been ${action === 'approve' ? 'approved' : 'rejected'}`,
+          duration: 4000 // Reduced duration since no action button needed
+        });
+
+        setAnimatingCard(null);
+        setIsProcessingAction(false);
+      }, 800); // Match animation duration
+    } catch (error) {
+      console.error('Error during approval action:', error);
+      setIsProcessingAction(false);
+      setAnimatingCard(null);
+      setLastAction(null); // Clear last action on error
+
+      addToast({
+        type: 'error',
+        title: 'Action Failed',
+        message: `Failed to ${action} "${idea.title}". Please try again.`,
+        duration: 5000
+      });
+    }
   };
 
-  const handleExpand = (idea: Idea) => {
+  const handleUndo = async () => {
+    if (!lastAction) {
+      addToast({
+        type: 'warning',
+        title: 'Nothing to Undo',
+        message: 'No recent action to undo.',
+        duration: 3000
+      });
+      return;
+    }
+
+    const { ideaId, originalStatus, action, ideaTitle } = lastAction;
+
+    try {
+      // Show loading state
+      addToast({
+        type: 'info',
+        title: 'Undoing Action',
+        message: `Reverting "${ideaTitle}"...`,
+        duration: 2000
+      });
+
+      // Revert the status (skip server refresh to prevent overwriting local state)
+      await updateIdeaStatus(parseInt(ideaId), originalStatus, true);
+
+      // Show success confirmation
+      addToast({
+        type: 'success',
+        title: 'Action Undone',
+        message: `"${ideaTitle}" status reverted to ${originalStatus}.`,
+        duration: 4000
+      });
+
+      // Clear last action
+      setLastAction(null);
+    } catch (error) {
+      console.error('Error during undo:', error);
+      addToast({
+        type: 'error',
+        title: 'Undo Failed',
+        message: `Failed to revert "${ideaTitle}". Please try again.`,
+        duration: 5000
+      });
+    }
+  };  const handleExpand = (idea: Idea) => {
     setSelectedIdea(idea);
     setIsExpanded(true);
   };
@@ -71,39 +200,20 @@ const ApproverDashboard: React.FC = () => {
   };
 
   const handleApprove = async () => {
-    if (!selectedIdea) return;
-    setPendingAction({ idea: selectedIdea, action: 'approve' });
+    if (!selectedIdea || isProcessingAction) return;
+    await handleCardAction(selectedIdea, 'approve');
     handleClose();
   };
 
   const handleReject = async () => {
-    if (!selectedIdea) return;
-    setPendingAction({ idea: selectedIdea, action: 'reject' });
+    if (!selectedIdea || isProcessingAction) return;
+    await handleCardAction(selectedIdea, 'reject');
     handleClose();
   };
 
   const downloadAttachment = (attachment: any) => {
     // Implement download logic
     window.open(attachment.serverRelativeUrl, '_blank');
-  };
-
-  const handleConfirmAction = async () => {
-    if (!pendingAction || !updateIdeaStatus) return;
-    const { idea, action } = pendingAction;
-    
-    // Start animation
-    setAnimatingCard(idea.id);
-    
-    // Wait for animation to complete before updating status
-    setTimeout(async () => {
-      await updateIdeaStatus(parseInt(idea.id), action === 'approve' ? "Approved" : "Rejected");
-      setPendingAction(null);
-      setAnimatingCard(null);
-    }, 600); // Match animation duration
-  };
-
-  const handleCancelAction = () => {
-    setPendingAction(null);
   };
 
   return (
@@ -125,6 +235,32 @@ const ApproverDashboard: React.FC = () => {
         >
           Review and approve innovative ideas from your team
         </motion.p>
+
+        {/* Undo Status Indicator */}
+        <AnimatePresence>
+          {lastAction && (
+            <motion.div
+              className={styles.undoIndicator}
+              initial={{ opacity: 0, scale: 0.8, y: -10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.8, y: -10 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className={styles.undoInfo}>
+                <span className={styles.undoText}>
+                  Last action: {lastAction.action === 'approve' ? 'Approved' : 'Rejected'} "{lastAction.ideaTitle}"
+                </span>
+                <button
+                  className={styles.undoButton}
+                  onClick={handleUndo}
+                  title="Undo last action (Ctrl+Z)"
+                >
+                  Undo (Ctrl+Z)
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       <div className={styles.statsBar}>
@@ -170,7 +306,7 @@ const ApproverDashboard: React.FC = () => {
                   <button
                     className={`${styles.sideButton} ${styles.rejectButton}`}
                     onClick={() => handleCardAction(idea, 'reject')}
-                    disabled={animatingCard !== null}
+                    disabled={animatingCard !== null || isProcessingAction}
                   >
                     <XCircle size={24} />
                     <span>Reject</span>
@@ -179,13 +315,14 @@ const ApproverDashboard: React.FC = () => {
 
                 <motion.div
                   className={styles.ideaCard}
+                  data-animating={animatingCard === idea.id ? "true" : "false"}
                   style={{
                     zIndex: pendingIdeas.length - index,
                   }}
                   initial={{ opacity: 0, y: 50 + index * 8, rotate: 0 }}
                   animate={
-                    animatingCard === idea.id && pendingAction?.idea.id === idea.id
-                      ? pendingAction.action === 'approve'
+                    animatingCard === idea.id && lastAction?.ideaId === idea.id
+                      ? lastAction.action === 'approve'
                         ? { opacity: 0, x: 400, rotate: 20, scale: 0.8 }
                         : { opacity: 0, x: -400, rotate: -20, scale: 0.8 }
                       : {
@@ -196,7 +333,10 @@ const ApproverDashboard: React.FC = () => {
                           scale: 1
                         }
                   }
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  transition={{ 
+                    duration: animatingCard === idea.id ? 0.8 : 0.6, 
+                    delay: animatingCard === idea.id ? 0 : index * 0.1 
+                  }}
                   layout={false}
                 >
 
@@ -251,7 +391,7 @@ const ApproverDashboard: React.FC = () => {
                   <button
                     className={`${styles.sideButton} ${styles.approveButton}`}
                     onClick={() => handleCardAction(idea, 'approve')}
-                    disabled={animatingCard !== null}
+                    disabled={animatingCard !== null || isProcessingAction}
                   >
                     <CheckCircle size={24} />
                     <span>Approve</span>
@@ -337,16 +477,18 @@ const ApproverDashboard: React.FC = () => {
                 <button
                   className={`${styles.actionButton} ${styles.reject}`}
                   onClick={handleReject}
+                  disabled={isProcessingAction}
                 >
                   <XCircle size={18} />
-                  Reject
+                  {isProcessingAction ? 'Processing...' : 'Reject'}
                 </button>
                 <button
                   className={`${styles.actionButton} ${styles.approve}`}
                   onClick={handleApprove}
+                  disabled={isProcessingAction}
                 >
                   <CheckCircle size={18} />
-                  Approve
+                  {isProcessingAction ? 'Processing...' : 'Approve'}
                 </button>
               </div>
             </motion.div>
@@ -356,7 +498,7 @@ const ApproverDashboard: React.FC = () => {
 
       {/* Confirmation Modal */}
       <AnimatePresence>
-        {pendingAction && (
+        {false && pendingAction && (
           <motion.div
             className={styles.modalOverlay}
             initial={{ opacity: 0 }}

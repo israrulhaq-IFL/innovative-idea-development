@@ -439,7 +439,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
     }
   }, []);
 
-  const updateIdeaStatus = useCallback(async (ideaId: number, newStatus: string) => {
+  const updateIdeaStatus = useCallback(async (ideaId: number, newStatus: string, skipRefresh = false) => {
     try {
       // Prepare update data
       const updateData: any = { status: newStatus };
@@ -467,8 +467,10 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
       dispatch({ type: "SET_IDEAS", payload: updatedIdeas });
       dispatch({ type: "UPDATE_LAST_UPDATED" });
 
-      // Refresh data from server to ensure consistency
-      setTimeout(() => loadIdeas(), 1000);
+      // Refresh data from server to ensure consistency (skip for undo operations)
+      if (!skipRefresh) {
+        setTimeout(() => loadIdeas(), 1000);
+      }
 
       return updatedIdea;
     } catch (error) {

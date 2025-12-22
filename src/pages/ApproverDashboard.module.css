@@ -2,7 +2,7 @@
 
 .container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, rgb(102, 126, 234) 0%, rgb(142, 162, 254) 100%);
   padding: 2rem;
   position: relative;
   overflow: hidden;
@@ -46,6 +46,56 @@
   margin: 0 auto;
 }
 
+/* Undo Status Indicator */
+.undoIndicator {
+  margin-top: 1.5rem;
+  display: inline-block;
+}
+
+.undoInfo {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50px;
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.undoText {
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 500;
+  flex: 1;
+}
+
+.undoButton {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 25px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.undoButton:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.undoButton:active {
+  transform: translateY(0);
+}
+
 /* Stats Bar */
 .statsBar {
   display: flex;
@@ -72,7 +122,7 @@
   font-weight: 900;
   color: #1f2937;
   margin-bottom: 0.5rem;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, rgb(102, 126, 234), rgb(142, 162, 254));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -90,6 +140,10 @@
 .mainContent {
   position: relative;
   z-index: 1;
+}
+
+.mainContent.animating .ideaCard:not([data-animating="true"]) {
+  animation-play-state: paused !important;
 }
 
 /* Card Stack */
@@ -147,7 +201,7 @@
 }
 
 .expandButton {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, rgb(102, 126, 234), rgb(142, 162, 254));
   color: white;
   border: none;
   border-radius: 12px;
@@ -542,7 +596,7 @@
 }
 
 .downloadButton {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, rgb(102, 126, 234), rgb(142, 162, 254));
   color: white;
   border: none;
   border-radius: 8px;
@@ -610,6 +664,11 @@
 .ideaCard:nth-child(1) { animation: float 6s ease-in-out infinite; }
 .ideaCard:nth-child(2) { animation: float 6s ease-in-out infinite 1s; }
 .ideaCard:nth-child(3) { animation: float 6s ease-in-out infinite 2s; }
+
+/* Disable float animation during approval/rejection animation */
+.ideaCard[data-animating="true"] {
+  animation: none !important;
+}
 
 /* Responsive Design */
 @media (max-width: 768px) {
