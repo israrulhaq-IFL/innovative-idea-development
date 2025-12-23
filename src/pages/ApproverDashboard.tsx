@@ -130,7 +130,7 @@ const ApproverDashboard: React.FC = () => {
       // Update status and show toast with undo option
       setTimeout(async () => {
         const newStatus = action === 'approve' ? "Approved" : "Rejected";
-        await updateIdeaStatus(parseInt(idea.id), newStatus);
+        await updateIdeaStatus(parseInt(idea.id), newStatus, true); // Skip refresh to prevent flickering
 
         // Immediately remove from local state to prevent reloading/flickering
         setPendingIdeas(prev => prev.filter(i => i.id !== idea.id));
@@ -258,33 +258,33 @@ const ApproverDashboard: React.FC = () => {
         <p className={styles.subtitle}>
           Review and approve innovative ideas from your team
         </p>
-
-        {/* Undo Status Indicator */}
-        <AnimatePresence>
-          {lastAction && (
-            <motion.div
-              className={styles.undoIndicator}
-              initial={{ opacity: 0, scale: 0.8, y: -10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.8, y: -10 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className={styles.undoInfo}>
-                <span className={styles.undoText}>
-                  Last action: {lastAction.action === 'approve' ? 'Approved' : 'Rejected'} "{lastAction.ideaTitle}"
-                </span>
-                <button
-                  className={styles.undoButton}
-                  onClick={handleUndo}
-                  title="Undo last action (Ctrl+Z)"
-                >
-                  Undo (Ctrl+Z)
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
+
+      {/* Undo Status Indicator - Positioned as overlay */}
+      <AnimatePresence>
+        {lastAction && (
+          <motion.div
+            className={styles.undoIndicator}
+            initial={{ opacity: 0, scale: 0.8, y: -20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: -20 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className={styles.undoInfo}>
+              <span className={styles.undoText}>
+                Last action: {lastAction.action === 'approve' ? 'Approved' : 'Rejected'} "{lastAction.ideaTitle}"
+              </span>
+              <button
+                className={styles.undoButton}
+                onClick={handleUndo}
+                title="Undo last action (Ctrl+Z)"
+              >
+                Undo (Ctrl+Z)
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className={styles.statsBar}>
         <div className={styles.statItem}>

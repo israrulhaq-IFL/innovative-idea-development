@@ -48,7 +48,10 @@
 
 /* Undo Status Indicator */
 .undoIndicator {
-  margin-top: 1.5rem;
+  position: absolute;
+  top: 120px; /* Position below the header */
+  left: 20px; /* Position on the left side */
+  z-index: 100;
   display: inline-block;
 }
 
@@ -56,19 +59,23 @@
   background: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 50px;
-  padding: 0.75rem 1.5rem;
+  border-radius: 12px; /* More rectangular/box-like */
+  padding: 1rem 1.25rem;
   display: flex;
-  align-items: center;
-  gap: 1rem;
+  flex-direction: column; /* Stack items vertically */
+  align-items: flex-start;
+  gap: 0.75rem;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  min-width: 280px; /* Ensure consistent width */
 }
 
 .undoText {
   color: white;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   font-weight: 500;
-  flex: 1;
+  line-height: 1.4;
+  text-align: left;
+  width: 100%;
 }
 
 .undoButton {
@@ -76,13 +83,14 @@
   border: 1px solid rgba(255, 255, 255, 0.3);
   color: white;
   padding: 0.5rem 1rem;
-  border-radius: 25px;
-  font-size: 0.9rem;
+  border-radius: 8px; /* Less rounded to match box style */
+  font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  align-self: flex-end; /* Align button to the right */
 }
 
 .undoButton:hover {
