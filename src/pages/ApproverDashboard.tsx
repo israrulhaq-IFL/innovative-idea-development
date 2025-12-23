@@ -91,14 +91,17 @@ const ApproverDashboard: React.FC = () => {
           attachments: idea.attachments || []
         }));
 
-      // Always sync with server data, but preserve local removals
-      setPendingIdeas(filtered);
+      // Only update if not currently animating to prevent flickering
+      if (!animatingCard) {
+        setPendingIdeas(filtered);
+      }
 
-      // Clear any lingering animation states when data is refreshed
-      setAnimatingCard(null);
-      setIsProcessingAction(false);
+      // Clear any lingering animation states when data is refreshed (but not during animation)
+      if (!animatingCard) {
+        setIsProcessingAction(false);
+      }
     }
-  }, [data?.ideas]);
+  }, [data?.ideas, animatingCard]);
 
   const handleCardAction = async (idea: Idea, action: 'approve' | 'reject') => {
     if (isProcessingAction) return; // Prevent multiple simultaneous actions
