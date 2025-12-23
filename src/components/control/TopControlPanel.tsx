@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   Plus,
@@ -32,6 +32,38 @@ export const TopControlPanel: React.FC<TopControlPanelProps> = ({
   const location = useLocation();
   const navigate = useNavigate();
   const { isAdmin, isApprover, isContributor } = useUser();
+  const [isUtilityBarScrolled, setIsUtilityBarScrolled] = useState(false);
+
+  // Listen to scroll events to adjust position based on utility bar state
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop =
+        window.pageYOffset ||
+        document.documentElement.scrollTop ||
+        document.body.scrollTop ||
+        0;
+      const shouldBeScrolled = scrollTop > 50;
+      setIsUtilityBarScrolled(shouldBeScrolled);
+    };
+
+    // Attach to multiple elements for better compatibility
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    document.addEventListener("scroll", handleScroll, { passive: true });
+
+    // Also try attaching to the document element
+    const htmlElement = document.documentElement;
+    if (htmlElement) {
+      htmlElement.addEventListener("scroll", handleScroll, { passive: true });
+    }
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      document.removeEventListener("scroll", handleScroll);
+      if (htmlElement) {
+        htmlElement.removeEventListener("scroll", handleScroll);
+      }
+    };
+  }, []);
 
   // Role-based navigation items
   const getNavigationItems = () => {
@@ -138,7 +170,12 @@ export const TopControlPanel: React.FC<TopControlPanelProps> = ({
   const actionControls = getActionControls();
 
   return (
-    <div className={`${styles.controlPanel} ${className}`}>
+    <div
+      className={`${styles.controlPanel} ${className}`}
+      style={{
+        top: isUtilityBarScrolled ? '48px' : '56px' // Adjust based on utility bar height
+      }}
+    >
       <div className={styles.panelContainer}>
         <div className={styles.panelContent}>
           {/* Navigation Section */}
