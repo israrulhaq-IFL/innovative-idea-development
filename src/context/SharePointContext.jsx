@@ -74,14 +74,18 @@ export const SharePointProvider = ({ children }) => {
   }, []);
 
   // Toast notification functions
-  const showToast = useCallback((message, type = 'success', duration = 3000) => {
+  const showToast = useCallback((message, type = 'success', duration = 3000, onUndo = null) => {
     // Check if notifications are enabled
     if (!settings.notifications) {
       return;
     }
-    setToast({ message, type });
+    setToast({ message, type, onUndo });
     setTimeout(() => setToast(null), duration);
   }, [settings.notifications]);
+
+  const hideToast = useCallback(() => {
+    setToast(null);
+  }, []);
 
   const computeAnalyticsFromTasks = useCallback((taskData) => {
     const safeTasks = Array.isArray(taskData) ? taskData : [];
@@ -234,10 +238,6 @@ export const SharePointProvider = ({ children }) => {
       }
     };
   }, [settings.autoRefresh, settings.refreshInterval, initialized, loading, refreshData]);
-
-  const hideToast = useCallback(() => {
-    setToast(null);
-  }, []);
 
   // Load tasks based on current permissions
   // Initialize SharePoint connection

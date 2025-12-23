@@ -6,6 +6,7 @@ import React, {
   ReactNode,
 } from "react";
 import { X, CheckCircle, AlertCircle, AlertTriangle, Info } from "lucide-react";
+import styles from "../Toast.module.css";
 
 export type ToastType = "success" | "error" | "warning" | "info";
 
@@ -92,7 +93,7 @@ const ToastContainer: React.FC = () => {
   if (toasts.length === 0) return null;
 
   return (
-    <div className="fixed top-4 right-4 z-50 space-y-2 max-w-sm">
+    <div className={styles.toastContainer}>
       {toasts.map((toast) => (
         <ToastItem key={toast.id} toast={toast} onRemove={removeToast} />
       ))}
@@ -120,55 +121,36 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast, onRemove }) => {
     }
   };
 
-  const getBackgroundColor = (type: ToastType) => {
-    switch (type) {
-      case "success":
-        return "bg-green-50 border-green-200";
-      case "error":
-        return "bg-red-50 border-red-200";
-      case "warning":
-        return "bg-yellow-50 border-yellow-200";
-      case "info":
-      default:
-        return "bg-blue-50 border-blue-200";
-    }
-  };
-
   return (
-    <div
-      className={`p-4 rounded-lg border shadow-lg transform transition-all duration-300 ease-in-out animate-in slide-in-from-right-2 ${getBackgroundColor(
-        toast.type,
-      )}`}
-      role="alert"
-    >
-      <div className="flex items-start gap-3">
-        <div className="flex-shrink-0 mt-0.5">{getIcon(toast.type)}</div>
-
-        <div className="flex-1 min-w-0">
-          <h4 className="text-sm font-medium text-gray-900 mb-1">
-            {toast.title}
-          </h4>
+    <div className={`${styles.toastItem} ${styles[toast.type]}`}>
+      <div className={styles.toastHeader}>
+        <div className={styles.toastIcon}>
+          {getIcon(toast.type)}
+        </div>
+        <div className={styles.toastContent}>
+          <h4 className={styles.toastTitle}>{toast.title}</h4>
           {toast.message && (
-            <p className="text-sm text-gray-700">{toast.message}</p>
-          )}
-          {toast.action && (
-            <button
-              onClick={toast.action.onClick}
-              className="mt-2 text-sm font-medium text-blue-600 hover:text-blue-800 underline"
-            >
-              {toast.action.label}
-            </button>
+            <p className={styles.toastMessage}>{toast.message}</p>
           )}
         </div>
-
         <button
           onClick={() => onRemove(toast.id)}
-          className="flex-shrink-0 p-1 rounded-md hover:bg-black/5 transition-colors duration-200"
+          className={styles.toastCloseButton}
           aria-label="Close notification"
         >
-          <X size={16} className="text-gray-400" />
+          <X size={16} />
         </button>
       </div>
+      {toast.action && (
+        <div className={styles.toastActions}>
+          <button
+            onClick={toast.action.onClick}
+            className={styles.toastActionButton}
+          >
+            {toast.action.label}
+          </button>
+        </div>
+      )}
     </div>
   );
 };

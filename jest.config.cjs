@@ -6,7 +6,9 @@ module.exports = {
   setupFilesAfterEnv: ['<rootDir>/src/setupTests.ts'],
   moduleNameMapper: {
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
-    '\\.(jpg|jpeg|png|gif|svg)$': '<rootDir>/src/__mocks__/fileMock.js'
+    '\\.(jpg|jpeg|png|gif|svg)$': '<rootDir>/src/__mocks__/fileMock.js',
+    '^../config/environment.js$': '<rootDir>/src/__mocks__/environmentMock.js',
+    '^../context/SharePointContext$': '<rootDir>/src/__mocks__/sharePointContextMock.js'
   },
   transform: {
     '^.+\\.(ts|tsx)$': 'babel-jest',
