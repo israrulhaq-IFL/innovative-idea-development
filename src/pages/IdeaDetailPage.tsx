@@ -6,6 +6,7 @@ import { useUser } from "../contexts/UserContext";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import StatusBar from "../components/common/StatusBar";
 import { ProcessedIdea } from "../contexts/DataContext";
+import IdeaTrailModal from "./IdeaTrailModal";
 import styles from "../components/common/IdeaDetail.module.css";
 
 const IdeaDetailPage: React.FC = () => {
@@ -14,6 +15,7 @@ const IdeaDetailPage: React.FC = () => {
   const { ideas, loading, error } = useIdeaData();
   const { user } = useUser();
   const [idea, setIdea] = useState<ProcessedIdea | null>(null);
+  const [isTrailModalOpen, setIsTrailModalOpen] = useState(false);
 
   useEffect(() => {
     if (ideas.length > 0 && id) {
@@ -145,7 +147,31 @@ const IdeaDetailPage: React.FC = () => {
         </div>
 
         <div className={styles.trailSection}>
-          <h2 className={styles.sectionTitle}>Idea Trail</h2>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <h2 className={styles.sectionTitle}>Idea Trail</h2>
+            <button
+              onClick={() => setIsTrailModalOpen(true)}
+              style={{
+                padding: '0.5rem 1rem',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '0.9rem',
+                fontWeight: '500',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+              onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+            >
+              <span>👁️</span>
+              View Full Trail
+            </button>
+          </div>
           <div className={styles.trailContainer}>
             <div className={styles.trailItem}>
               <div className={styles.trailIcon}>
@@ -211,6 +237,12 @@ const IdeaDetailPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <IdeaTrailModal
+        isOpen={isTrailModalOpen}
+        onClose={() => setIsTrailModalOpen(false)}
+        idea={idea}
+      />
     </motion.div>
   );
 };
