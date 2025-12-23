@@ -58,22 +58,34 @@ const IdeaTrailModal: React.FC<IdeaTrailModalProps> = ({ isOpen, onClose, idea }
   const generateTrailCheckpoints = useCallback((): TrailCheckpoint[] => {
     if (!idea) return [];
 
+    // Helper function to safely get a valid Date
+    const getValidDate = (date: Date | undefined | null, fallback: Date = new Date()): Date => {
+      if (date && date instanceof Date && !isNaN(date.getTime())) {
+        return date;
+      }
+      return fallback;
+    };
+
+    const now = new Date();
+    const createdDate = getValidDate(idea.created, now);
+    const modifiedDate = getValidDate(idea.modified, createdDate);
+
     const checkpoints: TrailCheckpoint[] = [
       {
         id: 'submitted',
         title: 'Idea Submitted',
         description: 'Idea was submitted for initial review',
         status: 'completed',
-        timestamp: idea.created,
-        actor: idea.createdBy.name,
-        details: `Submitted by ${idea.createdBy.name} in ${idea.category} category with ${idea.priority} priority`
+        timestamp: createdDate,
+        actor: idea.createdBy?.name || 'Unknown',
+        details: `Submitted by ${idea.createdBy?.name || 'Unknown'} in ${idea.category} category with ${idea.priority} priority`
       },
       {
         id: 'initial-review',
         title: 'Initial Review',
         description: 'Idea undergoes initial screening and validation',
         status: idea.status === 'Pending Approval' ? 'current' : 'completed',
-        timestamp: idea.created,
+        timestamp: createdDate,
         details: 'System validates idea completeness and assigns to appropriate reviewer'
       },
       {
@@ -83,7 +95,7 @@ const IdeaTrailModal: React.FC<IdeaTrailModalProps> = ({ isOpen, onClose, idea }
         status: idea.status === 'Approved' ? 'completed' :
                idea.status === 'Rejected' ? 'rejected' :
                idea.status === 'Pending Approval' ? 'current' : 'pending',
-        timestamp: idea.modified,
+        timestamp: modifiedDate,
         actor: idea.approvedBy?.name,
         details: idea.approvedBy ?
           `${idea.approvedBy.name} reviewed the idea and ${idea.status.toLowerCase()} it` :
@@ -98,7 +110,7 @@ const IdeaTrailModal: React.FC<IdeaTrailModalProps> = ({ isOpen, onClose, idea }
         title: 'Implementation Planning',
         description: 'Planning phase for approved idea execution',
         status: idea.status === 'In Progress' ? 'current' : 'pending',
-        timestamp: idea.modified,
+        timestamp: modifiedDate,
         details: 'Creating implementation roadmap and resource allocation'
       });
 
@@ -108,7 +120,7 @@ const IdeaTrailModal: React.FC<IdeaTrailModalProps> = ({ isOpen, onClose, idea }
           title: 'Implementation',
           description: 'Idea is being implemented',
           status: idea.status === 'Completed' ? 'completed' : 'current',
-          timestamp: idea.modified,
+          timestamp: modifiedDate,
           details: 'Active development and execution of the approved idea'
         });
       }
@@ -119,7 +131,7 @@ const IdeaTrailModal: React.FC<IdeaTrailModalProps> = ({ isOpen, onClose, idea }
           title: 'Completion Review',
           description: 'Final review and closure of implemented idea',
           status: 'completed',
-          timestamp: idea.modified,
+          timestamp: modifiedDate,
           details: 'Idea successfully implemented and marked as completed'
         });
       }
@@ -248,7 +260,9 @@ const IdeaTrailModal: React.FC<IdeaTrailModalProps> = ({ isOpen, onClose, idea }
                             <div className={styles.checkpointMeta}>
                               <div className={styles.checkpointMetaItem}>
                                 <Calendar size={14} />
-                                {checkpoint.timestamp.toLocaleDateString()} {checkpoint.timestamp.toLocaleTimeString()}
+                                {checkpoint.timestamp && checkpoint.timestamp instanceof Date && !isNaN(checkpoint.timestamp.getTime())
+                                  ? `${checkpoint.timestamp.toLocaleDateString()} ${checkpoint.timestamp.toLocaleTimeString()}`
+                                  : 'Date unavailable'}
                               </div>
                               {checkpoint.actor && (
                                 <div className={styles.checkpointMetaItem}>
