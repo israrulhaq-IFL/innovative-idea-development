@@ -169,11 +169,6 @@
   border: 2px solid transparent;
 }
 
-.ideaCard:hover {
-  transform: translateY(-8px) !important;
-  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.2);
-}
-
 .ideaCard:active {
   cursor: grabbing;
 }
@@ -656,14 +651,6 @@
 }
 
 /* Animations */
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-}
-
-.ideaCard:nth-child(1) { animation: float 6s ease-in-out infinite; }
-.ideaCard:nth-child(2) { animation: float 6s ease-in-out infinite 1s; }
-.ideaCard:nth-child(3) { animation: float 6s ease-in-out infinite 2s; }
 
 /* Disable float animation during approval/rejection animation */
 .ideaCard[data-animating="true"] {

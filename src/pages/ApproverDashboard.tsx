@@ -30,12 +30,14 @@ const ApproverDashboard: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [animatingCard, setAnimatingCard] = useState<string | null>(null);
   const [isProcessingAction, setIsProcessingAction] = useState(false);
+  const [pendingIdeas, setPendingIdeas] = useState<Idea[]>([]);
   const [lastAction, setLastAction] = useState<{
     ideaId: string;
     action: 'approve' | 'reject';
     originalStatus: string;
     timestamp: Date;
     ideaTitle: string;
+    idea: Idea; // Store full idea object for undo
   } | null>(() => {
     // Load lastAction from localStorage on component mount
     try {
@@ -69,26 +71,33 @@ const ApproverDashboard: React.FC = () => {
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [lastAction]);
-  const pendingIdeas = useMemo(() => {
-    if (!data?.ideas || !Array.isArray(data.ideas)) return [];
 
-    const filtered = data.ideas
-      .filter((idea: any) => idea.status === "Pending Approval" || idea.Status === "Pending Approval");
+  // Initialize pending ideas from server data and maintain local state
+  React.useEffect(() => {
+    if (data?.ideas && Array.isArray(data.ideas)) {
+      const filtered = data.ideas
+        .filter((idea: any) => idea.status === "Pending Approval" || idea.Status === "Pending Approval")
+        .sort((a: any, b: any) => new Date(a.created || a.Created).getTime() - new Date(b.created || b.Created).getTime())
+        .map((idea: any) => ({
+          id: idea.id || idea.ID,
+          title: idea.title || idea.Title,
+          description: idea.description || idea.Description,
+          status: idea.status || idea.Status,
+          priority: idea.priority || idea.Priority,
+          category: idea.category || idea.Category,
+          createdBy: idea.createdBy || idea.Author?.Title || idea.CreatedBy,
+          created: idea.created || idea.Created,
+          modified: idea.modified || idea.Modified,
+          attachments: idea.attachments || []
+        }));
 
-    return filtered
-      .sort((a: any, b: any) => new Date(a.created || a.Created).getTime() - new Date(b.created || b.Created).getTime())
-      .map((idea: any) => ({
-        id: idea.id || idea.ID,
-        title: idea.title || idea.Title,
-        description: idea.description || idea.Description,
-        status: idea.status || idea.Status,
-        priority: idea.priority || idea.Priority,
-        category: idea.category || idea.Category,
-        createdBy: idea.createdBy || idea.Author?.Title || idea.CreatedBy,
-        created: idea.created || idea.Created,
-        modified: idea.modified || idea.Modified,
-        attachments: idea.attachments || []
-      }));
+      // Always sync with server data, but preserve local removals
+      setPendingIdeas(filtered);
+
+      // Clear any lingering animation states when data is refreshed
+      setAnimatingCard(null);
+      setIsProcessingAction(false);
+    }
   }, [data?.ideas]);
 
   const handleCardAction = async (idea: Idea, action: 'approve' | 'reject') => {
@@ -103,7 +112,8 @@ const ApproverDashboard: React.FC = () => {
       action,
       originalStatus,
       timestamp: new Date(),
-      ideaTitle: idea.title
+      ideaTitle: idea.title,
+      idea: idea // Store full idea object for undo
     };
     setLastAction(actionData);
 
@@ -118,6 +128,9 @@ const ApproverDashboard: React.FC = () => {
       setTimeout(async () => {
         const newStatus = action === 'approve' ? "Approved" : "Rejected";
         await updateIdeaStatus(parseInt(idea.id), newStatus);
+
+        // Immediately remove from local state to prevent reloading/flickering
+        setPendingIdeas(prev => prev.filter(i => i.id !== idea.id));
 
         // Show toast with undo option
         addToast({
@@ -170,6 +183,23 @@ const ApproverDashboard: React.FC = () => {
       // Revert the status (skip server refresh to prevent overwriting local state)
       await updateIdeaStatus(parseInt(ideaId), originalStatus, true);
 
+      // If reverting to "Pending Approval", add the idea back to local state
+      if (originalStatus === "Pending Approval" && lastAction.idea) {
+        setPendingIdeas(prev => {
+          // Check if idea is already in the list (avoid duplicates)
+          const exists = prev.some(i => i.id === ideaId);
+          if (!exists) {
+            // Add the idea back at the beginning of the list
+            return [lastAction.idea, ...prev];
+          }
+          return prev;
+        });
+      }
+
+      // Clear animation state for the restored idea
+      setAnimatingCard(null);
+      setIsProcessingAction(false);
+
       // Show success confirmation
       addToast({
         type: 'success',
@@ -219,22 +249,12 @@ const ApproverDashboard: React.FC = () => {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <motion.h1
-          className={styles.title}
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
+        <h1 className={styles.title}>
           Idea Approvals
-        </motion.h1>
-        <motion.p
-          className={styles.subtitle}
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-        >
+        </h1>
+        <p className={styles.subtitle}>
           Review and approve innovative ideas from your team
-        </motion.p>
+        </p>
 
         {/* Undo Status Indicator */}
         <AnimatePresence>
@@ -264,41 +284,26 @@ const ApproverDashboard: React.FC = () => {
       </div>
 
       <div className={styles.statsBar}>
-        <motion.div
-          className={styles.statItem}
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.4, delay: 0.3 }}
-        >
+        <div className={styles.statItem}>
           <div className={styles.statNumber}>{pendingIdeas.length}</div>
           <div className={styles.statLabel}>Pending Approvals</div>
-        </motion.div>
+        </div>
       </div>
 
       <div className={styles.mainContent}>
         {loading.ideas ? (
-          <motion.div
-            className={styles.loadingState}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
-          >
+          <div className={styles.loadingState}>
             <div className={styles.loadingSpinner}></div>
             <p>Loading pending ideas...</p>
-          </motion.div>
+          </div>
         ) : pendingIdeas.length === 0 ? (
-          <motion.div
-            className={styles.emptyState}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5 }}
-          >
+          <div className={styles.emptyState}>
             <CheckCircle size={64} className={styles.emptyIcon} />
             <h3 className={styles.emptyTitle}>All Caught Up!</h3>
             <p className={styles.emptyMessage}>No pending ideas to review at the moment.</p>
-          </motion.div>
+          </div>
         ) : (
-          <motion.div className={styles.cardStack} layout>
+          <div className={styles.cardStack}>
             {pendingIdeas.map((idea, index) => (
               <div key={`button-container-${idea.id}`} className={styles.cardContainer}>
                 {/* Left side reject button */}
@@ -319,7 +324,6 @@ const ApproverDashboard: React.FC = () => {
                   style={{
                     zIndex: pendingIdeas.length - index,
                   }}
-                  initial={{ opacity: 0, y: 50 + index * 8, rotate: 0 }}
                   animate={
                     animatingCard === idea.id && lastAction?.ideaId === idea.id
                       ? lastAction.action === 'approve'
@@ -327,15 +331,13 @@ const ApproverDashboard: React.FC = () => {
                         : { opacity: 0, x: -400, rotate: -20, scale: 0.8 }
                       : {
                           opacity: 1,
-                          y: index * 8,
-                          rotate: index === 0 ? 0 : index * 0.5,
                           x: 0,
+                          rotate: 0,
                           scale: 1
                         }
                   }
-                  transition={{ 
-                    duration: animatingCard === idea.id ? 0.8 : 0.6, 
-                    delay: animatingCard === idea.id ? 0 : index * 0.1 
+                  transition={{
+                    duration: animatingCard === idea.id ? 0.8 : 0.3
                   }}
                   layout={false}
                 >
@@ -399,7 +401,7 @@ const ApproverDashboard: React.FC = () => {
                 )}
               </div>
             ))}
-          </motion.div>
+          </div>
         )}
       </div>
 
