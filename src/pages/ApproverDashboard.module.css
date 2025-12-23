@@ -3,7 +3,7 @@
 .container {
   min-height: 100vh;
   background: linear-gradient(135deg, rgb(102, 126, 234) 0%, rgb(142, 162, 254) 100%);
-  padding: 2rem;
+  padding: 1rem 2rem 2rem 2rem; /* Reduced top padding from 2rem to 1rem */
   position: relative;
   overflow: hidden;
 }
@@ -23,7 +23,7 @@
 /* Header */
 .header {
   text-align: center;
-  margin-bottom: 3rem;
+  margin-bottom: 1.5rem; /* Reduced from 3rem to 1.5rem */
   position: relative;
   z-index: 1;
 }
@@ -108,7 +108,7 @@
 .statsBar {
   display: flex;
   justify-content: center;
-  margin-bottom: 3rem;
+  margin-bottom: 1.5rem; /* Reduced from 3rem to 1.5rem */
   position: relative;
   z-index: 1;
 }

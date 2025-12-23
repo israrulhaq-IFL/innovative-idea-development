@@ -14,12 +14,14 @@ interface UserProfileProps {
   onLogout?: () => void;
   onSettings?: () => void;
   className?: string;
+  isCompact?: boolean;
 }
 
 const UserProfile: React.FC<UserProfileProps> = ({
   onLogout,
   onSettings,
   className = "",
+  isCompact = false,
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -85,50 +87,58 @@ const UserProfile: React.FC<UserProfileProps> = ({
     <div className={`${styles.userProfile} ${className}`} ref={dropdownRef}>
       <button
         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-        className={styles.userProfileButton}
+        className={`${styles.userProfileButton} ${isCompact ? styles.compact : ""}`}
         aria-label="User profile menu"
       >
-        <div className={styles.userProfileAvatar}>
-          {userDisplay.avatar ? (
-            <img src={userDisplay.avatar} alt={`${userDisplay.name} avatar`} />
-          ) : (
-            userDisplay.initials
-          )}
-        </div>
-        <div className={styles.userProfileInfo}>
-          <span className={styles.userProfileName}>{userDisplay.name}</span>
-          <div className={styles.userProfileBadges}>
-            {isAdmin && (
-              <span className={`${styles.userBadge} ${styles.adminBadge}`}>
-                <Shield size={10} />
-                Admin
-              </span>
-            )}
-            {isApprover && !isAdmin && (
-              <span className={`${styles.userBadge} ${styles.approverBadge}`}>
-                <Users size={10} />
-                Approver
-              </span>
-            )}
-            {isContributor && !isAdmin && !isApprover && (
-              <span
-                className={`${styles.userBadge} ${styles.contributorBadge}`}
-              >
-                <User size={10} />
-                Contributor
-              </span>
-            )}
-            {userDisplay.role && !isAdmin && !isApprover && !isContributor && (
-              <span className={`${styles.userBadge} ${styles.roleBadge}`}>
-                {userDisplay.role}
-              </span>
+        {!isCompact && (
+          <div className={styles.userProfileAvatar}>
+            {userDisplay.avatar ? (
+              <img src={userDisplay.avatar} alt={`${userDisplay.name} avatar`} />
+            ) : (
+              userDisplay.initials
             )}
           </div>
+        )}
+        <div className={styles.userProfileInfo}>
+          <span className={`${styles.userProfileName} ${isCompact ? styles.compactName : ""}`}>
+            {isCompact ? userDisplay.name.split(' ')[0] : userDisplay.name}
+          </span>
+          {!isCompact && (
+            <div className={styles.userProfileBadges}>
+              {isAdmin && (
+                <span className={`${styles.userBadge} ${styles.adminBadge}`}>
+                  <Shield size={10} />
+                  Admin
+                </span>
+              )}
+              {isApprover && !isAdmin && (
+                <span className={`${styles.userBadge} ${styles.approverBadge}`}>
+                  <Users size={10} />
+                  Approver
+                </span>
+              )}
+              {isContributor && !isAdmin && !isApprover && (
+                <span
+                  className={`${styles.userBadge} ${styles.contributorBadge}`}
+                >
+                  <User size={10} />
+                  Contributor
+                </span>
+              )}
+              {userDisplay.role && !isAdmin && !isApprover && !isContributor && (
+                <span className={`${styles.userBadge} ${styles.roleBadge}`}>
+                  {userDisplay.role}
+                </span>
+              )}
+            </div>
+          )}
         </div>
-        <ChevronDown
-          size={14}
-          className={`${styles.userProfileChevron} ${isDropdownOpen ? "rotate-180" : ""}`}
-        />
+        {!isCompact && (
+          <ChevronDown
+            size={14}
+            className={`${styles.userProfileChevron} ${isDropdownOpen ? "rotate-180" : ""}`}
+          />
+        )}
       </button>
 
       {isDropdownOpen && (

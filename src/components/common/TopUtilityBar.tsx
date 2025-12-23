@@ -397,7 +397,7 @@ const TopUtilityBar: React.FC<TopUtilityBarProps> = memo(({ lastUpdated }) => {
           <div className={styles.profileSeparator}></div>
 
           {/* User Profile */}
-          <UserProfile />
+          <UserProfile isCompact={isScrolled} />
         </div>
       </div>
     </div>

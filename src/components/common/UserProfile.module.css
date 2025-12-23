@@ -491,3 +491,20 @@
     width: 240px;
   }
 }
+
+/* Compact Mode Styles */
+.userProfileButton.compact {
+  padding: 4px 8px;
+  gap: 6px;
+  min-height: 32px;
+}
+
+.userProfileButton.compact:hover {
+  transform: none; /* Remove lift effect in compact mode */
+}
+
+.userProfileName.compactName {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #ffffff;
+}
