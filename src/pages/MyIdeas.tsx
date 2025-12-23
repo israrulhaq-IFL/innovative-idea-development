@@ -6,6 +6,7 @@ import { useUser } from "../contexts/UserContext";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import StatusBar from "../components/common/StatusBar";
 import { ProcessedIdea } from "../contexts/DataContext";
+import IdeaTrailModal from "./IdeaTrailModal";
 import styles from "../components/common/MyIdeas.module.css";
 
 const MyIdeas: React.FC = () => {
@@ -13,6 +14,7 @@ const MyIdeas: React.FC = () => {
   const { data, loading, error, loadIdeas } = useIdeaData();
   const { user, isAdmin, isApprover, isContributor } = useUser();
   const [selectedIdea, setSelectedIdea] = useState<ProcessedIdea | null>(null);
+  const [isTrailModalOpen, setIsTrailModalOpen] = useState(false);
 
   useEffect(() => {
     // Load ideas data when component mounts
@@ -327,7 +329,31 @@ const MyIdeas: React.FC = () => {
                 </div>
 
                 <div className={styles.detailSection}>
-                  <h3 className={styles.detailSectionTitle}>Idea Trail</h3>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <h3 className={styles.detailSectionTitle}>Idea Trail</h3>
+                    <button
+                      onClick={() => setIsTrailModalOpen(true)}
+                      style={{
+                        padding: '0.5rem 1rem',
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        fontSize: '0.9rem',
+                        fontWeight: '500',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        transition: 'all 0.3s ease'
+                      }}
+                      onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+                      onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                    >
+                      <span>👁️</span>
+                      View Full Trail
+                    </button>
+                  </div>
                   <div className={styles.trailContainer}>
                     <div className={styles.trailItem}>
                       <div className={styles.trailIcon}>📝</div>
@@ -382,6 +408,12 @@ const MyIdeas: React.FC = () => {
           )}
         </div>
       </div>
+
+      <IdeaTrailModal
+        isOpen={isTrailModalOpen}
+        onClose={() => setIsTrailModalOpen(false)}
+        idea={selectedIdea}
+      />
     </motion.div>
   );
 };
