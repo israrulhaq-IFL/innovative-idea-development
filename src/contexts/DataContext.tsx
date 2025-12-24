@@ -14,6 +14,7 @@ export interface IdeaData {
   tasks: Task[];
   discussions: Discussion[];
   approvers: Approver[];
+  ideaTrailEvents: IdeaTrailEvent[];
   lastUpdated: Date | null;
 }
 
@@ -62,6 +63,21 @@ export interface Approver {
   name: string;
   email: string;
   department: string;
+}
+
+export interface IdeaTrailEvent {
+  id: number;
+  ideaId: number;
+  eventType: "submitted" | "reviewed" | "approved" | "rejected" | "implementation_started" | "implementation_completed" | "status_changed" | "commented" | "attachment_added";
+  title: string;
+  description: string;
+  actor: string;
+  actorId: number;
+  timestamp: Date;
+  previousStatus?: string;
+  newStatus?: string;
+  comments?: string;
+  metadata?: Record<string, any>;
 }
 
 // Processed types for SharePoint data
@@ -162,6 +178,7 @@ type DataAction =
   | { type: "SET_TASKS"; payload: Task[] }
   | { type: "SET_DISCUSSIONS"; payload: Discussion[] }
   | { type: "SET_APPROVERS"; payload: Approver[] }
+  | { type: "SET_IDEA_TRAIL_EVENTS"; payload: IdeaTrailEvent[] }
   | { type: "UPDATE_LAST_UPDATED" };
 
 // Initial state
@@ -170,6 +187,7 @@ const initialData: IdeaData = {
   tasks: [],
   discussions: [],
   approvers: [],
+  ideaTrailEvents: [],
   lastUpdated: null,
 };
 
@@ -235,6 +253,16 @@ const dataReducer = (state: DataState, action: DataAction): DataState => {
         data: {
           ...state.data,
           approvers: action.payload,
+          lastUpdated: new Date(),
+        },
+      };
+
+    case "SET_IDEA_TRAIL_EVENTS":
+      return {
+        ...state,
+        data: {
+          ...state.data,
+          ideaTrailEvents: action.payload,
           lastUpdated: new Date(),
         },
       };
@@ -479,6 +507,95 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
     }
   }, [state.data.ideas, user?.user?.Id, user?.user?.Title, loadIdeas]);
 
+  const loadIdeaTrailEvents = useCallback(async () => {
+    try {
+      // Load real trail events from SharePoint
+      const trailEvents = await ideaApi.getIdeaTrailEvents();
+
+      // If no trail events exist yet, create initial events for existing ideas
+      if (trailEvents.length === 0 && state.data.ideas.length > 0) {
+        // Create trail events for existing ideas that don't have them
+        const createPromises = state.data.ideas.map(async (idea) => {
+          try {
+            // Create submission event
+            await ideaApi.createIdeaTrailEvent({
+              ideaId: idea.id,
+              eventType: "submitted",
+              title: "Idea Submitted",
+              description: `Idea "${idea.title}" was submitted for review`,
+              actor: idea.createdBy,
+              actorId: 1, // Would need to get actual user ID
+              previousStatus: undefined,
+              newStatus: "Pending",
+              metadata: {
+                category: idea.category,
+                priority: idea.priority
+              }
+            });
+
+            // Create approval/rejection event if applicable
+            if (idea.status === "Approved" || idea.status === "Rejected") {
+              await ideaApi.createIdeaTrailEvent({
+                ideaId: idea.id,
+                eventType: idea.status === "Approved" ? "approved" : "rejected",
+                title: `Idea ${idea.status}`,
+                description: `Idea "${idea.title}" was ${idea.status.toLowerCase()}`,
+                actor: idea.approvedBy || "System",
+                actorId: 2, // Would need to get actual user ID
+                previousStatus: "Pending",
+                newStatus: idea.status,
+                metadata: {
+                  approvedBy: idea.approvedBy
+                }
+              });
+            }
+
+            // Create implementation events if applicable
+            if (idea.status === "In Progress" || idea.status === "Completed") {
+              await ideaApi.createIdeaTrailEvent({
+                ideaId: idea.id,
+                eventType: "implementation_started",
+                title: "Implementation Started",
+                description: `Implementation of idea "${idea.title}" has begun`,
+                actor: "System",
+                actorId: 3,
+                previousStatus: "Approved",
+                newStatus: "In Progress"
+              });
+
+              if (idea.status === "Completed") {
+                await ideaApi.createIdeaTrailEvent({
+                  ideaId: idea.id,
+                  eventType: "implementation_completed",
+                  title: "Implementation Completed",
+                  description: `Implementation of idea "${idea.title}" has been completed`,
+                  actor: "System",
+                  actorId: 3,
+                  previousStatus: "In Progress",
+                  newStatus: "Completed"
+                });
+              }
+            }
+          } catch (error) {
+            console.warn(`Failed to create trail events for idea ${idea.id}`, error);
+          }
+        });
+
+        await Promise.all(createPromises);
+
+        // Reload trail events after creating initial ones
+        const updatedTrailEvents = await ideaApi.getIdeaTrailEvents();
+        dispatch({ type: "SET_IDEA_TRAIL_EVENTS", payload: updatedTrailEvents });
+      } else {
+        dispatch({ type: "SET_IDEA_TRAIL_EVENTS", payload: trailEvents });
+      }
+    } catch (error) {
+      console.error("Failed to load idea trail events", error);
+      // Fallback to empty array on error
+      dispatch({ type: "SET_IDEA_TRAIL_EVENTS", payload: [] });
+    }
+  }, [state.data.ideas]);
+
   return (
     <DataContext.Provider
       value={{
@@ -488,6 +605,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
         loadTasks,
         loadDiscussions,
         loadApprovers,
+        loadIdeaTrailEvents,
         updateIdeaStatus,
       }}
     >
@@ -510,6 +628,7 @@ export const useIdeaData = () => {
     loadTasks: context.loadTasks,
     loadDiscussions: context.loadDiscussions,
     loadApprovers: context.loadApprovers,
+    loadIdeaTrailEvents: context.loadIdeaTrailEvents,
     updateIdeaStatus: context.updateIdeaStatus,
   };
 };

@@ -10,6 +10,7 @@ import {
   ProcessedIdea,
   ProcessedTask,
   ProcessedDiscussion,
+  IdeaTrailEvent,
 } from '../types';
 
 // List names
@@ -22,6 +23,8 @@ const TASK_SELECT =
   'ID,Title,Body,Status,Priority,PercentComplete,DueDate,StartDate,AssignedTo/Id,AssignedTo/Title,AssignedTo/EMail';
 const DISCUSSION_SELECT =
   'ID,Title,Body,Created,Modified,Author/Id,Author/Title';
+const IDEA_TRAIL_SELECT =
+  'ID,IdeaId,EventType,Title,Description,Actor/Id,Actor/Title,PreviousStatus,NewStatus,Comments,Metadata,Created';
 
 // API Service Class
 export class IdeaApiService {
@@ -387,6 +390,82 @@ export class IdeaApiService {
         email: raw.Author?.EMail,
       },
       taskId: raw.TaskId, // Would need lookup field
+    };
+  }
+
+  // Idea Trail Events API
+  async getIdeaTrailEvents(ideaId?: number): Promise<IdeaTrailEvent[]> {
+    try {
+      let endpoint = `/_api/web/lists/getbytitle('${LISTS.ideaTrail}')/items?$select=${IDEA_TRAIL_SELECT}&$expand=Actor&$orderby=Created desc&$top=1000`;
+
+      if (ideaId) {
+        endpoint += `&$filter=IdeaId eq ${ideaId}`;
+      }
+
+      const response = await sharePointApi.get<any>(endpoint);
+      return response.d.results.map(this.processIdeaTrailEvent);
+    } catch (error) {
+      logError('Failed to fetch idea trail events', error);
+      throw error;
+    }
+  }
+
+  async createIdeaTrailEvent(event: Omit<IdeaTrailEvent, 'id' | 'timestamp'>): Promise<IdeaTrailEvent> {
+    try {
+      const itemData = {
+        IdeaId: event.ideaId,
+        EventType: event.eventType,
+        Title: event.title,
+        Description: event.description,
+        ActorId: event.actorId,
+        PreviousStatus: event.previousStatus,
+        NewStatus: event.newStatus,
+        Comments: event.comments,
+        Metadata: JSON.stringify(event.metadata || {}),
+      };
+
+      const endpoint = `/_api/web/lists/getbytitle('${LISTS.ideaTrail}')/items`;
+      const response = await sharePointApi.post<any>(endpoint, itemData);
+
+      // Fetch the created item to return complete data
+      const createdEvent = await this.getIdeaTrailEvents().then(events =>
+        events.find(e => e.id === response.d.ID)
+      );
+
+      if (!createdEvent) {
+        throw new Error('Failed to retrieve created trail event');
+      }
+
+      return createdEvent;
+    } catch (error) {
+      logError('Failed to create idea trail event', error);
+      throw error;
+    }
+  }
+
+  private processIdeaTrailEvent(raw: any): IdeaTrailEvent {
+    const createdDate = raw.Created ? new Date(raw.Created) : new Date();
+
+    let metadata = {};
+    try {
+      metadata = raw.Metadata ? JSON.parse(raw.Metadata) : {};
+    } catch (e) {
+      logError('Failed to parse trail event metadata', e);
+    }
+
+    return {
+      id: raw.ID,
+      ideaId: raw.IdeaId,
+      eventType: raw.EventType,
+      title: raw.Title,
+      description: raw.Description,
+      actor: raw.Actor?.Title || 'Unknown',
+      actorId: raw.Actor?.Id || 0,
+      timestamp: createdDate,
+      previousStatus: raw.PreviousStatus,
+      newStatus: raw.NewStatus,
+      comments: raw.Comments,
+      metadata,
     };
   }
 }

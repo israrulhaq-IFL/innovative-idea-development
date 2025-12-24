@@ -11,6 +11,7 @@ export interface SharePointConfig {
     ideas: string;
     tasks: string;
     discussions: string;
+    ideaTrail: string;
   };
 }
 
@@ -21,6 +22,7 @@ export const DEFAULT_CONFIG: SharePointConfig = {
     ideas: "innovative_ideas",
     tasks: "ino_ideas_tasks",
     discussions: "innovative_idea_discussions",
+    ideaTrail: "innovative_idea_trail",
   },
 };
 

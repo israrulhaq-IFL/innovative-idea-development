@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { X, Eye, CheckCircle, XCircle, Clock, User, Calendar, FileText, ZoomIn, ZoomOut } from 'lucide-react';
+import { useIdeaData, IdeaTrailEvent } from '../contexts/DataContext';
 import styles from './IdeaTrailModal.module.css';
 
 interface IdeaTrailModalProps {
@@ -53,92 +54,67 @@ const IdeaTrailModal: React.FC<IdeaTrailModalProps> = ({ isOpen, onClose, idea }
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const canvasRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const { data, loadIdeaTrailEvents } = useIdeaData();
 
-  // Generate trail checkpoints based on idea data
-  const generateTrailCheckpoints = useCallback((): TrailCheckpoint[] => {
-    if (!idea) return [];
-
-    // Helper function to safely get a valid Date
-    const getValidDate = (date: Date | undefined | null, fallback: Date = new Date()): Date => {
-      if (date && date instanceof Date && !isNaN(date.getTime())) {
-        return date;
-      }
-      return fallback;
-    };
-
-    const now = new Date();
-    const createdDate = getValidDate(idea.created, now);
-    const modifiedDate = getValidDate(idea.modified, createdDate);
-
-    const checkpoints: TrailCheckpoint[] = [
-      {
-        id: 'submitted',
-        title: 'Idea Submitted',
-        description: 'Idea was submitted for initial review',
-        status: 'completed',
-        timestamp: createdDate,
-        actor: idea.createdBy?.name || 'Unknown',
-        details: `Submitted by ${idea.createdBy?.name || 'Unknown'} in ${idea.category} category with ${idea.priority} priority`
-      },
-      {
-        id: 'initial-review',
-        title: 'Initial Review',
-        description: 'Idea undergoes initial screening and validation',
-        status: idea.status === 'Pending Approval' ? 'current' : 'completed',
-        timestamp: createdDate,
-        details: 'System validates idea completeness and assigns to appropriate reviewer'
-      },
-      {
-        id: 'approval-review',
-        title: 'Approval Review',
-        description: 'Idea is reviewed by designated approver',
-        status: idea.status === 'Approved' ? 'completed' :
-               idea.status === 'Rejected' ? 'rejected' :
-               idea.status === 'Pending Approval' ? 'current' : 'pending',
-        timestamp: modifiedDate,
-        actor: idea.approvedBy?.name,
-        details: idea.approvedBy ?
-          `${idea.approvedBy.name} reviewed the idea and ${idea.status.toLowerCase()} it` :
-          'Awaiting approval review'
-      }
-    ];
-
-    // Add additional checkpoints based on status
-    if (idea.status === 'Approved') {
-      checkpoints.push({
-        id: 'implementation-planning',
-        title: 'Implementation Planning',
-        description: 'Planning phase for approved idea execution',
-        status: idea.status === 'In Progress' ? 'current' : 'pending',
-        timestamp: modifiedDate,
-        details: 'Creating implementation roadmap and resource allocation'
-      });
-
-      if (idea.status === 'In Progress' || idea.status === 'Completed') {
-        checkpoints.push({
-          id: 'implementation',
-          title: 'Implementation',
-          description: 'Idea is being implemented',
-          status: idea.status === 'Completed' ? 'completed' : 'current',
-          timestamp: modifiedDate,
-          details: 'Active development and execution of the approved idea'
-        });
-      }
-
-      if (idea.status === 'Completed') {
-        checkpoints.push({
-          id: 'completion-review',
-          title: 'Completion Review',
-          description: 'Final review and closure of implemented idea',
-          status: 'completed',
-          timestamp: modifiedDate,
-          details: 'Idea successfully implemented and marked as completed'
-        });
-      }
+  // Load trail events when modal opens
+  useEffect(() => {
+    if (isOpen && idea) {
+      loadIdeaTrailEvents();
     }
+  }, [isOpen, idea, loadIdeaTrailEvents]);
 
-    return checkpoints;
-  }, [idea]);
+  // Get trail events for the current idea
+  const getTrailEvents = useCallback((): IdeaTrailEvent[] => {
+    if (!idea) return [];
+    return data.ideaTrailEvents.filter(event => event.ideaId === idea.id);
+  }, [idea, data.ideaTrailEvents]);
+
+  // Convert trail events to checkpoints
+  const generateTrailCheckpoints = useCallback((): TrailCheckpoint[] => {
+    const events = getTrailEvents();
+
+    return events.map(event => {
+      let status: 'pending' | 'completed' | 'current' | 'rejected' = 'completed';
+      let iconType: string = 'completed';
+
+      switch (event.eventType) {
+        case 'submitted':
+          status = 'completed';
+          iconType = 'submitted';
+          break;
+        case 'approved':
+          status = 'completed';
+          iconType = 'approved';
+          break;
+        case 'rejected':
+          status = 'rejected';
+          iconType = 'rejected';
+          break;
+        case 'implementation_started':
+          status = 'completed';
+          iconType = 'implementation';
+          break;
+        case 'implementation_completed':
+          status = 'completed';
+          iconType = 'completed';
+          break;
+        default:
+          status = 'completed';
+          iconType = 'default';
+      }
+
+      return {
+        id: event.id.toString(),
+        title: event.title,
+        description: event.description,
+        status,
+        timestamp: event.timestamp,
+        actor: event.actor,
+        details: event.comments || `${event.eventType} event`,
+        actions: []
+      };
+    });
+  }, [getTrailEvents]);
 
   const checkpoints = generateTrailCheckpoints();
 
@@ -238,10 +214,13 @@ const IdeaTrailModal: React.FC<IdeaTrailModalProps> = ({ isOpen, onClose, idea }
                       {row.map((checkpoint, colIndex) => (
                         <div key={checkpoint.id} className={styles.checkpoint}>
                           <div className={`${styles.checkpointNode} ${styles[checkpoint.status]}`}>
-                            {checkpoint.status === 'completed' && <CheckCircle size={32} />}
-                            {checkpoint.status === 'rejected' && <XCircle size={32} />}
+                            {checkpoint.id.includes('submitted') && <FileText size={32} />}
+                            {checkpoint.id.includes('approved') && <CheckCircle size={32} />}
+                            {checkpoint.id.includes('rejected') && <XCircle size={32} />}
+                            {checkpoint.id.includes('implementation') && <Clock size={32} />}
                             {checkpoint.status === 'current' && <Clock size={32} />}
                             {checkpoint.status === 'pending' && <FileText size={32} />}
+                            {checkpoint.status === 'completed' && !checkpoint.id.includes('submitted') && !checkpoint.id.includes('approved') && !checkpoint.id.includes('rejected') && !checkpoint.id.includes('implementation') && <CheckCircle size={32} />}
                           </div>
 
                           {colIndex < row.length - 1 && (

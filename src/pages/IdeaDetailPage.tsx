@@ -12,7 +12,7 @@ import styles from "../components/common/IdeaDetail.module.css";
 const IdeaDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { ideas, loading, error } = useIdeaData();
+  const { ideas, loading, error, loadIdeaTrailEvents } = useIdeaData();
   const { user } = useUser();
   const [idea, setIdea] = useState<ProcessedIdea | null>(null);
   const [isTrailModalOpen, setIsTrailModalOpen] = useState(false);
@@ -27,6 +27,11 @@ const IdeaDetailPage: React.FC = () => {
       }
     }
   }, [ideas, id, navigate]);
+
+  useEffect(() => {
+    // Load trail events when component mounts
+    loadIdeaTrailEvents();
+  }, [loadIdeaTrailEvents]);
 
   if (loading.ideas) {
     return (

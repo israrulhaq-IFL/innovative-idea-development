@@ -11,20 +11,16 @@ import styles from "../components/common/MyIdeas.module.css";
 
 const MyIdeas: React.FC = () => {
   const navigate = useNavigate();
-  const { data, loading, error, loadIdeas } = useIdeaData();
+  const { data, loading, error, loadIdeas, loadIdeaTrailEvents } = useIdeaData();
   const { user, isAdmin, isApprover, isContributor } = useUser();
   const [selectedIdea, setSelectedIdea] = useState<ProcessedIdea | null>(null);
   const [isTrailModalOpen, setIsTrailModalOpen] = useState(false);
 
   useEffect(() => {
-    // Load ideas data when component mounts
+    // Load ideas data and trail events when component mounts
     loadIdeas();
-  }, [loadIdeas]);
-
-  useEffect(() => {
-    // Load ideas data when component mounts
-    loadIdeas();
-  }, [loadIdeas]);
+    loadIdeaTrailEvents();
+  }, [loadIdeas, loadIdeaTrailEvents]);
 
   // Filter to show only the current user's ideas
   const myIdeas = useMemo(() => {
