@@ -24,7 +24,7 @@ const TASK_SELECT =
 const DISCUSSION_SELECT =
   'ID,Title,Body,Created,Modified,Author/Id,Author/Title';
 const IDEA_TRAIL_SELECT =
-  'ID,IdeaId,EventType,Title,Description,Actor/Id,Actor/Title,PreviousStatus,NewStatus,Comments,Metadata,Created';
+  'ID,Idea/Id,Idea/Title,EventType,Title,Description,Actor/Id,Actor/Title,PreviousStatus,NewStatus,Comments,Metadata,Created';
 
 // API Service Class
 export class IdeaApiService {
@@ -396,10 +396,10 @@ export class IdeaApiService {
   // Idea Trail Events API
   async getIdeaTrailEvents(ideaId?: number): Promise<IdeaTrailEvent[]> {
     try {
-      let endpoint = `/_api/web/lists/getbytitle('${LISTS.ideaTrail}')/items?$select=${IDEA_TRAIL_SELECT}&$expand=Actor&$orderby=Created desc&$top=1000`;
+      let endpoint = `/_api/web/lists/getbytitle('${LISTS.ideaTrail}')/items?$select=${IDEA_TRAIL_SELECT}&$expand=Actor,Idea&$orderby=Created desc&$top=1000`;
 
       if (ideaId) {
-        endpoint += `&$filter=IdeaId eq ${ideaId}`;
+        endpoint += `&$filter=Idea/Id eq ${ideaId}`;
       }
 
       const response = await sharePointApi.get<any>(endpoint);
@@ -413,7 +413,7 @@ export class IdeaApiService {
   async createIdeaTrailEvent(event: Omit<IdeaTrailEvent, 'id' | 'timestamp'>): Promise<IdeaTrailEvent> {
     try {
       const itemData = {
-        IdeaId: event.ideaId,
+        IdeaId: event.ideaId, // Lookup field - provide the ID of the related item
         EventType: event.eventType,
         Title: event.title,
         Description: event.description,
@@ -455,7 +455,7 @@ export class IdeaApiService {
 
     return {
       id: raw.ID,
-      ideaId: raw.IdeaId,
+      ideaId: raw.Idea?.Id || 0,
       eventType: raw.EventType,
       title: raw.Title,
       description: raw.Description,
