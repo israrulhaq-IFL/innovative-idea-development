@@ -105,7 +105,6 @@ const AppWithRouter: React.FC<AppWithRouterProps> = ({ data }) => {
     "/contributor",
     "/my-ideas",
     "/approved-ideas",
-    "/idea/:id/task/new",
   ];
 
   const showControlPanel = routesWithControlPanel.some((route) =>
