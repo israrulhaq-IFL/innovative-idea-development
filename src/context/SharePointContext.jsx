@@ -1,19 +1,30 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+} from 'react';
 import dataService from '../services/dataService';
 import useUserPermissions from '../hooks/useUserPermissions';
 
-const SharePointContext = createContext()
+const SharePointContext = createContext();
 
 export const useSharePoint = () => {
-  const context = useContext(SharePointContext)
+  const context = useContext(SharePointContext);
   if (!context) {
-    throw new Error('useSharePoint must be used within a SharePointProvider')
+    throw new Error('useSharePoint must be used within a SharePointProvider');
   }
-  return context
-}
+  return context;
+};
 
 export const SharePointProvider = ({ children }) => {
-  const { permissions, loading: permissionsLoading, error: permissionsError } = useUserPermissions();
+  const {
+    permissions,
+    loading: permissionsLoading,
+    error: permissionsError,
+  } = useUserPermissions();
   const [user, setUser] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [analytics, setAnalytics] = useState({
@@ -22,7 +33,7 @@ export const SharePointProvider = ({ children }) => {
     inProgressTasks: 0,
     overdueTasks: 0,
     completionRate: 0,
-    avgCompletionTime: 0
+    avgCompletionTime: 0,
   });
   const [departments, setDepartments] = useState([]);
   const [siteGroups, setSiteGroups] = useState([]);
@@ -34,14 +45,14 @@ export const SharePointProvider = ({ children }) => {
   const [settings, setSettings] = useState({
     autoRefresh: true,
     refreshInterval: 300,
-    notifications: true
+    notifications: true,
   });
 
   // Reload status tracking
   const [lastReload, setLastReload] = useState({
     time: null,
     type: null, // 'manual' or 'auto'
-    nextAutoReload: null
+    nextAutoReload: null,
   });
 
   // Guard against React 18 StrictMode (dev) double-invoking effects and against concurrent inits.
@@ -53,7 +64,7 @@ export const SharePointProvider = ({ children }) => {
     if (savedSettings) {
       try {
         const parsed = JSON.parse(savedSettings);
-        setSettings(prev => ({ ...prev, ...parsed }));
+        setSettings((prev) => ({ ...prev, ...parsed }));
       } catch (error) {
         console.error('Failed to load settings:', error);
       }
@@ -62,7 +73,7 @@ export const SharePointProvider = ({ children }) => {
 
   // Function to update settings
   const updateSettings = useCallback((newSettings) => {
-    setSettings(prev => {
+    setSettings((prev) => {
       const updated = { ...prev, ...newSettings };
       try {
         localStorage.setItem('dashboardSettings', JSON.stringify(updated));
@@ -74,14 +85,17 @@ export const SharePointProvider = ({ children }) => {
   }, []);
 
   // Toast notification functions
-  const showToast = useCallback((message, type = 'success', duration = 3000, onUndo = null) => {
-    // Check if notifications are enabled
-    if (!settings.notifications) {
-      return;
-    }
-    setToast({ message, type, onUndo });
-    setTimeout(() => setToast(null), duration);
-  }, [settings.notifications]);
+  const showToast = useCallback(
+    (message, type = 'success', duration = 3000, onUndo = null) => {
+      // Check if notifications are enabled
+      if (!settings.notifications) {
+        return;
+      }
+      setToast({ message, type, onUndo });
+      setTimeout(() => setToast(null), duration);
+    },
+    [settings.notifications],
+  );
 
   const hideToast = useCallback(() => {
     setToast(null);
@@ -91,26 +105,36 @@ export const SharePointProvider = ({ children }) => {
     const safeTasks = Array.isArray(taskData) ? taskData : [];
 
     const totalTasks = safeTasks.length;
-    const completedTasks = safeTasks.filter(t => t.Status === 'Completed').length;
-    const inProgressTasks = safeTasks.filter(t => t.Status === 'In Progress').length;
-    const overdueTasks = safeTasks.filter(t => {
+    const completedTasks = safeTasks.filter(
+      (t) => t.Status === 'Completed',
+    ).length;
+    const inProgressTasks = safeTasks.filter(
+      (t) => t.Status === 'In Progress',
+    ).length;
+    const overdueTasks = safeTasks.filter((t) => {
       if (!t.DueDate || t.Status === 'Completed') return false;
       return new Date(t.DueDate) < new Date();
     }).length;
 
-    const completionRate = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
+    const completionRate =
+      totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
 
     // Average completion time in days
-    const completedWithDates = safeTasks.filter(t => t.Status === 'Completed' && t.Created && t.Modified);
-    const avgCompletionTime = completedWithDates.length === 0
-      ? 0
-      : Math.round(completedWithDates.reduce((sum, task) => {
-          const created = new Date(task.Created);
-          const modified = new Date(task.Modified);
-          const diffTime = Math.abs(modified - created);
-          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-          return sum + diffDays;
-        }, 0) / completedWithDates.length);
+    const completedWithDates = safeTasks.filter(
+      (t) => t.Status === 'Completed' && t.Created && t.Modified,
+    );
+    const avgCompletionTime =
+      completedWithDates.length === 0
+        ? 0
+        : Math.round(
+            completedWithDates.reduce((sum, task) => {
+              const created = new Date(task.Created);
+              const modified = new Date(task.Modified);
+              const diffTime = Math.abs(modified - created);
+              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+              return sum + diffDays;
+            }, 0) / completedWithDates.length,
+          );
 
     return {
       totalTasks,
@@ -118,101 +142,125 @@ export const SharePointProvider = ({ children }) => {
       inProgressTasks,
       overdueTasks,
       completionRate,
-      avgCompletionTime
+      avgCompletionTime,
     };
   }, []);
 
   // Load tasks based on current permissions
-  const loadTasks = useCallback(async (departmentFilter = null, departmentId = null) => {
-    try {
-      // Determine which departments this user can access
-      const allDepartments = dataService().getDepartments();
-      const allowedDepartments = permissions.canViewAll
-        ? allDepartments
-        : (permissions.allowedDepartments && permissions.allowedDepartments.length > 0)
-            ? allDepartments.filter(d => permissions.allowedDepartments.includes(d.id))
+  const loadTasks = useCallback(
+    async (departmentFilter = null, departmentId = null) => {
+      try {
+        // Determine which departments this user can access
+        const allDepartments = dataService().getDepartments();
+        const allowedDepartments = permissions.canViewAll
+          ? allDepartments
+          : permissions.allowedDepartments &&
+              permissions.allowedDepartments.length > 0
+            ? allDepartments.filter((d) =>
+                permissions.allowedDepartments.includes(d.id),
+              )
             : [allDepartments[0]]; // Default to first department
 
-      // Load tasks for each allowed department
-      const allTasks = [];
-      for (const dept of allowedDepartments) {
-        try {
-          const departmentTasks = await dataService().getTasks(dept.id, { permissions });
-          allTasks.push(...departmentTasks);
-        } catch (err) {
-          console.error(`Failed to load tasks for department ${dept.id}:`, err);
-          // Continue with other departments
+        // Load tasks for each allowed department
+        const allTasks = [];
+        for (const dept of allowedDepartments) {
+          try {
+            const departmentTasks = await dataService().getTasks(dept.id, {
+              permissions,
+            });
+            allTasks.push(...departmentTasks);
+          } catch (err) {
+            console.error(
+              `Failed to load tasks for department ${dept.id}:`,
+              err,
+            );
+            // Continue with other departments
+          }
         }
+
+        // Sort tasks by due date (null dates at end)
+        allTasks.sort((a, b) => {
+          if (!a.DueDate && !b.DueDate) return 0;
+          if (!a.DueDate) return 1;
+          if (!b.DueDate) return -1;
+          return new Date(a.DueDate) - new Date(b.DueDate);
+        });
+
+        setTasks(allTasks);
+        setAnalytics(computeAnalyticsFromTasks(allTasks));
+        setError(null);
+      } catch (err) {
+        console.error('Failed to load tasks:', err);
+        setError('Failed to load tasks');
+        setTasks([]);
+        setAnalytics(computeAnalyticsFromTasks([]));
       }
-
-      // Sort tasks by due date (null dates at end)
-      allTasks.sort((a, b) => {
-        if (!a.DueDate && !b.DueDate) return 0;
-        if (!a.DueDate) return 1;
-        if (!b.DueDate) return -1;
-        return new Date(a.DueDate) - new Date(b.DueDate);
-      });
-
-      setTasks(allTasks);
-      setAnalytics(computeAnalyticsFromTasks(allTasks));
-      setError(null);
-    } catch (err) {
-      console.error('Failed to load tasks:', err);
-      setError('Failed to load tasks');
-      setTasks([]);
-      setAnalytics(computeAnalyticsFromTasks([]));
-    }
-  }, [permissions, computeAnalyticsFromTasks]);
+    },
+    [permissions, computeAnalyticsFromTasks],
+  );
 
   // Refresh data
-  const refreshData = useCallback(async (isSilent = false) => {
-    if (!permissions) return;
+  const refreshData = useCallback(
+    async (isSilent = false) => {
+      if (!permissions) return;
 
-    const reloadType = isSilent ? 'auto' : 'manual';
-    const now = new Date();
+      const reloadType = isSilent ? 'auto' : 'manual';
+      const now = new Date();
 
-    try {
-      if (!isSilent) {
-        setLoading(true);
-        setError(null);
+      try {
+        if (!isSilent) {
+          setLoading(true);
+          setError(null);
+        }
+
+        await loadTasks();
+
+        // Update last reload status
+        const nextAutoReload =
+          settings.autoRefresh && settings.refreshInterval
+            ? new Date(now.getTime() + settings.refreshInterval * 1000)
+            : null;
+
+        setLastReload({
+          time: now,
+          type: reloadType,
+          nextAutoReload,
+        });
+
+        if (!isSilent) {
+          showToast('Dashboard data updated successfully', 'success');
+        }
+      } catch (err) {
+        console.error('Failed to refresh tasks:', err);
+        setError('Failed to refresh tasks');
+        if (!isSilent) {
+          showToast('Failed to refresh data', 'error');
+        }
+      } finally {
+        if (!isSilent) {
+          setLoading(false);
+        }
       }
-
-      await loadTasks();
-
-      // Update last reload status
-      const nextAutoReload = settings.autoRefresh && settings.refreshInterval
-        ? new Date(now.getTime() + settings.refreshInterval * 1000)
-        : null;
-
-      setLastReload({
-        time: now,
-        type: reloadType,
-        nextAutoReload
-      });
-
-      if (!isSilent) {
-        showToast('Dashboard data updated successfully', 'success');
-      }
-    } catch (err) {
-      console.error('Failed to refresh tasks:', err)
-      setError('Failed to refresh tasks')
-      if (!isSilent) {
-        showToast('Failed to refresh data', 'error');
-      }
-    } finally {
-      if (!isSilent) {
-        setLoading(false);
-      }
-    }
-  }, [permissions, computeAnalyticsFromTasks, showToast, settings.autoRefresh, settings.refreshInterval, loadTasks]);
+    },
+    [
+      permissions,
+      computeAnalyticsFromTasks,
+      showToast,
+      settings.autoRefresh,
+      settings.refreshInterval,
+      loadTasks,
+    ],
+  );
 
   // Update next auto-reload time when settings change
   useEffect(() => {
     if (lastReload.time && settings.autoRefresh && settings.refreshInterval) {
-      const nextAutoReload = new Date(lastReload.time.getTime() + settings.refreshInterval * 1000);
-      setLastReload(prev => ({ ...prev, nextAutoReload }));
+      const nextAutoReload = new Date(
+        lastReload.time.getTime() + settings.refreshInterval * 1000,
+      );
+      setLastReload((prev) => ({ ...prev, nextAutoReload }));
     } else if (!settings.autoRefresh) {
-      setLastReload(prev => ({ ...prev, nextAutoReload: null }));
+      setLastReload((prev) => ({ ...prev, nextAutoReload: null }));
     }
   }, [settings.autoRefresh, settings.refreshInterval, lastReload.time]);
 
@@ -220,7 +268,12 @@ export const SharePointProvider = ({ children }) => {
   useEffect(() => {
     let intervalId;
 
-    if (settings.autoRefresh && settings.refreshInterval && initialized && !loading) {
+    if (
+      settings.autoRefresh &&
+      settings.refreshInterval &&
+      initialized &&
+      !loading
+    ) {
       intervalId = setInterval(async () => {
         try {
           console.log('Auto-refreshing dashboard data...');
@@ -237,7 +290,13 @@ export const SharePointProvider = ({ children }) => {
         clearInterval(intervalId);
       }
     };
-  }, [settings.autoRefresh, settings.refreshInterval, initialized, loading, refreshData]);
+  }, [
+    settings.autoRefresh,
+    settings.refreshInterval,
+    initialized,
+    loading,
+    refreshData,
+  ]);
 
   // Load tasks based on current permissions
   // Initialize SharePoint connection
@@ -291,36 +350,54 @@ export const SharePointProvider = ({ children }) => {
   }, [permissions, permissionsLoading, initialized, initializeSharePoint]);
 
   // Filter tasks by department
-  const filterTasksByDepartment = useCallback(async (departmentId) => {
-    try {
-      await loadTasks(null, departmentId);
-    } catch (err) {
-      console.error('Failed to filter tasks by department:', err);
-      setError('Failed to filter tasks');
-    }
-  }, [loadTasks]);
+  const filterTasksByDepartment = useCallback(
+    async (departmentId) => {
+      try {
+        await loadTasks(null, departmentId);
+      } catch (err) {
+        console.error('Failed to filter tasks by department:', err);
+        setError('Failed to filter tasks');
+      }
+    },
+    [loadTasks],
+  );
 
   // Update task status
-  const updateTaskStatus = useCallback(async (taskId, newStatus, departmentId = null) => {
-    try {
-      const effectiveDepartmentId = departmentId || (permissions?.canEditDepartments?.length === 1 ? permissions.canEditDepartments[0] : null);
-      if (!effectiveDepartmentId) {
-        throw new Error('Missing department context for update.');
-      }
+  const updateTaskStatus = useCallback(
+    async (taskId, newStatus, departmentId = null) => {
+      try {
+        const effectiveDepartmentId =
+          departmentId ||
+          (permissions?.canEditDepartments?.length === 1
+            ? permissions.canEditDepartments[0]
+            : null);
+        if (!effectiveDepartmentId) {
+          throw new Error('Missing department context for update.');
+        }
 
-      const canEditDept = permissions?.canEditDepartments?.includes(effectiveDepartmentId);
-      if (!canEditDept) {
-        throw new Error('You do not have permission to edit tasks for this department.');
-      }
+        const canEditDept = permissions?.canEditDepartments?.includes(
+          effectiveDepartmentId,
+        );
+        if (!canEditDept) {
+          throw new Error(
+            'You do not have permission to edit tasks for this department.',
+          );
+        }
 
-      await dataService().updateTaskStatus(taskId, newStatus, effectiveDepartmentId)
-      // Refresh tasks after update
-      await loadTasks(null, effectiveDepartmentId)
-    } catch (err) {
-      console.error('Failed to update task status:', err)
-      throw err
-    }
-  }, [permissions, computeAnalyticsFromTasks, loadTasks])
+        await dataService().updateTaskStatus(
+          taskId,
+          newStatus,
+          effectiveDepartmentId,
+        );
+        // Refresh tasks after update
+        await loadTasks(null, effectiveDepartmentId);
+      } catch (err) {
+        console.error('Failed to update task status:', err);
+        throw err;
+      }
+    },
+    [permissions, computeAnalyticsFromTasks, loadTasks],
+  );
 
   const value = {
     // State
@@ -343,12 +420,12 @@ export const SharePointProvider = ({ children }) => {
     updateTaskStatus,
     updateSettings,
     showToast,
-    hideToast
-  }
+    hideToast,
+  };
 
   return (
     <SharePointContext.Provider value={value}>
       {children}
     </SharePointContext.Provider>
-  )
-}
+  );
+};

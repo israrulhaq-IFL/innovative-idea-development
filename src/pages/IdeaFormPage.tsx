@@ -1,6 +1,6 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import {
   Send,
   ArrowLeft,
@@ -14,11 +14,11 @@ import {
   FileText,
   Image,
   File,
-} from "lucide-react";
-import { useUser } from "../contexts/UserContext";
-import { ideaApi } from "../services/ideaApi";
-import { logInfo, logError } from "../utils/logger";
-import styles from "./IdeaFormPage.module.css";
+} from 'lucide-react';
+import { useUser } from '../contexts/UserContext';
+import { ideaApi } from '../services/ideaApi';
+import { logInfo, logError } from '../utils/logger';
+import styles from './IdeaFormPage.module.css';
 
 interface Attachment {
   file: File;
@@ -30,7 +30,7 @@ interface FormData {
   title: string;
   description: string;
   category: string;
-  priority: "Low" | "Medium" | "High" | "Critical";
+  priority: 'Low' | 'Medium' | 'High' | 'Critical';
   attachments: Attachment[];
 }
 
@@ -48,69 +48,76 @@ const IdeaFormPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [formData, setFormData] = useState<FormData>({
-    title: "",
-    description: "",
-    category: "",
-    priority: "Medium",
+    title: '',
+    description: '',
+    category: '',
+    priority: 'Medium',
     attachments: [],
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isDragOver, setIsDragOver] = useState(false);
 
   const categories = [
-    { value: "Process Improvement", label: "Process Improvement" },
-    { value: "Technology", label: "Technology" },
-    { value: "Customer Experience", label: "Customer Experience" },
-    { value: "Cost Reduction", label: "Cost Reduction" },
-    { value: "Quality Enhancement", label: "Quality Enhancement" },
-    { value: "Innovation", label: "Innovation" },
-    { value: "Other", label: "Other" },
+    { value: 'Process Improvement', label: 'Process Improvement' },
+    { value: 'Technology', label: 'Technology' },
+    { value: 'Customer Experience', label: 'Customer Experience' },
+    { value: 'Cost Reduction', label: 'Cost Reduction' },
+    { value: 'Quality Enhancement', label: 'Quality Enhancement' },
+    { value: 'Innovation', label: 'Innovation' },
+    { value: 'Other', label: 'Other' },
   ];
 
   const priorities = [
-    { value: "Low", label: "Low - Nice to have" },
-    { value: "Medium", label: "Medium - Should have" },
-    { value: "High", label: "High - Must have" },
-    { value: "Critical", label: "Critical - Urgent" },
+    { value: 'Low', label: 'Low - Nice to have' },
+    { value: 'Medium', label: 'Medium - Should have' },
+    { value: 'High', label: 'High - Must have' },
+    { value: 'Critical', label: 'Critical - Urgent' },
   ];
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
 
     if (!formData.title.trim()) {
-      newErrors.title = "Title is required";
+      newErrors.title = 'Title is required';
     } else if (formData.title.length < 5) {
-      newErrors.title = "Title must be at least 5 characters";
+      newErrors.title = 'Title must be at least 5 characters';
     }
 
     if (!formData.description.trim()) {
-      newErrors.description = "Description is required";
+      newErrors.description = 'Description is required';
     } else if (formData.description.length < 20) {
-      newErrors.description = "Description must be at least 20 characters";
+      newErrors.description = 'Description must be at least 20 characters';
     }
 
     if (!formData.category) {
-      newErrors.category = "Category is required";
+      newErrors.category = 'Category is required';
     }
 
     // Validate attachments (optional but check file size/type if present)
     if (formData.attachments.length > 0) {
       const maxFileSize = 10 * 1024 * 1024; // 10MB
       const allowedTypes = [
-        'image/jpeg', 'image/png', 'image/gif', 'image/webp',
-        'application/pdf',
-        'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'text/plain', 'text/csv'
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "image/webp",
+        "application/pdf",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "text/plain",
+        "text/csv",
       ];
 
       for (const attachment of formData.attachments) {
         if (attachment.file.size > maxFileSize) {
-          newErrors.attachments = "Each file must be less than 10MB";
+          newErrors.attachments = 'Each file must be less than 10MB';
           break;
         }
         if (!allowedTypes.includes(attachment.file.type)) {
-          newErrors.attachments = "Unsupported file type. Please use images, PDF, Word, Excel, or text files";
+          newErrors.attachments =
+            'Unsupported file type. Please use images, PDF, Word, Excel, or text files';
           break;
         }
       }
@@ -123,7 +130,7 @@ const IdeaFormPage: React.FC = () => {
   const handleInputChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    >,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -142,24 +149,28 @@ const IdeaFormPage: React.FC = () => {
     const remainingSlots = maxFiles - currentCount;
 
     if (files.length > remainingSlots) {
-      setErrors({ attachments: `You can only upload up to ${maxFiles} files. You have ${remainingSlots} slots remaining.` });
+      setErrors({
+        attachments: `You can only upload up to ${maxFiles} files. You have ${remainingSlots} slots remaining.`,
+      });
       return;
     }
 
-    const newAttachments: Attachment[] = Array.from(files).map(file => ({
+    const newAttachments: Attachment[] = Array.from(files).map((file) => ({
       file,
       id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      preview: file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined
+      preview: file.type.startsWith("image/")
+        ? URL.createObjectURL(file)
+        : undefined,
     }));
 
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      attachments: [...prev.attachments, ...newAttachments]
+      attachments: [...prev.attachments, ...newAttachments],
     }));
 
     // Clear any attachment errors
     if (errors.attachments) {
-      setErrors(prev => ({ ...prev, attachments: undefined }));
+      setErrors((prev) => ({ ...prev, attachments: undefined }));
     }
   };
 
@@ -180,29 +191,29 @@ const IdeaFormPage: React.FC = () => {
   };
 
   const removeAttachment = (attachmentId: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      attachments: prev.attachments.filter(att => {
+      attachments: prev.attachments.filter((att) => {
         if (att.id === attachmentId && att.preview) {
           URL.revokeObjectURL(att.preview);
         }
         return att.id !== attachmentId;
-      })
+      }),
     }));
   };
 
   const getFileIcon = (file: File) => {
-    if (file.type.startsWith('image/')) return Image;
-    if (file.type === 'application/pdf') return FileText;
+    if (file.type.startsWith("image/")) return Image;
+    if (file.type === "application/pdf") return FileText;
     return File;
   };
 
   const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes';
+    if (bytes === 0) return "0 Bytes";
     const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -213,14 +224,14 @@ const IdeaFormPage: React.FC = () => {
     }
 
     if (!user) {
-      logError("Cannot submit idea: user not authenticated");
+      logError('Cannot submit idea: user not authenticated');
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      logInfo("Submitting new idea", {
+      logInfo('Submitting new idea', {
         title: formData.title,
         category: formData.category,
         priority: formData.priority,
@@ -229,22 +240,25 @@ const IdeaFormPage: React.FC = () => {
       });
 
       // Submit the idea with attachments
-      const newIdea = await ideaApi.createIdea({
-        title: formData.title,
-        description: formData.description,
-        category: formData.category,
-        priority: formData.priority,
-        status: "Pending Approval",
-        attachments: formData.attachments.map(att => att.file),
-      }, {
-        id: user.user.Id,
-        name: user.user.Title
-      });
+      const newIdea = await ideaApi.createIdea(
+        {
+          title: formData.title,
+          description: formData.description,
+          category: formData.category,
+          priority: formData.priority,
+          status: 'Pending Approval',
+          attachments: formData.attachments.map((att) => att.file),
+        },
+        {
+          id: user.user.Id,
+          name: user.user.Title,
+        },
+      );
 
-      logInfo("Idea submitted successfully", { ideaId: newIdea.id });
+      logInfo('Idea submitted successfully', { ideaId: newIdea.id });
 
       // Clean up object URLs
-      formData.attachments.forEach(att => {
+      formData.attachments.forEach((att) => {
         if (att.preview) {
           URL.revokeObjectURL(att.preview);
         }
@@ -254,13 +268,12 @@ const IdeaFormPage: React.FC = () => {
 
       // Redirect to dashboard after a short delay
       setTimeout(() => {
-        navigate("/");
+        navigate('/');
       }, 2000);
-
     } catch (error) {
-      logError("Failed to submit idea", error);
+      logError('Failed to submit idea', error);
       setErrors({
-        title: "Failed to submit idea. Please try again.",
+        title: 'Failed to submit idea. Please try again.',
       });
     } finally {
       setIsSubmitting(false);
@@ -278,21 +291,21 @@ const IdeaFormPage: React.FC = () => {
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+            transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
             className={styles.successIcon}
           >
             <CheckCircle className="w-12 h-12 text-white" />
           </motion.div>
-          <h2 className={styles.successTitle}>
-            Innovation Launched! 🚀
-          </h2>
+          <h2 className={styles.successTitle}>Innovation Launched! 🚀</h2>
           <p className={styles.successMessage}>
-            Your groundbreaking idea has been successfully submitted and is now on its journey to transformation.
+            Your groundbreaking idea has been successfully submitted and is now
+            on its journey to transformation.
           </p>
           <div className={styles.successCard}>
             <p>What's next?</p>
             <p>
-              Our approval team will review your idea within 2-3 business days. You'll receive updates through your dashboard.
+              Our approval team will review your idea within 2-3 business days.
+              You'll receive updates through your dashboard.
             </p>
           </div>
           <p className={styles.redirectMessage}>
@@ -318,10 +331,7 @@ const IdeaFormPage: React.FC = () => {
           transition={{ delay: 0.1 }}
           className={styles.header}
         >
-          <button
-            onClick={() => navigate("/")}
-            className={styles.backButton}
-          >
+          <button onClick={() => navigate("/")} className={styles.backButton}>
             <ArrowLeft size={20} />
             <span>Back to Dashboard</span>
           </button>
@@ -330,16 +340,15 @@ const IdeaFormPage: React.FC = () => {
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+              transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
               className={styles.heroIcon}
             >
               <Lightbulb className="w-10 h-10 text-white" />
             </motion.div>
-            <h1 className={styles.heroTitle}>
-              Share Your Innovation
-            </h1>
+            <h1 className={styles.heroTitle}>Share Your Innovation</h1>
             <p className={styles.heroSubtitle}>
-              Transform your ideas into reality. Every great innovation starts with a single spark of creativity.
+              Transform your ideas into reality. Every great innovation starts
+              with a single spark of creativity.
             </p>
           </div>
         </motion.div>
@@ -364,10 +373,7 @@ const IdeaFormPage: React.FC = () => {
               transition={{ delay: 0.4 }}
               className={styles.formSection}
             >
-              <label
-                htmlFor="title"
-                className={styles.formLabel}
-              >
+              <label htmlFor="title" className={styles.formLabel}>
                 Idea Title <span className={styles.required}>*</span>
               </label>
               <div className={styles.inputGroup}>
@@ -377,7 +383,7 @@ const IdeaFormPage: React.FC = () => {
                   name="title"
                   value={formData.title}
                   onChange={handleInputChange}
-                  className={`${styles.formInput} ${errors.title ? styles.inputError : ''}`}
+                  className={`${styles.formInput} ${errors.title ? styles.inputError : ""}`}
                   placeholder="Give your idea a compelling, memorable title..."
                   disabled={isSubmitting}
                 />
@@ -407,10 +413,7 @@ const IdeaFormPage: React.FC = () => {
               className={styles.formGrid}
             >
               <div className={styles.formSection}>
-                <label
-                  htmlFor="category"
-                  className={styles.formLabel}
-                >
+                <label htmlFor="category" className={styles.formLabel}>
                   Category <span className={styles.required}>*</span>
                 </label>
                 <div className={styles.inputGroup}>
@@ -419,7 +422,7 @@ const IdeaFormPage: React.FC = () => {
                     name="category"
                     value={formData.category}
                     onChange={handleInputChange}
-                    className={`${styles.formSelect} ${errors.category ? styles.inputError : ''}`}
+                    className={`${styles.formSelect} ${errors.category ? styles.inputError : ""}`}
                     disabled={isSubmitting}
                   >
                     <option value="">Choose a category...</option>
@@ -443,10 +446,7 @@ const IdeaFormPage: React.FC = () => {
               </div>
 
               <div className={styles.formSection}>
-                <label
-                  htmlFor="priority"
-                  className={styles.formLabel}
-                >
+                <label htmlFor="priority" className={styles.formLabel}>
                   Priority Level <span className={styles.required}>*</span>
                 </label>
                 <div className={styles.inputGroup}>
@@ -475,10 +475,7 @@ const IdeaFormPage: React.FC = () => {
               transition={{ delay: 0.6 }}
               className={styles.formSection}
             >
-              <label
-                htmlFor="description"
-                className={styles.formLabel}
-              >
+              <label htmlFor="description" className={styles.formLabel}>
                 Detailed Description <span className={styles.required}>*</span>
               </label>
               <div className={styles.inputGroup}>
@@ -488,7 +485,7 @@ const IdeaFormPage: React.FC = () => {
                   value={formData.description}
                   onChange={handleInputChange}
                   rows={10}
-                  className={`${styles.formTextarea} ${errors.description ? styles.inputError : ''}`}
+                  className={`${styles.formTextarea} ${errors.description ? styles.inputError : ""}`}
                   placeholder="Describe your idea in detail. Consider including:
 
 • What problem does this idea solve?
@@ -531,17 +528,20 @@ const IdeaFormPage: React.FC = () => {
               </label>
               <div className={styles.inputGroup}>
                 <div
-                  className={`${styles.dropZone} ${isDragOver ? styles.dropZoneActive : ''}`}
+                  className={`${styles.dropZone} ${isDragOver ? styles.dropZoneActive : ""}`}
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
-                  onClick={() => document.getElementById('fileInput')?.click()}
+                  onClick={() => document.getElementById("fileInput")?.click()}
                 >
                   <Upload size={32} className={styles.dropZoneIcon} />
                   <div className={styles.dropZoneText}>
-                    <p className={styles.dropZoneTitle}>Drop files here or click to browse</p>
+                    <p className={styles.dropZoneTitle}>
+                      Drop files here or click to browse
+                    </p>
                     <p className={styles.dropZoneSubtitle}>
-                      Support: Images, PDF, Word, Excel, Text files (Max 10MB each, up to 5 files)
+                      Support: Images, PDF, Word, Excel, Text files (Max 10MB
+                      each, up to 5 files)
                     </p>
                   </div>
                   <input
@@ -580,8 +580,12 @@ const IdeaFormPage: React.FC = () => {
                             </div>
                           )}
                           <div className={styles.attachmentInfo}>
-                            <p className={styles.attachmentName}>{attachment.file.name}</p>
-                            <p className={styles.attachmentSize}>{formatFileSize(attachment.file.size)}</p>
+                            <p className={styles.attachmentName}>
+                              {attachment.file.name}
+                            </p>
+                            <p className={styles.attachmentSize}>
+                              {formatFileSize(attachment.file.size)}
+                            </p>
                           </div>
                           <button
                             type="button"
@@ -645,10 +649,10 @@ const IdeaFormPage: React.FC = () => {
           className={styles.processInfo}
         >
           <div className={styles.processHeader}>
-            <h3 className={styles.processTitle}>
-              What Happens Next?
-            </h3>
-            <p className={styles.processSubtitle}>Your journey from idea to implementation</p>
+            <h3 className={styles.processTitle}>What Happens Next?</h3>
+            <p className={styles.processSubtitle}>
+              Your journey from idea to implementation
+            </p>
           </div>
           <div className={styles.processGrid}>
             <div className={styles.processStep}>
@@ -656,21 +660,29 @@ const IdeaFormPage: React.FC = () => {
                 <CheckSquare size={24} />
               </div>
               <h4 className={styles.stepTitle}>Review</h4>
-              <p className={styles.stepDescription}>Your idea gets reviewed by our approval team within 2-3 business days</p>
+              <p className={styles.stepDescription}>
+                Your idea gets reviewed by our approval team within 2-3 business
+                days
+              </p>
             </div>
             <div className={styles.processStep}>
               <div className={`${styles.stepIcon} ${styles.implementation}`}>
                 <Lightbulb size={24} />
               </div>
               <h4 className={styles.stepTitle}>Implementation</h4>
-              <p className={styles.stepDescription}>Approved ideas become tasks and get assigned to implementation teams</p>
+              <p className={styles.stepDescription}>
+                Approved ideas become tasks and get assigned to implementation
+                teams
+              </p>
             </div>
             <div className={styles.processStep}>
               <div className={`${styles.stepIcon} ${styles.tracking}`}>
                 <BarChart3 size={24} />
               </div>
               <h4 className={styles.stepTitle}>Tracking</h4>
-              <p className={styles.stepDescription}>Track progress and provide feedback through your dashboard</p>
+              <p className={styles.stepDescription}>
+                Track progress and provide feedback through your dashboard
+              </p>
             </div>
           </div>
         </motion.div>

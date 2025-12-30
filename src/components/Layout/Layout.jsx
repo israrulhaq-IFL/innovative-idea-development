@@ -1,18 +1,18 @@
-import { Link, useLocation } from 'react-router-dom'
-import { useSharePoint } from '../../context/SharePointContext'
-import { useTheme } from '../../context/ThemeContext'
-import UtilityBar from './UtilityBar'
-import Sidebar from './Sidebar'
-import Toast from '../Toast'
-import styles from './Layout.module.css'
+import { Link, useLocation } from 'react-router-dom';
+import { useSharePoint } from '../../context/SharePointContext';
+import { useTheme } from '../../context/ThemeContext';
+import UtilityBar from './UtilityBar';
+import Sidebar from './Sidebar';
+import Toast from '../Toast';
+import styles from './Layout.module.css';
 
 const Layout = ({ children }) => {
-  const { loading, error } = useSharePoint()
-  const { theme, toggleTheme } = useTheme()
-  const location = useLocation()
+  const { loading, error } = useSharePoint();
+  const { theme, toggleTheme } = useTheme();
+  const location = useLocation();
 
   // Don't show full-screen error on dashboard - it handles its own error display
-  const isDashboard = location.pathname === '/'
+  const isDashboard = location.pathname === '/';
 
   if (loading && !isDashboard) {
     return (
@@ -21,7 +21,7 @@ const Layout = ({ children }) => {
         <h2>Loading ITG Dashboard...</h2>
         <p>Connecting to SharePoint and loading your data...</p>
       </div>
-    )
+    );
   }
 
   if (error && !isDashboard) {
@@ -33,7 +33,7 @@ const Layout = ({ children }) => {
           Retry Connection
         </button>
       </div>
-    )
+    );
   }
 
   return (
@@ -43,14 +43,12 @@ const Layout = ({ children }) => {
       <div className={styles.main}>
         <Sidebar currentPath={location.pathname} />
 
-        <main className={styles.content}>
-          {children}
-        </main>
+        <main className={styles.content}>{children}</main>
       </div>
 
       <Toast />
     </div>
-  )
-}
+  );
+};
 
-export default Layout
+export default Layout;

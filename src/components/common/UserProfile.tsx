@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from 'react';
 import {
   User,
   Settings,
@@ -6,9 +6,9 @@ import {
   ChevronDown,
   Shield,
   Users,
-} from "lucide-react";
-import { useUser, useUserDisplay } from "../../contexts/UserContext";
-import styles from "./UserProfile.module.css";
+} from 'lucide-react';
+import { useUser, useUserDisplay } from '../../contexts/UserContext';
+import styles from './UserProfile.module.css';
 
 interface UserProfileProps {
   onLogout?: () => void;
@@ -20,7 +20,7 @@ interface UserProfileProps {
 const UserProfile: React.FC<UserProfileProps> = ({
   onLogout,
   onSettings,
-  className = "",
+  className = '',
   isCompact = false,
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -39,8 +39,8 @@ const UserProfile: React.FC<UserProfileProps> = ({
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const handleLogout = () => {
@@ -87,21 +87,26 @@ const UserProfile: React.FC<UserProfileProps> = ({
     <div className={`${styles.userProfile} ${className}`} ref={dropdownRef}>
       <button
         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-        className={`${styles.userProfileButton} ${isCompact ? styles.compact : ""}`}
+        className={`${styles.userProfileButton} ${isCompact ? styles.compact : ''}`}
         aria-label="User profile menu"
       >
         {!isCompact && (
           <div className={styles.userProfileAvatar}>
             {userDisplay.avatar ? (
-              <img src={userDisplay.avatar} alt={`${userDisplay.name} avatar`} />
+              <img
+                src={userDisplay.avatar}
+                alt={`${userDisplay.name} avatar`}
+              />
             ) : (
               userDisplay.initials
             )}
           </div>
         )}
         <div className={styles.userProfileInfo}>
-          <span className={`${styles.userProfileName} ${isCompact ? styles.compactName : ""}`}>
-            {isCompact ? userDisplay.name.split(' ')[0] : userDisplay.name}
+          <span
+            className={`${styles.userProfileName} ${isCompact ? styles.compactName : ""}`}
+          >
+            {isCompact ? userDisplay.name.split(" ")[0] : userDisplay.name}
           </span>
           {!isCompact && (
             <div className={styles.userProfileBadges}>
@@ -125,18 +130,21 @@ const UserProfile: React.FC<UserProfileProps> = ({
                   Contributor
                 </span>
               )}
-              {userDisplay.role && !isAdmin && !isApprover && !isContributor && (
-                <span className={`${styles.userBadge} ${styles.roleBadge}`}>
-                  {userDisplay.role}
-                </span>
-              )}
+              {userDisplay.role &&
+                !isAdmin &&
+                !isApprover &&
+                !isContributor && (
+                  <span className={`${styles.userBadge} ${styles.roleBadge}`}>
+                    {userDisplay.role}
+                  </span>
+                )}
             </div>
           )}
         </div>
         {!isCompact && (
           <ChevronDown
             size={14}
-            className={`${styles.userProfileChevron} ${isDropdownOpen ? "rotate-180" : ""}`}
+            className={`${styles.userProfileChevron} ${isDropdownOpen ? 'rotate-180' : ''}`}
           />
         )}
       </button>
@@ -181,7 +189,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
                   {user?.groups && user.groups.length > 0 && (
                     <span className={styles.groupCount}>
                       {user.groups.length} group
-                      {user.groups.length !== 1 ? "s" : ""}
+                      {user.groups.length !== 1 ? 's' : ''}
                     </span>
                   )}
                 </div>

@@ -1,6 +1,6 @@
-import React from 'react';
-import { useSharePoint } from '../context/SharePointContext';
-import styles from './Toast.module.css';
+import React from "react";
+import { useSharePoint } from "../context/SharePointContext";
+import styles from "./Toast.module.css";
 
 const Toast = () => {
   const { toast, hideToast } = useSharePoint();

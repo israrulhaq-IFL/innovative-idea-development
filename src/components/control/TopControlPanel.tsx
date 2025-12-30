@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Plus,
   FileText,
@@ -10,9 +10,10 @@ import {
   CheckSquare,
   Settings,
   User,
-} from "lucide-react";
-import { useUser } from "../../contexts/UserContext";
-import styles from "./TopControlPanel.module.css";
+  ClipboardList,
+} from 'lucide-react';
+import { useUser } from '../../contexts/UserContext';
+import styles from './TopControlPanel.module.css';
 
 interface TopControlPanelProps {
   onNewIdea?: () => void;
@@ -27,7 +28,7 @@ export const TopControlPanel: React.FC<TopControlPanelProps> = ({
   onViewAll,
   onFilter,
   onExport,
-  className = "",
+  className = '',
 }) => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -47,20 +48,20 @@ export const TopControlPanel: React.FC<TopControlPanelProps> = ({
     };
 
     // Attach to multiple elements for better compatibility
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    document.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    document.addEventListener('scroll', handleScroll, { passive: true });
 
     // Also try attaching to the document element
     const htmlElement = document.documentElement;
     if (htmlElement) {
-      htmlElement.addEventListener("scroll", handleScroll, { passive: true });
+      htmlElement.addEventListener('scroll', handleScroll, { passive: true });
     }
 
     return () => {
-      window.removeEventListener("scroll", handleScroll);
-      document.removeEventListener("scroll", handleScroll);
+      window.removeEventListener('scroll', handleScroll);
+      document.removeEventListener('scroll', handleScroll);
       if (htmlElement) {
-        htmlElement.removeEventListener("scroll", handleScroll);
+        htmlElement.removeEventListener('scroll', handleScroll);
       }
     };
   }, []);
@@ -69,35 +70,44 @@ export const TopControlPanel: React.FC<TopControlPanelProps> = ({
   const getNavigationItems = () => {
     const items = [
       {
-        path: "/",
-        label: "Dashboard",
+        path: '/',
+        label: 'Dashboard',
         icon: Home,
-        description: "Main Dashboard & Overview",
+        description: 'Main Dashboard & Overview',
       },
       {
-        path: "/my-ideas",
-        label: "My Ideas",
+        path: '/my-ideas',
+        label: 'My Ideas',
         icon: User,
-        description: "My Submitted Ideas",
+        description: 'My Submitted Ideas',
       },
     ];
 
     // Add role-specific navigation
+    if (isContributor) {
+      items.push({
+        path: '/my-tasks',
+        label: 'My Tasks',
+        icon: ClipboardList,
+        description: 'My Assigned Tasks',
+      });
+    }
+
     if (isApprover && !isAdmin) {
       items.push({
-        path: "/approver",
-        label: "Approvals",
+        path: '/approver',
+        label: 'Approvals',
         icon: CheckSquare,
-        description: "Review & Approve Ideas",
+        description: 'Review & Approve Ideas',
       });
     }
 
     if (isAdmin) {
       items.push({
-        path: "/admin",
-        label: "Admin",
+        path: '/admin',
+        label: 'Admin',
         icon: Settings,
-        description: "Administrative Controls",
+        description: 'Administrative Controls',
       });
     }
 
@@ -112,13 +122,13 @@ export const TopControlPanel: React.FC<TopControlPanelProps> = ({
     controls.push(
       <button
         key="new-idea"
-        onClick={() => navigate("/idea/new")}
+        onClick={() => navigate('/idea/new')}
         className={`${styles.actionButton} ${styles.primary}`}
         title="Submit a new idea"
       >
         <Plus size={16} />
         <span>New Idea</span>
-      </button>
+      </button>,
     );
 
     // Role-specific actions
@@ -132,7 +142,21 @@ export const TopControlPanel: React.FC<TopControlPanelProps> = ({
         >
           <FileText size={16} />
           <span>View All</span>
-        </button>
+        </button>,
+      );
+    }
+
+    if (isAdmin || isApprover) {
+      controls.push(
+        <button
+          key="approved-ideas"
+          onClick={() => navigate('/approved-ideas')}
+          className={`${styles.actionButton} ${styles.primary}`}
+          title="View approved ideas and create tasks"
+        >
+          <CheckSquare size={16} />
+          <span>Approved Ideas</span>
+        </button>,
       );
     }
 
@@ -146,7 +170,7 @@ export const TopControlPanel: React.FC<TopControlPanelProps> = ({
         >
           <BarChart3 size={16} />
           <span>Export</span>
-        </button>
+        </button>,
       );
     }
 
@@ -160,7 +184,7 @@ export const TopControlPanel: React.FC<TopControlPanelProps> = ({
       >
         <Filter size={16} />
         <span>Filter</span>
-      </button>
+      </button>,
     );
 
     return controls;
@@ -173,7 +197,7 @@ export const TopControlPanel: React.FC<TopControlPanelProps> = ({
     <div
       className={`${styles.controlPanel} ${className}`}
       style={{
-        top: isUtilityBarScrolled ? '48px' : '56px' // Adjust based on utility bar height
+        top: isUtilityBarScrolled ? "48px" : "56px", // Adjust based on utility bar height
       }}
     >
       <div className={styles.panelContainer}>
@@ -190,7 +214,7 @@ export const TopControlPanel: React.FC<TopControlPanelProps> = ({
                     key={item.path}
                     onClick={() => navigate(item.path)}
                     className={`${styles.navButton} ${
-                      isActive ? styles.active : ""
+                      isActive ? styles.active : ''
                     }`}
                     title={item.description}
                   >

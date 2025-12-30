@@ -12,10 +12,14 @@ import {
   Tag,
   TrendingUp,
 } from "lucide-react";
-import { useIdeaData } from "../contexts/DataContext";
-import { useUser } from "../contexts/UserContext";
-import LoadingSpinner from "../components/common/LoadingSpinner";
-import { ProcessedTask, ProcessedIdea, ProcessedDiscussion } from "../contexts/DataContext";
+import {
+  useIdeaData,
+  ProcessedTask,
+  ProcessedIdea,
+  ProcessedDiscussion,
+} from '../contexts/DataContext';
+import { useUser } from '../contexts/UserContext';
+import LoadingSpinner from '../components/common/LoadingSpinner';
 import { logError } from "../utils/logger";
 
 const TaskDiscussionPage: React.FC = () => {
@@ -51,7 +55,7 @@ const TaskDiscussionPage: React.FC = () => {
         }
 
         // Find the task
-        const foundTask = data.tasks.find(t => t.id === parseInt(taskId));
+        const foundTask = data.tasks.find((t) => t.id === parseInt(taskId));
         if (!foundTask) {
           setTaskError("Task not found");
           return;
@@ -62,15 +66,20 @@ const TaskDiscussionPage: React.FC = () => {
         // Find associated idea (assuming task has ideaId)
         // For now, we'll look for ideas that might be related
         // In a real implementation, tasks would have an ideaId field
-        const relatedIdea = data.ideas.find(i =>
-          i.title.toLowerCase().includes(foundTask.title.toLowerCase().split(':')[1]?.trim() || '')
+        const relatedIdea = data.ideas.find((i) =>
+          i.title
+            .toLowerCase()
+            .includes(
+              foundTask.title.toLowerCase().split(':')[1]?.trim() || '',
+            ),
         );
         setIdea(relatedIdea || null);
 
         // Get discussions for this task
-        const taskDiscussions = data.discussions.filter(d => d.taskId === foundTask.id);
+        const taskDiscussions = data.discussions.filter(
+          (d) => d.taskId === foundTask.id,
+        );
         setDiscussions(taskDiscussions);
-
       } catch (error) {
         logError("Failed to load task details", error);
         setTaskError("Failed to load task details");
@@ -80,25 +89,42 @@ const TaskDiscussionPage: React.FC = () => {
     };
 
     loadTaskDetails();
-  }, [taskId, data.tasks, data.discussions, data.ideas, loadTasks, loadDiscussions]);
+  }, [
+    taskId,
+    data.tasks,
+    data.discussions,
+    data.ideas,
+    loadTasks,
+    loadDiscussions,
+  ]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "Completed": return "text-green-600 bg-green-100";
-      case "In Progress": return "text-blue-600 bg-blue-100";
-      case "Not Started": return "text-gray-600 bg-gray-100";
-      case "On Hold": return "text-yellow-600 bg-yellow-100";
-      default: return "text-gray-600 bg-gray-100";
+      case "Completed":
+        return "text-green-600 bg-green-100";
+      case "In Progress":
+        return "text-blue-600 bg-blue-100";
+      case "Not Started":
+        return "text-gray-600 bg-gray-100";
+      case "On Hold":
+        return "text-yellow-600 bg-yellow-100";
+      default:
+        return "text-gray-600 bg-gray-100";
     }
   };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case "Critical": return "text-red-600 bg-red-100";
-      case "High": return "text-orange-600 bg-orange-100";
-      case "Normal": return "text-yellow-600 bg-yellow-100";
-      case "Low": return "text-green-600 bg-green-100";
-      default: return "text-gray-600 bg-gray-100";
+      case "Critical":
+        return "text-red-600 bg-red-100";
+      case "High":
+        return "text-orange-600 bg-orange-100";
+      case "Normal":
+        return "text-yellow-600 bg-yellow-100";
+      case "Low":
+        return "text-green-600 bg-green-100";
+      default:
+        return "text-gray-600 bg-gray-100";
     }
   };
 
@@ -108,7 +134,7 @@ const TaskDiscussionPage: React.FC = () => {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     });
   };
 
@@ -133,7 +159,8 @@ const TaskDiscussionPage: React.FC = () => {
             {taskError || "Task Not Found"}
           </h2>
           <p className="text-gray-600 mb-6">
-            The task you're looking for doesn't exist or you don't have permission to view it.
+            The task you're looking for doesn't exist or you don't have
+            permission to view it.
           </p>
           <button
             onClick={() => navigate("/")}
@@ -166,9 +193,7 @@ const TaskDiscussionPage: React.FC = () => {
 
           <div className="flex items-center gap-3 mb-4">
             <CheckCircle className="w-8 h-8 text-blue-500" />
-            <h1 className="text-3xl font-bold text-gray-900">
-              Task Details
-            </h1>
+            <h1 className="text-3xl font-bold text-gray-900">Task Details</h1>
           </div>
         </div>
 
@@ -190,10 +215,14 @@ const TaskDiscussionPage: React.FC = () => {
                   <p className="text-gray-600">{task.description}</p>
                 </div>
                 <div className="flex gap-2">
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(task.status)}`}>
+                  <span
+                    className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(task.status)}`}
+                  >
                     {task.status}
                   </span>
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${getPriorityColor(task.priority)}`}>
+                  <span
+                    className={`px-3 py-1 rounded-full text-sm font-medium ${getPriorityColor(task.priority)}`}
+                  >
                     {task.priority}
                   </span>
                 </div>
@@ -204,7 +233,10 @@ const TaskDiscussionPage: React.FC = () => {
                 <div className="flex items-center gap-2">
                   <User size={16} className="text-gray-400" />
                   <span className="text-sm text-gray-600">
-                    Assigned to: {task.assignedTo.length > 0 ? task.assignedTo.join(", ") : "Unassigned"}
+                    Assigned to:{' '}
+                    {task.assignedTo.length > 0
+                      ? task.assignedTo.join(', ')
+                      : "Unassigned"}
                   </span>
                 </div>
 
@@ -261,7 +293,9 @@ const TaskDiscussionPage: React.FC = () => {
                 </h3>
 
                 <div className="border border-gray-200 rounded-lg p-4">
-                  <h4 className="font-semibold text-gray-900 mb-2">{idea.title}</h4>
+                  <h4 className="font-semibold text-gray-900 mb-2">
+                    {idea.title}
+                  </h4>
                   <p className="text-gray-600 mb-3">{idea.description}</p>
 
                   <div className="flex items-center gap-4 text-sm text-gray-500">
@@ -274,7 +308,10 @@ const TaskDiscussionPage: React.FC = () => {
 
                   <div className="flex items-center gap-2 mt-3 text-sm text-gray-500">
                     <User size={14} />
-                    <span>Submitted by {idea.createdBy.name} on {formatDate(idea.created)}</span>
+                    <span>
+                      Submitted by {idea.createdBy.name} on{' '}
+                      {formatDate(idea.created)}
+                    </span>
                   </div>
                 </div>
               </motion.div>
@@ -303,8 +340,12 @@ const TaskDiscussionPage: React.FC = () => {
                   </div>
                   <div className="flex-1 pb-4">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="font-medium text-gray-900">Task Created</span>
-                      <span className="text-sm text-gray-500">{formatDate(task.created)}</span>
+                      <span className="font-medium text-gray-900">
+                        Task Created
+                      </span>
+                      <span className="text-sm text-gray-500">
+                        {formatDate(task.created)}
+                      </span>
                     </div>
                     <p className="text-gray-600 text-sm">
                       Initial task created for idea review and implementation
@@ -323,8 +364,12 @@ const TaskDiscussionPage: React.FC = () => {
                     </div>
                     <div className="flex-1 pb-4">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="font-medium text-gray-900">Status Updated</span>
-                        <span className="text-sm text-gray-500">2 days ago</span>
+                        <span className="font-medium text-gray-900">
+                          Status Updated
+                        </span>
+                        <span className="text-sm text-gray-500">
+                          2 days ago
+                        </span>
                       </div>
                       <p className="text-gray-600 text-sm">
                         Task status changed to "{task.status}"
@@ -344,7 +389,9 @@ const TaskDiscussionPage: React.FC = () => {
                     </div>
                     <div className="flex-1 pb-4">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="font-medium text-gray-900">Idea Approved</span>
+                        <span className="font-medium text-gray-900">
+                          Idea Approved
+                        </span>
                         <span className="text-sm text-gray-500">1 day ago</span>
                       </div>
                       <p className="text-gray-600 text-sm">
@@ -357,21 +404,33 @@ const TaskDiscussionPage: React.FC = () => {
                 {/* Current Status */}
                 <div className="flex gap-4">
                   <div className="flex flex-col items-center">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                      task.status === "Completed" ? "bg-green-100" : "bg-blue-100"
-                    }`}>
-                      <Clock size={16} className={
-                        task.status === "Completed" ? "text-green-600" : "text-blue-600"
-                      } />
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                        task.status === 'Completed'
+                          ? 'bg-green-100'
+                          : "bg-blue-100"
+                      }`}
+                    >
+                      <Clock
+                        size={16}
+                        className={
+                          task.status === 'Completed'
+                            ? 'text-green-600'
+                            : "text-blue-600"
+                        }
+                      />
                     </div>
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="font-medium text-gray-900">Current Status</span>
+                      <span className="font-medium text-gray-900">
+                        Current Status
+                      </span>
                       <span className="text-sm text-gray-500">Now</span>
                     </div>
                     <p className="text-gray-600 text-sm">
-                      Task is currently {task.status.toLowerCase()} with {task.percentComplete}% completion
+                      Task is currently {task.status.toLowerCase()} with{' '}
+                      {task.percentComplete}% completion
                     </p>
                   </div>
                 </div>
@@ -389,7 +448,9 @@ const TaskDiscussionPage: React.FC = () => {
                 transition={{ delay: 0.4 }}
                 className="bg-white rounded-xl shadow-lg p-6"
               >
-                <h3 className="text-lg font-bold text-gray-900 mb-4">Task Actions</h3>
+                <h3 className="text-lg font-bold text-gray-900 mb-4">
+                  Task Actions
+                </h3>
                 <div className="space-y-3">
                   <button className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
                     Update Status
@@ -421,8 +482,13 @@ const TaskDiscussionPage: React.FC = () => {
               ) : (
                 <div className="space-y-3">
                   {discussions.slice(0, 3).map((discussion) => (
-                    <div key={discussion.id} className="border-l-2 border-blue-200 pl-3">
-                      <p className="text-sm text-gray-600 mb-1">{discussion.message}</p>
+                    <div
+                      key={discussion.id}
+                      className="border-l-2 border-blue-200 pl-3"
+                    >
+                      <p className="text-sm text-gray-600 mb-1">
+                        {discussion.message}
+                      </p>
                       <div className="flex items-center gap-2 text-xs text-gray-500">
                         <span>{discussion.author}</span>
                         <span>•</span>
@@ -445,7 +511,9 @@ const TaskDiscussionPage: React.FC = () => {
               transition={{ delay: 0.6 }}
               className="bg-white rounded-xl shadow-lg p-6"
             >
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Task Information</h3>
+              <h3 className="text-lg font-bold text-gray-900 mb-4">
+                Task Information
+              </h3>
               <div className="space-y-3 text-sm">
                 <div>
                   <span className="font-medium text-gray-700">ID:</span>
@@ -453,15 +521,23 @@ const TaskDiscussionPage: React.FC = () => {
                 </div>
                 <div>
                   <span className="font-medium text-gray-700">Created:</span>
-                  <span className="ml-2 text-gray-600">{formatDate(task.created)}</span>
+                  <span className="ml-2 text-gray-600">
+                    {formatDate(task.created)}
+                  </span>
                 </div>
                 <div>
-                  <span className="font-medium text-gray-700">Last Modified:</span>
-                  <span className="ml-2 text-gray-600">{formatDate(task.modified)}</span>
+                  <span className="font-medium text-gray-700">
+                    Last Modified:
+                  </span>
+                  <span className="ml-2 text-gray-600">
+                    {formatDate(task.modified)}
+                  </span>
                 </div>
                 <div>
                   <span className="font-medium text-gray-700">Priority:</span>
-                  <span className={`ml-2 px-2 py-1 rounded text-xs font-medium ${getPriorityColor(task.priority)}`}>
+                  <span
+                    className={`ml-2 px-2 py-1 rounded text-xs font-medium ${getPriorityColor(task.priority)}`}
+                  >
                     {task.priority}
                   </span>
                 </div>

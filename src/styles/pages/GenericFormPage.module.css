@@ -1,0 +1,280 @@
+/* GenericFormPage.module.css */
+/* Generic form page template with responsive design and theme support */
+
+.formPageLayout {
+  /* Use absolute positioning to fill the viewport below utility bar */
+  position: absolute;
+  top: 48px; /* Start after utility bar */
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--neutral-gray);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 50; /* Below utility bar (1000) but establishes stacking context */
+}
+
+.formPageLayoutNoPanel {
+  /* When no GenericFormPage control panel, account for app-level TopControlPanel */
+  position: absolute;
+  top: 120px; /* Start after utility bar (48px) + TopControlPanel (~72px) */
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--neutral-gray);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 50;
+}
+
+/* Remove the 10px gap between top control panel and main content */
+.formPageMainContent {
+  margin-top: 0 !important;
+}
+
+/* Ensure main content container starts immediately */
+.formPageMainContentContainer {
+  padding-top: 0 !important;
+}
+
+/* Form Control Panel */
+.formControlPanel {
+  height: 64px;
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: var(--shadow-light);
+  position: relative;
+  z-index: 10;
+}
+
+.controlPanelContent {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding: 0 1.5rem;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.leftSection {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.leftSection .backButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  font-size: 0.9rem;
+}
+
+.leftSection .backButton:hover {
+  background-color: var(--hover-bg);
+}
+
+.leftSection .backButton i {
+  font-size: 0.8rem;
+}
+
+.backLabel {
+  font-weight: 500;
+}
+
+.centerSection {
+  flex: 2;
+  text-align: center;
+}
+
+.formTitle {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rightSection {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+/* Main Content */
+.formMainContent {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  background: var(--page-bg);
+}
+
+.formMainContentNoPanel {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  background: var(--page-bg);
+  /* When no control panel, add top padding to account for utility bar */
+  padding-top: 2rem;
+}
+
+.formContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Loading Overlay */
+.loadingOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.loadingContent {
+  background: var(--card-bg);
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: var(--shadow-heavy);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.loadingText {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+/* Dark mode support */
+[data-theme='dark'] .formControlPanel {
+  background: var(--card-bg);
+  border-bottom-color: var(--border-color);
+}
+
+[data-theme='dark'] .leftSection .backButton {
+  color: var(--text-primary);
+}
+
+[data-theme='dark'] .leftSection .backButton:hover {
+  background-color: var(--hover-bg);
+}
+
+[data-theme='dark'] .formTitle {
+  color: var(--text-primary);
+}
+
+[data-theme='dark'] .formMainContent {
+  background: var(--page-bg);
+}
+
+[data-theme='dark'] .loadingContent {
+  background: var(--card-bg);
+}
+
+[data-theme='dark'] .loadingText {
+  color: var(--text-primary);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .controlPanelContent {
+    padding: 0 1rem;
+  }
+
+  .leftSection {
+    flex: 0 0 auto;
+  }
+
+  .centerSection {
+    flex: 1;
+    text-align: center;
+  }
+
+  .rightSection {
+    flex: 0 0 auto;
+  }
+
+  .formTitle {
+    font-size: 1.1rem;
+  }
+
+  .leftSection .backButton {
+    padding: 0.5rem;
+  }
+
+  .backLabel {
+    display: none; /* Hide text on mobile, keep icon */
+  }
+
+  .formMainContent {
+    padding: 0.5rem;
+  }
+
+  .loadingContent {
+    padding: 1.5rem;
+    margin: 1rem;
+  }
+}
+
+/* Selected Idea Preview */
+.selectedIdeaPreview {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: var(--shadow-light);
+}
+
+.selectedIdeaPreview h4 {
+  margin: 0 0 0.5rem 0;
+  color: var(--text-primary);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.selectedIdeaPreview p {
+  margin: 0.25rem 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 480px) {
+  .formControlPanel {
+    height: 56px;
+  }
+
+  .controlPanelContent {
+    padding: 0 0.5rem;
+  }
+
+  .formTitle {
+    font-size: 1rem;
+  }
+
+  .formMainContent {
+    padding: 0.25rem;
+  }
+}

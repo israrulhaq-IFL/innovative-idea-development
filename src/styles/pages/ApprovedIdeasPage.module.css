@@ -1,0 +1,290 @@
+/* Approved Ideas Page Styles */
+/* src/styles/pages/ApprovedIdeasPage.module.css */
+
+.pageContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.searchSection {
+  margin-bottom: 2rem;
+}
+
+.searchContainer {
+  position: relative;
+  max-width: 600px;
+  margin-bottom: 1rem;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748b;
+  font-size: 1rem;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  transition: border-color 0.2s ease;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: #3d7fff;
+  box-shadow: 0 0 0 3px rgba(61, 127, 255, 0.1);
+}
+
+.clearButton {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  transition: color 0.2s ease;
+}
+
+.clearButton:hover {
+  color: #ef4444;
+}
+
+.resultsCount {
+  color: #64748b;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+.ideasGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 1.5rem;
+}
+
+.ideaCard {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.ideaCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.cardHeader {
+  padding: 1rem 1.5rem 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.ideaMeta {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.statusBadge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.statusBadge.approved {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.priorityBadge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.priorityBadge.low {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.priorityBadge.medium {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.priorityBadge.high {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.priorityBadge.critical {
+  background: #fef2f2;
+  color: #7f1d1d;
+}
+
+.category {
+  color: #64748b;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.cardContent {
+  padding: 0 1.5rem 1rem;
+}
+
+.ideaTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 0.5rem 0;
+  line-height: 1.4;
+}
+
+.ideaDescription {
+  color: #6b7280;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  margin: 0 0 1rem 0;
+}
+
+.ideaDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.detailItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+.detailItem i {
+  width: 1rem;
+  text-align: center;
+}
+
+.cardActions {
+  padding: 0 1.5rem 1.5rem;
+}
+
+.createTaskButton {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: #3d7fff;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.createTaskButton:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+}
+
+.createTaskButton:active {
+  transform: translateY(0);
+}
+
+.emptyState {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 4rem 2rem;
+  color: #64748b;
+}
+
+.emptyState i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.emptyState h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 0 0 0.5rem 0;
+}
+
+.emptyState p {
+  font-size: 1rem;
+  margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .pageContainer {
+    padding: 1rem;
+  }
+
+  .ideasGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .ideaCard {
+    margin: 0;
+  }
+
+  .cardHeader {
+    padding: 1rem 1rem 0.5rem;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
+
+  .ideaMeta {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .cardContent {
+    padding: 0 1rem 1rem;
+  }
+
+  .cardActions {
+    padding: 0 1rem 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .searchContainer {
+    max-width: 100%;
+  }
+
+  .ideaTitle {
+    font-size: 1.125rem;
+  }
+
+  .createTaskButton {
+    padding: 0.625rem 0.875rem;
+    font-size: 0.875rem;
+  }
+}

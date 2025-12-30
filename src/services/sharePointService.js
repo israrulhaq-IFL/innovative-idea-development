@@ -96,10 +96,10 @@ class SharePointService {
       const response = await fetch(apiUrl, {
         method: 'GET',
         headers: {
-          'Accept': 'application/json;odata=verbose',
-          'Content-Type': 'application/json;odata=verbose'
+          Accept: 'application/json;odata=verbose',
+          'Content-Type': 'application/json;odata=verbose',
         },
-        credentials: 'same-origin'
+        credentials: 'same-origin',
       });
 
       return response.ok;
@@ -115,10 +115,10 @@ class SharePointService {
       const response = await fetch(`${this.siteUrl}/_api/contextinfo`, {
         method: 'POST',
         headers: {
-          'Accept': 'application/json;odata=verbose',
-          'Content-Type': 'application/json;odata=verbose'
+          Accept: 'application/json;odata=verbose',
+          'Content-Type': 'application/json;odata=verbose',
         },
-        credentials: 'same-origin'
+        credentials: 'same-origin',
       });
 
       if (!response.ok) {
@@ -139,10 +139,10 @@ class SharePointService {
       const response = await fetch(`${this.siteUrl}/_api/web/currentuser`, {
         method: 'GET',
         headers: {
-          'Accept': 'application/json;odata=verbose',
-          'Content-Type': 'application/json;odata=verbose'
+          Accept: 'application/json;odata=verbose',
+          'Content-Type': 'application/json;odata=verbose',
         },
-        credentials: 'same-origin'
+        credentials: 'same-origin',
       });
 
       if (!response.ok) {
@@ -155,7 +155,7 @@ class SharePointService {
         Id: user.Id,
         Title: user.Title,
         Email: user.Email,
-        LoginName: user.LoginName
+        LoginName: user.LoginName,
       };
     } catch (error) {
       console.error('Failed to get current user:', error);
@@ -164,7 +164,7 @@ class SharePointService {
         Id: 1,
         Title: 'Demo User',
         Email: 'demo@company.com',
-        LoginName: 'demo@company.com'
+        LoginName: 'demo@company.com',
       };
     }
   }
@@ -176,63 +176,140 @@ class SharePointService {
 
       // Get current user's group memberships
       const userGroups = await this.getCurrentUserGroups();
-      const groupNames = userGroups.map((g) => this.normalizeGroupName(g.Title));
+      const groupNames = userGroups.map((g) =>
+        this.normalizeGroupName(g.Title),
+      );
 
       console.log('👤 User groups:', groupNames);
 
       const ALL_DEPARTMENTS = ['infra', 'erp', 'ops', 'network'];
       const DEPT_RULES = {
         infra: {
-          memberPatterns: ['dci', 'dci member', 'dci team', 'dci dept member', 'data center member', 'datacenter member'],
-          managerPatterns: ['dci manager', 'dci dept manager', 'data center manager', 'datacenter manager', 'infra manager']
+          memberPatterns: [
+            'dci',
+            'dci member',
+            'dci team',
+            'dci dept member',
+            'data center member',
+            'datacenter member',
+          ],
+          managerPatterns: [
+            'dci manager',
+            'dci dept manager',
+            'data center manager',
+            'datacenter manager',
+            'infra manager',
+          ],
         },
         erp: {
-          memberPatterns: ['erp', 'erp member', 'erp team', 'erp dept member', 'software development member'],
-          managerPatterns: ['erp manager', 'erp managers', 'erp dept manager', 'software manager', 'software development manager']
+          memberPatterns: [
+            'erp',
+            'erp member',
+            'erp team',
+            'erp dept member',
+            'software development member',
+          ],
+          managerPatterns: [
+            'erp manager',
+            'erp managers',
+            'erp dept manager',
+            'software manager',
+            'software development manager',
+          ],
         },
         ops: {
-          memberPatterns: ['ops', 'operations', 'operations member', 'ops member', 'ops team', 'ops dept member', 'itg operations member'],
-          managerPatterns: ['operations manager', 'ops manager', 'ops dept manager', 'itg operations manager']
+          memberPatterns: [
+            'ops',
+            'operations',
+            'operations member',
+            'ops member',
+            'ops team',
+            'ops dept member',
+            'itg operations member',
+          ],
+          managerPatterns: [
+            'operations manager',
+            'ops manager',
+            'ops dept manager',
+            'itg operations manager',
+          ],
         },
         network: {
-          memberPatterns: ['network', 'networks', 'network member', 'networks member', 'network team', 'network dept member', 'security member'],
-          managerPatterns: ['network manager', 'networks manager', 'network dept manager', 'security manager']
-        }
+          memberPatterns: [
+            'network',
+            'networks',
+            'network member',
+            'networks member',
+            'network team',
+            'network dept member',
+            'security member',
+          ],
+          managerPatterns: [
+            'network manager',
+            'networks manager',
+            'network dept manager',
+            'security manager',
+          ],
+        },
       };
 
-      const isHod = this.groupMatchesAny(groupNames, ['hod', 'head of department', 'hod member']);
-      const isItgManager = this.groupMatchesAny(groupNames, ['itg manager', 'itg managers', 'itg management', 'management member', 'itg dept manager']);
-      const isMonitoring = this.groupMatchesAny(groupNames, ['monitoring', 'monitorining', 'monitor', 'monitoring member', 'monitorining member', 'monitor member', 'itg monitoring', 'server infrastructure visitors', 'infrastructure visitors']);
+      const isHod = this.groupMatchesAny(groupNames, [
+        'hod',
+        'head of department',
+        'hod member',
+      ]);
+      const isItgManager = this.groupMatchesAny(groupNames, [
+        'itg manager',
+        'itg managers',
+        'itg management',
+        'management member',
+        'itg dept manager',
+      ]);
+      const isMonitoring = this.groupMatchesAny(groupNames, [
+        'monitoring',
+        'monitorining',
+        'monitor',
+        'monitoring member',
+        'monitorining member',
+        'monitor member',
+        'itg monitoring',
+        'server infrastructure visitors',
+        'infrastructure visitors',
+      ]);
 
       const deptMember = {};
       const deptManager = {};
       for (const deptId of ALL_DEPARTMENTS) {
         const rules = DEPT_RULES[deptId];
-        deptMember[deptId] = this.groupMatchesAny(groupNames, rules.memberPatterns);
+        deptMember[deptId] = this.groupMatchesAny(
+          groupNames,
+          rules.memberPatterns,
+        );
         deptManager[deptId] =
           this.groupMatchesAny(groupNames, rules.managerPatterns) ||
-          (deptMember[deptId] && this.groupMatchesAny(groupNames, [`${deptId} manager`, 'manager']));
+          (deptMember[deptId] &&
+            this.groupMatchesAny(groupNames, [`${deptId} manager`, 'manager']));
 
         console.log(`🔍 ${deptId} membership check:`, {
           groupNames,
           memberPatterns: rules.memberPatterns,
           managerPatterns: rules.managerPatterns,
           isMember: deptMember[deptId],
-          isManager: deptManager[deptId]
+          isManager: deptManager[deptId],
         });
       }
 
       const permissions = {
         isManagement: isItgManager,
         isExecutive: isHod,
-        isMonitoring: isMonitoring,
+        isMonitoring,
         department: null,
         canViewAll: isHod || isItgManager || isMonitoring,
         canEdit: false,
         canEditDepartments: [],
         userCategory: 'limited',
         allowedDepartments: [],
-        rawGroupNames: groupNames
+        rawGroupNames: groupNames,
       };
 
       if (isHod) {
@@ -257,8 +334,14 @@ class SharePointService {
         }
 
         permissions.canEdit = permissions.canEditDepartments.length > 0;
-        permissions.department = permissions.canEditDepartments.length === 1 ? permissions.canEditDepartments[0] : null;
-        console.log('👔 User is ITG Manager - can view all departments, edit departments:', permissions.canEditDepartments);
+        permissions.department =
+          permissions.canEditDepartments.length === 1
+            ? permissions.canEditDepartments[0]
+            : null;
+        console.log(
+          '👔 User is ITG Manager - can view all departments, edit departments:',
+          permissions.canEditDepartments,
+        );
         return permissions;
       }
 
@@ -274,8 +357,14 @@ class SharePointService {
         permissions.canViewAll = false; // Department members should only see their departments
         permissions.canEditDepartments = [...permissions.allowedDepartments];
         permissions.canEdit = true;
-        permissions.department = permissions.allowedDepartments.length === 1 ? permissions.allowedDepartments[0] : null;
-        console.log('👷 User is team member - allowed departments:', permissions.allowedDepartments);
+        permissions.department =
+          permissions.allowedDepartments.length === 1
+            ? permissions.allowedDepartments[0]
+            : null;
+        console.log(
+          '👷 User is team member - allowed departments:',
+          permissions.allowedDepartments,
+        );
         console.log('📊 Final permissions:', permissions);
         return permissions;
       }
@@ -287,7 +376,9 @@ class SharePointService {
         permissions.canEditDepartments = [];
         permissions.canEdit = false;
         permissions.department = null;
-        console.log('👁️ User is in Monitoring - can view all departments, edit none');
+        console.log(
+          '👁️ User is in Monitoring - can view all departments, edit none',
+        );
         return permissions;
       }
 
@@ -310,7 +401,7 @@ class SharePointService {
         canEditDepartments: [],
         userCategory: 'limited',
         allowedDepartments: [], // No departments allowed on error
-        rawGroupNames: []
+        rawGroupNames: [],
       };
     }
   }
@@ -323,10 +414,10 @@ class SharePointService {
       const response = await fetch(`${this.siteUrl}/_api/web/sitegroups`, {
         method: 'GET',
         headers: {
-          'Accept': 'application/json;odata=verbose',
-          'Content-Type': 'application/json;odata=verbose'
+          Accept: 'application/json;odata=verbose',
+          'Content-Type': 'application/json;odata=verbose',
         },
-        credentials: 'same-origin'
+        credentials: 'same-origin',
       });
 
       if (!response.ok) {
@@ -334,12 +425,12 @@ class SharePointService {
       }
 
       const data = await response.json();
-      const groups = data.d.results.map(group => ({
+      const groups = data.d.results.map((group) => ({
         Id: group.Id,
         Title: group.Title,
         Description: group.Description,
         OwnerTitle: group.OwnerTitle,
-        LoginName: group.LoginName
+        LoginName: group.LoginName,
       }));
 
       console.log('✅ Found site groups:', groups);
@@ -353,22 +444,22 @@ class SharePointService {
           Title: 'ITG Owners',
           Description: 'Site owners with full control',
           OwnerTitle: 'System Account',
-          LoginName: 'ITG Owners'
+          LoginName: 'ITG Owners',
         },
         {
           Id: 2,
           Title: 'ITG Members',
           Description: 'Site members with contribute permissions',
           OwnerTitle: 'System Account',
-          LoginName: 'ITG Members'
+          LoginName: 'ITG Members',
         },
         {
           Id: 3,
           Title: 'ITG Visitors',
           Description: 'Site visitors with read permissions',
           OwnerTitle: 'System Account',
-          LoginName: 'ITG Visitors'
-        }
+          LoginName: 'ITG Visitors',
+        },
       ];
     }
   }
@@ -378,26 +469,29 @@ class SharePointService {
     try {
       console.log(`👥 Getting users for group ID: ${groupId}`);
 
-      const response = await fetch(`${this.siteUrl}/_api/web/sitegroups(${groupId})/users`, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json;odata=verbose',
-          'Content-Type': 'application/json;odata=verbose'
+      const response = await fetch(
+        `${this.siteUrl}/_api/web/sitegroups(${groupId})/users`,
+        {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json;odata=verbose',
+            'Content-Type': 'application/json;odata=verbose',
+          },
+          credentials: 'same-origin',
         },
-        credentials: 'same-origin'
-      });
+      );
 
       if (!response.ok) {
         throw new Error('Failed to get group users');
       }
 
       const data = await response.json();
-      const users = data.d.results.map(user => ({
+      const users = data.d.results.map((user) => ({
         Id: user.Id,
         Title: user.Title,
         Email: user.Email,
         LoginName: user.LoginName,
-        IsSiteAdmin: user.IsSiteAdmin
+        IsSiteAdmin: user.IsSiteAdmin,
       }));
 
       console.log(`✅ Found ${users.length} users in group:`, users);
@@ -411,15 +505,15 @@ class SharePointService {
           Title: 'John Doe',
           Email: 'john.doe@company.com',
           LoginName: 'john.doe@company.com',
-          IsSiteAdmin: false
+          IsSiteAdmin: false,
         },
         {
           Id: 2,
           Title: 'Jane Smith',
           Email: 'jane.smith@company.com',
           LoginName: 'jane.smith@company.com',
-          IsSiteAdmin: false
-        }
+          IsSiteAdmin: false,
+        },
       ];
     }
   }
@@ -429,26 +523,29 @@ class SharePointService {
     try {
       console.log('👤 Getting current user group memberships...');
 
-      const response = await fetch(`${this.siteUrl}/_api/web/currentuser/groups`, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json;odata=verbose',
-          'Content-Type': 'application/json;odata=verbose'
+      const response = await fetch(
+        `${this.siteUrl}/_api/web/currentuser/groups`,
+        {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json;odata=verbose',
+            'Content-Type': 'application/json;odata=verbose',
+          },
+          credentials: 'same-origin',
         },
-        credentials: 'same-origin'
-      });
+      );
 
       if (!response.ok) {
         throw new Error('Failed to get user groups');
       }
 
       const data = await response.json();
-      const groups = data.d.results.map(group => ({
+      const groups = data.d.results.map((group) => ({
         Id: group.Id,
         Title: group.Title,
         Description: group.Description,
         OwnerTitle: group.OwnerTitle,
-        LoginName: group.LoginName
+        LoginName: group.LoginName,
       }));
 
       console.log('✅ Current user is member of groups:', groups);
@@ -462,8 +559,8 @@ class SharePointService {
           Title: 'ITG Members',
           Description: 'Site members with contribute permissions',
           OwnerTitle: 'System Account',
-          LoginName: 'ITG Members'
-        }
+          LoginName: 'ITG Members',
+        },
       ];
     }
   }
@@ -472,54 +569,75 @@ class SharePointService {
   async getDepartments(userPermissions) {
     try {
       // Return departments from our configuration
-      const allDepartments = Object.entries(this.departments).map(([id, dept]) => ({
-        id: id,
-        name: dept.displayName,
-        listName: dept.name,
-        guid: dept.guid
-      }));
+      const allDepartments = Object.entries(this.departments).map(
+        ([id, dept]) => ({
+          id,
+          name: dept.displayName,
+          listName: dept.name,
+          guid: dept.guid,
+        }),
+      );
 
       if (userPermissions.canViewAll) {
         return allDepartments;
-      } else if (userPermissions.allowedDepartments && userPermissions.allowedDepartments.length > 0) {
-        return allDepartments.filter((d) => userPermissions.allowedDepartments.includes(d.id));
+      } else if (
+        userPermissions.allowedDepartments &&
+        userPermissions.allowedDepartments.length > 0
+      ) {
+        return allDepartments.filter((d) =>
+          userPermissions.allowedDepartments.includes(d.id),
+        );
       } else {
         return [allDepartments[0]]; // Default to first department
       }
     } catch (error) {
       console.error('Failed to get departments:', error);
-      return [{
-        id: this.defaultDepartment,
-        name: this.departments[this.defaultDepartment].displayName,
-        listName: this.departments[this.defaultDepartment].name
-      }];
+      return [
+        {
+          id: this.defaultDepartment,
+          name: this.departments[this.defaultDepartment].displayName,
+          listName: this.departments[this.defaultDepartment].name,
+        },
+      ];
     }
   }
 
   // Get tasks from SharePoint list
-  async getTasks(permissions = {}, departmentFilter = null, departmentId = null) {
+  async getTasks(
+    permissions = {},
+    departmentFilter = null,
+    departmentId = null,
+  ) {
     // Determine which departments this user can access
     const allDepartmentIds = ['infra', 'erp', 'ops', 'network'];
     const allowedDepartments = permissions.canViewAll
       ? allDepartmentIds
-      : (permissions.allowedDepartments && permissions.allowedDepartments.length > 0)
-          ? permissions.allowedDepartments
-          : ['infra'];
+      : permissions.allowedDepartments &&
+          permissions.allowedDepartments.length > 0
+        ? permissions.allowedDepartments
+        : ['infra'];
 
     const requestedDepartmentId = departmentId || departmentFilter;
-    if (requestedDepartmentId && !allowedDepartments.includes(requestedDepartmentId)) {
-      console.log(`🚫 User does not have access to department: ${requestedDepartmentId}`);
+    if (
+      requestedDepartmentId &&
+      !allowedDepartments.includes(requestedDepartmentId)
+    ) {
+      console.log(
+        `🚫 User does not have access to department: ${requestedDepartmentId}`,
+      );
       return [];
     }
 
     // If a specific department is requested, fetch only that one; otherwise fetch all allowed.
-    const departmentsToFetch = requestedDepartmentId ? [requestedDepartmentId] : allowedDepartments;
+    const departmentsToFetch = requestedDepartmentId
+      ? [requestedDepartmentId]
+      : allowedDepartments;
 
     console.log('🔍 Fetching tasks for departments:', departmentsToFetch);
     console.log('👤 User permissions:', {
       canViewAll: permissions.canViewAll,
       allowedDepartments: permissions.allowedDepartments,
-      userCategory: permissions.userCategory
+      userCategory: permissions.userCategory,
     });
 
     const allTasks = [];
@@ -534,7 +652,11 @@ class SharePointService {
         const listExists = await this.checkListExists(dept);
         if (!listExists) {
           console.log(`📋 List does not exist for ${dept}, using mock data`);
-          const mockTasks = this.getMockTasks(permissions, departmentFilter, dept);
+          const mockTasks = this.getMockTasks(
+            permissions,
+            departmentFilter,
+            dept,
+          );
           allTasks.push(...mockTasks);
           continue;
         }
@@ -550,38 +672,45 @@ class SharePointService {
         const response = await fetch(apiUrl, {
           method: 'GET',
           headers: {
-            'Accept': 'application/json;odata=verbose',
-            'Content-Type': 'application/json;odata=verbose'
+            Accept: 'application/json;odata=verbose',
+            'Content-Type': 'application/json;odata=verbose',
           },
-          credentials: 'same-origin'
+          credentials: 'same-origin',
         });
 
         if (!response.ok) {
-          console.error('❌ API Response:', response.status, response.statusText);
-          throw new Error(`Failed to get tasks from ${dept}: ${response.status} ${response.statusText}`);
+          console.error(
+            '❌ API Response:',
+            response.status,
+            response.statusText,
+          );
+          throw new Error(
+            `Failed to get tasks from ${dept}: ${response.status} ${response.statusText}`,
+          );
         }
 
         const data = await response.json();
-        let tasks = data.d.results.map(task => {
+        const tasks = data.d.results.map((task) => {
           // Handle AssignedTo field properly - can be single user or multiple users
-          let assigneeName = 'Unassigned';
+          let assigneeName = "Unassigned";
           let allAssignees = [];
 
           if (task.AssignedTo) {
             if (task.AssignedTo.results) {
               // Multiple assignees case
-              allAssignees = task.AssignedTo.results.map(user => ({
+              allAssignees = task.AssignedTo.results.map((user) => ({
                 Id: user.Id,
                 Title: user.Title,
-                Email: user.Email || user.EMail
+                Email: user.Email || user.EMail,
               }));
-              assigneeName = allAssignees.length > 0 ? allAssignees[0].Title : 'Unassigned';
+              assigneeName =
+                allAssignees.length > 0 ? allAssignees[0].Title : "Unassigned";
             } else if (task.AssignedTo.Title) {
               // Single assignee case
               const assignee = {
                 Id: task.AssignedTo.Id,
                 Title: task.AssignedTo.Title,
-                Email: task.AssignedTo.Email || task.AssignedTo.EMail
+                Email: task.AssignedTo.Email || task.AssignedTo.EMail,
               };
               allAssignees = [assignee];
               assigneeName = task.AssignedTo.Title;
@@ -591,30 +720,33 @@ class SharePointService {
           return {
             Id: task.Id,
             Title: task.Title,
-            Description: task.Body || task.Description || '',
+            Description: task.Body || task.Description || "",
             Status: task.Status,
             Priority: task.Priority,
             PercentComplete: task.PercentComplete || 0,
             AssignedTo: allAssignees,
-            AssignedToId: allAssignees.map(a => a.Id),
+            AssignedToId: allAssignees.map((a) => a.Id),
             StartDate: task.StartDate,
             DueDate: task.DueDate,
             Created: task.Created,
             Modified: task.Modified,
-            Remarks: task.tonc || '',
+            Remarks: task.tonc || "",
             DepartmentId: dept,
             Department: this.getDepartmentName(dept),
-            Attachments: task.Attachments || false
+            Attachments: task.Attachments || false,
           };
         });
 
         allTasks.push(...tasks);
         console.log(`✅ Loaded ${tasks.length} tasks from ${dept}`);
-
       } catch (error) {
         console.error(`Failed to get tasks from ${dept}:`, error);
         // Return mock data for this department
-        const mockTasks = this.getMockTasks(permissions, departmentFilter, dept);
+        const mockTasks = this.getMockTasks(
+          permissions,
+          departmentFilter,
+          dept,
+        );
         allTasks.push(...mockTasks);
       }
     }
@@ -624,21 +756,35 @@ class SharePointService {
   }
 
   // Get analytics data
-  async getAnalyticsData(permissions = {}, departmentFilter = null, departmentId = null) {
+  async getAnalyticsData(
+    permissions = {},
+    departmentFilter = null,
+    departmentId = null,
+  ) {
     try {
-      let tasks = await this.getTasks(permissions, departmentFilter, departmentId);
+      const tasks = await this.getTasks(
+        permissions,
+        departmentFilter,
+        departmentId,
+      );
 
       const analytics = {
         totalTasks: tasks.length,
-        completedTasks: tasks.filter(t => t.Status === 'Completed').length,
-        inProgressTasks: tasks.filter(t => t.Status === 'In Progress').length,
-        overdueTasks: tasks.filter(t => {
+        completedTasks: tasks.filter((t) => t.Status === 'Completed').length,
+        inProgressTasks: tasks.filter((t) => t.Status === 'In Progress').length,
+        overdueTasks: tasks.filter((t) => {
           if (!t.DueDate || t.Status === 'Completed') return false;
           return new Date(t.DueDate) < new Date();
         }).length,
-        completionRate: tasks.length > 0 ?
-          Math.round((tasks.filter(t => t.Status === 'Completed').length / tasks.length) * 100) : 0,
-        avgCompletionTime: this.calculateAverageCompletionTime(tasks)
+        completionRate:
+          tasks.length > 0
+            ? Math.round(
+                (tasks.filter((t) => t.Status === 'Completed').length /
+                  tasks.length) *
+                  100,
+              )
+            : 0,
+        avgCompletionTime: this.calculateAverageCompletionTime(tasks),
       };
 
       return analytics;
@@ -650,14 +796,16 @@ class SharePointService {
         inProgressTasks: 0,
         overdueTasks: 0,
         completionRate: 0,
-        avgCompletionTime: 0
+        avgCompletionTime: 0,
       };
     }
   }
 
   // Calculate average completion time in days
   calculateAverageCompletionTime(tasks) {
-    const completedTasks = tasks.filter(t => t.Status === 'Completed' && t.Created && t.Modified);
+    const completedTasks = tasks.filter(
+      (t) => t.Status === 'Completed' && t.Created && t.Modified,
+    );
 
     if (completedTasks.length === 0) return 0;
 
@@ -674,18 +822,26 @@ class SharePointService {
 
   // Mock data for development
   getMockTasks(permissions = {}, departmentFilter = null, departmentId = null) {
-    const statuses = ['Not Started', 'In Progress', 'Completed', 'On Hold', 'Cancelled'];
+    const statuses = [
+      'Not Started',
+      'In Progress',
+      'Completed',
+      'On Hold',
+      'Cancelled',
+    ];
     const priorities = ['Low', 'Medium', 'High', 'Critical'];
     const mockAssignees = [
       { Id: 1, Title: 'John Doe', Email: 'john.doe@company.com' },
       { Id: 2, Title: 'Jane Smith', Email: 'jane.smith@company.com' },
       { Id: 3, Title: 'Bob Johnson', Email: 'bob.johnson@company.com' },
       { Id: 4, Title: 'Alice Brown', Email: 'alice.brown@company.com' },
-      null
+      null,
     ];
 
     // Use department names from our configuration
-    const departmentNames = Object.values(this.departments).map(dept => dept.name);
+    const departmentNames = Object.values(this.departments).map(
+      (dept) => dept.name,
+    );
 
     let tasks = Array.from({ length: 25 }, (_, i) => {
       const created = new Date();
@@ -695,10 +851,15 @@ class SharePointService {
       dueDate.setDate(dueDate.getDate() + Math.floor(Math.random() * 30) + 1);
 
       // Use the specified department or pick a random one from our configured departments
-      const deptId = departmentId || Object.keys(this.departments)[Math.floor(Math.random() * Object.keys(this.departments).length)];
+      const deptId =
+        departmentId ||
+        Object.keys(this.departments)[
+          Math.floor(Math.random() * Object.keys(this.departments).length)
+        ];
       const dept = this.getDepartmentName(deptId);
 
-      const assignee = mockAssignees[Math.floor(Math.random() * mockAssignees.length)];
+      const assignee =
+        mockAssignees[Math.floor(Math.random() * mockAssignees.length)];
 
       return {
         Id: i + 1,
@@ -716,18 +877,24 @@ class SharePointService {
         tonc: `Remarks for task ${i + 1}`,
         DepartmentId: deptId,
         Department: dept,
-        Attachments: Math.random() > 0.8 // 20% chance of having attachments
+        Attachments: Math.random() > 0.8, // 20% chance of having attachments
       };
     });
 
     // Filter by department if specified
     if (departmentFilter) {
-      tasks = tasks.filter(task => task.DepartmentId === departmentFilter);
+      tasks = tasks.filter((task) => task.DepartmentId === departmentFilter);
     }
 
     // Filter by permissions
-    if (!permissions.canViewAll && permissions.allowedDepartments && permissions.allowedDepartments.length > 0) {
-      tasks = tasks.filter(task => permissions.allowedDepartments.includes(task.DepartmentId));
+    if (
+      !permissions.canViewAll &&
+      permissions.allowedDepartments &&
+      permissions.allowedDepartments.length > 0
+    ) {
+      tasks = tasks.filter((task) =>
+        permissions.allowedDepartments.includes(task.DepartmentId),
+      );
     }
 
     return tasks;
@@ -754,16 +921,16 @@ class SharePointService {
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
-          'Accept': 'application/json;odata=verbose',
+          Accept: 'application/json;odata=verbose',
           'Content-Type': 'application/json;odata=verbose',
           'X-RequestDigest': digest,
           'X-HTTP-Method': 'MERGE',
-          'If-Match': '*'
+          'If-Match': '*',
         },
         credentials: 'same-origin',
         body: JSON.stringify({
-          Status: newStatus
-        })
+          Status: newStatus,
+        }),
       });
 
       if (!response.ok) {

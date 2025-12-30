@@ -1,5 +1,5 @@
-import { SkeletonCard, SkeletonChart, SkeletonTable } from './Skeleton';
-import styles from './AnalyticsSkeleton.module.css';
+import { SkeletonCard, SkeletonChart, SkeletonTable } from "./Skeleton";
+import styles from "./AnalyticsSkeleton.module.css";
 
 const AnalyticsSkeleton = () => {
   return (

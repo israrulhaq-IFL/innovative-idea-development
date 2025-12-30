@@ -1,18 +1,21 @@
-import React, { useMemo } from 'react'
-import { LazyStatusCharts, LazyPriorityCharts } from './LazyCharts'
-import DelayedTasks from './DelayedTasks'
-import styles from './DepartmentColumn.module.css'
+import React, { useMemo } from 'react';
+import { LazyStatusCharts, LazyPriorityCharts } from './LazyCharts';
+import DelayedTasks from './DelayedTasks';
+import styles from './DepartmentColumn.module.css';
 
 const computeAnalytics = (tasks) => {
-  const totalTasks = tasks.length
-  const completedTasks = tasks.filter((t) => t.Status === 'Completed').length
-  const inProgressTasks = tasks.filter((t) => t.Status === 'In Progress').length
+  const totalTasks = tasks.length;
+  const completedTasks = tasks.filter((t) => t.Status === 'Completed').length;
+  const inProgressTasks = tasks.filter(
+    (t) => t.Status === 'In Progress',
+  ).length;
   const overdueTasks = tasks.filter((t) => {
-    if (!t.DueDate || t.Status === 'Completed') return false
-    return new Date(t.DueDate) < new Date()
-  }).length
+    if (!t.DueDate || t.Status === 'Completed') return false;
+    return new Date(t.DueDate) < new Date();
+  }).length;
 
-  const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
+  const completionRate =
+    totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
   return {
     totalTasks,
@@ -20,8 +23,8 @@ const computeAnalytics = (tasks) => {
     inProgressTasks,
     overdueTasks,
     completionRate,
-  }
-}
+  };
+};
 
 const MiniKpi = ({ label, value, tone }) => {
   return (
@@ -29,8 +32,8 @@ const MiniKpi = ({ label, value, tone }) => {
       <div className={styles.miniKpiValue}>{value}</div>
       <div className={styles.miniKpiLabel}>{label}</div>
     </div>
-  )
-}
+  );
+};
 
 const DepartmentColumn = ({
   departmentId,
@@ -42,25 +45,37 @@ const DepartmentColumn = ({
   onPriorityDrill,
   onDelayedDrill,
 }) => {
-  const analytics = useMemo(() => computeAnalytics(tasks), [tasks])
+  const analytics = useMemo(() => computeAnalytics(tasks), [tasks]);
 
   return (
     <section className={styles.column}>
       <header className={styles.header}>
         <div className={styles.headerText}>
           <h2 className={styles.title}>{departmentLabel}</h2>
-          {departmentSubtitle && <div className={styles.subtitle}>{departmentSubtitle}</div>}
+          {departmentSubtitle && (
+            <div className={styles.subtitle}>{departmentSubtitle}</div>
+          )}
         </div>
 
-        <div className={`${styles.badge} ${canEdit ? styles.badgeEdit : styles.badgeView}`}>
+        <div
+          className={`${styles.badge} ${canEdit ? styles.badgeEdit : styles.badgeView}`}
+        >
           {canEdit ? 'Editable' : 'View only'}
         </div>
       </header>
 
       <div className={styles.kpiRow}>
         <MiniKpi label="Total" value={analytics.totalTasks} tone="neutral" />
-        <MiniKpi label="Completed" value={analytics.completedTasks} tone="good" />
-        <MiniKpi label="In Progress" value={analytics.inProgressTasks} tone="warn" />
+        <MiniKpi
+          label="Completed"
+          value={analytics.completedTasks}
+          tone="good"
+        />
+        <MiniKpi
+          label="In Progress"
+          value={analytics.inProgressTasks}
+          tone="warn"
+        />
         <MiniKpi label="Overdue" value={analytics.overdueTasks} tone="bad" />
       </div>
 
@@ -99,7 +114,7 @@ const DepartmentColumn = ({
         <DelayedTasks tasks={tasks} onViewDetails={onDelayedDrill} />
       </div>
     </section>
-  )
-}
+  );
+};
 
-export default DepartmentColumn
+export default DepartmentColumn;

@@ -1,9 +1,13 @@
-import React, { useState, useRef, useEffect } from 'react';
-import styles from './AssigneeAvatars.module.css';
+import React, { useState, useRef, useEffect } from "react";
+import styles from "./AssigneeAvatars.module.css";
 
 const AssigneeAvatars = ({ assignees, maxVisible = 3, showTooltip = true }) => {
   const [hoveredAssignee, setHoveredAssignee] = useState(null);
-  const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0, arrowDirection: 'top' });
+  const [tooltipPosition, setTooltipPosition] = useState({
+    top: 0,
+    left: 0,
+    arrowDirection: "top",
+  });
   const containerRef = useRef(null);
 
   const handleMouseEnter = (assignee, event) => {
@@ -18,29 +22,36 @@ const AssigneeAvatars = ({ assignees, maxVisible = 3, showTooltip = true }) => {
     // Calculate position relative to container - prioritize above positioning
     let left = rect.left - containerRect.left + rect.width / 2; // Center above avatar
     let top = rect.top - containerRect.top - tooltipHeight - offset - 15; // Above avatar with extra space
-    let arrowDirection = 'top';
+    let arrowDirection = "top";
 
     // Get container dimensions
     const containerWidth = containerRect.width;
     const containerHeight = containerRect.height;
 
     // Check if tooltip fits above the avatar
-    const tooltipFitsAbove = top >= 10 && left - tooltipWidth / 2 >= 30 && left + tooltipWidth / 2 <= containerWidth - 10;
+    const tooltipFitsAbove =
+      top >= 10 &&
+      left - tooltipWidth / 2 >= 30 &&
+      left + tooltipWidth / 2 <= containerWidth - 10;
 
     if (!tooltipFitsAbove) {
       // Try positioning below the avatar
       top = rect.top - containerRect.top + rect.height + offset;
-      arrowDirection = 'bottom';
+      arrowDirection = "bottom";
 
       // Check if tooltip fits below
-      const tooltipFitsBelow = top + tooltipHeight <= containerHeight - 10 &&
-                              left - tooltipWidth / 2 >= 30 &&
-                              left + tooltipWidth / 2 <= containerWidth - 10;
+      const tooltipFitsBelow =
+        top + tooltipHeight <= containerHeight - 10 &&
+        left - tooltipWidth / 2 >= 30 &&
+        left + tooltipWidth / 2 <= containerWidth - 10;
 
       if (!tooltipFitsBelow) {
         // If neither above nor below works, force above positioning with horizontal adjustment
-        top = Math.max(10, rect.top - containerRect.top - tooltipHeight - offset);
-        arrowDirection = 'top';
+        top = Math.max(
+          10,
+          rect.top - containerRect.top - tooltipHeight - offset,
+        );
+        arrowDirection = "top";
 
         // Adjust horizontal position to fit within bounds
         if (left - tooltipWidth / 2 < 30) {
@@ -65,7 +76,12 @@ const AssigneeAvatars = ({ assignees, maxVisible = 3, showTooltip = true }) => {
         <div
           className={`${styles.avatar} ${styles.unassigned}`}
           title="Unassigned"
-          onMouseEnter={(e) => handleMouseEnter({ Title: 'Unassigned', Email: 'No assignee assigned' }, e)}
+          onMouseEnter={(e) =>
+            handleMouseEnter(
+              { Title: "Unassigned", Email: "No assignee assigned" },
+              e,
+            )
+          }
           onMouseLeave={handleMouseLeave}
         >
           <span className={styles.initials}>?</span>
@@ -76,7 +92,7 @@ const AssigneeAvatars = ({ assignees, maxVisible = 3, showTooltip = true }) => {
             style={{
               top: `${tooltipPosition.top}px`,
               left: `${tooltipPosition.left}px`,
-              transform: 'translateX(-50%)'
+              transform: "translateX(-50%)",
             }}
           >
             <div className={styles.tooltipContent}>
@@ -104,22 +120,25 @@ const AssigneeAvatars = ({ assignees, maxVisible = 3, showTooltip = true }) => {
           style={{
             backgroundColor: getAvatarColor(assignee.Title),
             zIndex: maxVisible - index,
-            animationDelay: `${index * 50}ms`
+            animationDelay: `${index * 50}ms`,
           }}
         >
-          <span className={styles.initials}>
-            {getInitials(assignee.Title)}
-          </span>
+          <span className={styles.initials}>{getInitials(assignee.Title)}</span>
           <div className={styles.avatarGlow}></div>
         </div>
       ))}
       {remainingCount > 0 && (
         <div
           className={`${styles.avatar} ${styles.more}`}
-          onMouseEnter={(e) => handleMouseEnter({
-            Title: `${remainingCount} more assignee${remainingCount > 1 ? 's' : ''}`,
-            Email: 'Click to see all assignees'
-          }, e)}
+          onMouseEnter={(e) =>
+            handleMouseEnter(
+              {
+                Title: `${remainingCount} more assignee${remainingCount > 1 ? "s" : ""}`,
+                Email: "Click to see all assignees",
+              },
+              e,
+            )
+          }
           onMouseLeave={handleMouseLeave}
         >
           <span className={styles.initials}>+{remainingCount}</span>
@@ -132,7 +151,7 @@ const AssigneeAvatars = ({ assignees, maxVisible = 3, showTooltip = true }) => {
           style={{
             top: `${tooltipPosition.top}px`,
             left: `${tooltipPosition.left}px`,
-            transform: 'translateX(-50%)'
+            transform: "translateX(-50%)",
           }}
         >
           <div className={styles.tooltipContent}>
@@ -150,25 +169,42 @@ const AssigneeAvatars = ({ assignees, maxVisible = 3, showTooltip = true }) => {
 
 // Helper function to get initials from name
 const getInitials = (name) => {
-  if (!name) return '?';
+  if (!name) return "?";
   return name
-    .split(' ')
-    .map(word => word.charAt(0).toUpperCase())
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase())
     .slice(0, 2)
-    .join('');
+    .join("");
 };
 
 // Helper function to generate consistent colors based on name
 const getAvatarColor = (name) => {
-  if (!name) return '#6c757d';
+  if (!name) return "#6c757d";
   const colors = [
-    '#007bff', '#28a745', '#ffc107', '#dc3545',
-    '#6f42c1', '#e83e8c', '#fd7e14', '#20c997',
-    '#6c757d', '#17a2b8', '#343a40', '#6610f2',
-    '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4',
-    '#ffeaa7', '#dda0dd', '#98d8c8', '#f7dc6f'
+    "#007bff",
+    "#28a745",
+    "#ffc107",
+    "#dc3545",
+    "#6f42c1",
+    "#e83e8c",
+    "#fd7e14",
+    "#20c997",
+    "#6c757d",
+    "#17a2b8",
+    "#343a40",
+    "#6610f2",
+    "#ff6b6b",
+    "#4ecdc4",
+    "#45b7d1",
+    "#96ceb4",
+    "#ffeaa7",
+    "#dda0dd",
+    "#98d8c8",
+    "#f7dc6f",
   ];
-  const hash = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const hash = name
+    .split("")
+    .reduce((acc, char) => acc + char.charCodeAt(0), 0);
   return colors[hash % colors.length];
 };
 

@@ -1,12 +1,12 @@
-import React from 'react';
-import styles from './DelayedTasksList.module.css';
+import React from "react";
+import styles from "./DelayedTasksList.module.css";
 
 const DelayedTasksList = ({ tasks, onViewDetails }) => {
   const now = new Date();
 
   const delayedTasks = tasks
-    .filter(task => {
-      if (!task.DueDate || task.Status === 'Completed') return false;
+    .filter((task) => {
+      if (!task.DueDate || task.Status === "Completed") return false;
       const dueDate = new Date(task.DueDate);
       return dueDate < now;
     })
@@ -27,9 +27,7 @@ const DelayedTasksList = ({ tasks, onViewDetails }) => {
   if (delayedTasks.length === 0) {
     return (
       <div className={styles.delayedTasksList}>
-        <div className={styles.noDelayed}>
-          ✅ All tasks on track
-        </div>
+        <div className={styles.noDelayed}>✅ All tasks on track</div>
       </div>
     );
   }
@@ -46,16 +44,13 @@ const DelayedTasksList = ({ tasks, onViewDetails }) => {
               </span>
             </div>
             <div className={styles.taskAssignee}>
-              {task.AssignedTo?.[0]?.Title || 'Unassigned'}
+              {task.AssignedTo?.[0]?.Title || "Unassigned"}
             </div>
           </div>
         ))}
       </div>
       {onViewDetails && (
-        <button
-          className={styles.viewAllBtn}
-          onClick={onViewDetails}
-        >
+        <button className={styles.viewAllBtn} onClick={onViewDetails}>
           View All Delayed Tasks
         </button>
       )}

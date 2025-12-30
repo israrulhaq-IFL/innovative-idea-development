@@ -1,28 +1,37 @@
-import React, { useState } from 'react';
-import styles from './AssigneeWorkload.module.css';
+import React, { useState } from "react";
+import styles from "./AssigneeWorkload.module.css";
 
 const AssigneeWorkload = ({ tasks, onAssigneeClick }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Calculate assignee workload
   const assigneeStats = tasks.reduce((acc, task) => {
-    let assigneeNames = ['Unassigned'];
+    let assigneeNames = ["Unassigned"];
 
-    if (task.AssignedTo && Array.isArray(task.AssignedTo) && task.AssignedTo.length > 0) {
-      assigneeNames = task.AssignedTo.map(assignee => assignee.Title || 'Unknown');
+    if (
+      task.AssignedTo &&
+      Array.isArray(task.AssignedTo) &&
+      task.AssignedTo.length > 0
+    ) {
+      assigneeNames = task.AssignedTo.map(
+        (assignee) => assignee.Title || "Unknown",
+      );
     }
 
-    assigneeNames.forEach(name => {
+    assigneeNames.forEach((name) => {
       acc[name] = (acc[name] || 0) + 1;
     });
 
     return acc;
   }, {});
 
-  const assigneeEntries = Object.entries(assigneeStats)
-    .sort(([, a], [, b]) => b - a); // Sort by task count descending
+  const assigneeEntries = Object.entries(assigneeStats).sort(
+    ([, a], [, b]) => b - a,
+  ); // Sort by task count descending
 
-  const displayedEntries = isExpanded ? assigneeEntries : assigneeEntries.slice(0, 12);
+  const displayedEntries = isExpanded
+    ? assigneeEntries
+    : assigneeEntries.slice(0, 12);
   const maxTasks = Math.max(...assigneeEntries.map(([, count]) => count));
 
   const handleAssigneeClick = (assigneeName) => {
@@ -42,7 +51,7 @@ const AssigneeWorkload = ({ tasks, onAssigneeClick }) => {
           displayedEntries.map(([name, count]) => (
             <div
               key={name}
-              className={`${styles.workloadItem} ${onAssigneeClick ? styles.clickable : ''}`}
+              className={`${styles.workloadItem} ${onAssigneeClick ? styles.clickable : ""}`}
               onClick={() => handleAssigneeClick(name)}
             >
               <div className={styles.assigneeName}>{name}</div>
@@ -51,7 +60,12 @@ const AssigneeWorkload = ({ tasks, onAssigneeClick }) => {
                   className={styles.workloadFill}
                   style={{
                     width: `${maxTasks > 0 ? (count / maxTasks) * 100 : 0}%`,
-                    backgroundColor: count >= 5 ? '#dc3545' : count >= 3 ? '#ffc107' : '#28a745'
+                    backgroundColor:
+                      count >= 5
+                        ? "#dc3545"
+                        : count >= 3
+                          ? "#ffc107"
+                          : "#28a745",
                   }}
                 />
               </div>
@@ -65,7 +79,7 @@ const AssigneeWorkload = ({ tasks, onAssigneeClick }) => {
           className={styles.expandButton}
           onClick={() => setIsExpanded(!isExpanded)}
         >
-          {isExpanded ? 'Show Less' : `Show All (${assigneeEntries.length})`}
+          {isExpanded ? "Show Less" : `Show All (${assigneeEntries.length})`}
         </button>
       )}
     </div>

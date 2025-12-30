@@ -1,8 +1,8 @@
 // Innovative Ideas API Service
 // src/services/ideaApi.ts
 
-import { sharePointApi, DEFAULT_CONFIG } from '../utils/secureApi';
-import { logError, logInfo } from '../utils/logger';
+import { sharePointApi, DEFAULT_CONFIG } from "../utils/secureApi";
+import { logError, logInfo } from "../utils/logger";
 import {
   Idea,
   Task,
@@ -11,20 +11,20 @@ import {
   ProcessedTask,
   ProcessedDiscussion,
   IdeaTrailEvent,
-} from '../types';
+} from "../types";
 
 // List names
 const LISTS = DEFAULT_CONFIG.lists;
 
 // Field mappings for SharePoint 2016 compatibility
 const IDEA_SELECT =
-  'ID,Title,Description,Status,Category,Priority,Created,Modified,Author/Id,Author/Title,ApprovedBy/Id,ApprovedBy/Title,Attachments,AttachmentFiles';
+  "ID,Title,Description,Status,Category,Priority,Created,Modified,Author/Id,Author/Title,ApprovedBy/Id,ApprovedBy/Title,Attachments,AttachmentFiles";
 const TASK_SELECT =
-  'ID,Title,Body,Status,Priority,PercentComplete,DueDate,StartDate,AssignedTo/Id,AssignedTo/Title,AssignedTo/EMail';
+  "ID,Title,Body,Status,Priority,PercentComplete,DueDate,StartDate,AssignedTo/Id,AssignedTo/Title,AssignedTo/EMail,IdeaId/Id,IdeaId/Title";
 const DISCUSSION_SELECT =
-  'ID,Title,Body,Created,Modified,Author/Id,Author/Title';
+  "ID,Title,Body,Created,Modified,Author/Id,Author/Title";
 const IDEA_TRAIL_SELECT =
-  'ID,Idea/Id,Idea/Title,EventType,Title,Description,Actor/Id,Actor/Title,PreviousStatus,NewStatus,Comments,Metadata,Created';
+  "ID,Idea/Id,Idea/Title,Task/Id,Task/Title,Discussion/Id,Discussion/Title,EventType,Title,Description,Actor/Id,Actor/Title,PreviousStatus,NewStatus,Comments,Metadata,Created";
 
 // API Service Class
 export class IdeaApiService {
@@ -41,33 +41,39 @@ export class IdeaApiService {
 
       return response.d.results.map(this.processIdea);
     } catch (error) {
-      logError('Failed to fetch ideas', error);
+      logError("Failed to fetch ideas", error);
       throw error;
     }
   }
 
   // Upload attachments for an idea
-  private async uploadAttachments(ideaId: number, attachments: File[]): Promise<void> {
+  private async uploadAttachments(
+    ideaId: number,
+    attachments: File[],
+  ): Promise<void> {
     try {
       const uploadPromises = attachments.map(async (file) => {
         const endpoint = `/_api/web/lists/getbytitle('${LISTS.ideas}')/items(${ideaId})/AttachmentFiles/add(FileName='${file.name}')`;
 
         // For SharePoint 2016, we need to use FormData for file uploads
         const formData = new FormData();
-        formData.append('file', file);
+        formData.append("file", file);
 
         await sharePointApi.post(endpoint, formData, {
           headers: {
-            'Content-Type': undefined, // Let browser set content-type for FormData
+            "Content-Type": undefined, // Let browser set content-type for FormData
           },
         });
 
-        logInfo('Attachment uploaded successfully', { ideaId, fileName: file.name });
+        logInfo("Attachment uploaded successfully", {
+          ideaId,
+          fileName: file.name,
+        });
       });
 
       await Promise.all(uploadPromises);
     } catch (error) {
-      logError('Failed to upload attachments', error);
+      logError("Failed to upload attachments", error);
       throw error;
     }
   }
@@ -86,21 +92,42 @@ export class IdeaApiService {
     }
   }
 
+  // Get single task by ID
+  async getTaskById(id: number): Promise<ProcessedTask | null> {
+    try {
+      const endpoint = `/_api/web/lists/getbytitle('${LISTS.tasks}')/items(${id})?$select=${TASK_SELECT}&$expand=AssignedTo,IdeaId`;
+
+      logInfo(`Fetching task ${id} with endpoint`, endpoint);
+
+      const response = await sharePointApi.get<any>(endpoint);
+
+      logInfo(`Fetched task ${id} data`, response.d);
+
+      return this.processTask(response.d);
+    } catch (error) {
+      logError(`Failed to fetch task ${id}`, { error, id, endpoint: `/_api/web/lists/getbytitle('${LISTS.tasks}')/items(${id})` });
+      throw error;
+    }
+  }
+
   // Create new idea
-  async createIdea(ideaData: {
-    title: string;
-    description: string;
-    category: string;
-    priority: string;
-    status: string;
-    attachments?: File[];
-  }, user?: { id: number; name: string }): Promise<ProcessedIdea> {
+  async createIdea(
+    ideaData: {
+      title: string;
+      description: string;
+      category: string;
+      priority: string;
+      status: string;
+      attachments?: File[];
+    },
+    user?: { id: number; name: string },
+  ): Promise<ProcessedIdea> {
     try {
       const endpoint = `/_api/web/lists/getbytitle('${LISTS.ideas}')/items`;
 
       const data = {
         __metadata: {
-          type: 'SP.Data.Innovative_x005f_ideasListItem',
+          type: "SP.Data.Innovative_x005f_ideasListItem",
         },
         Title: ideaData.title,
         Description: ideaData.description,
@@ -112,7 +139,7 @@ export class IdeaApiService {
       const response = await sharePointApi.post<any>(endpoint, data);
       const newIdeaId = response.d.ID;
 
-      logInfo('Idea created successfully', { id: newIdeaId });
+      logInfo("Idea created successfully", { id: newIdeaId });
 
       // Handle attachments if provided
       if (ideaData.attachments && ideaData.attachments.length > 0) {
@@ -123,28 +150,29 @@ export class IdeaApiService {
       try {
         await this.createIdeaTrailEvent({
           ideaId: newIdeaId,
-          eventType: "submitted",
-          title: "Idea Submitted",
+          eventType: 'submitted',
+          title: 'Idea Submitted',
           description: `Idea "${ideaData.title}" was submitted for review`,
-          actor: user?.name || "Unknown User",
+          actor: user?.name || 'Unknown User',
           actorId: user?.id || 0,
           previousStatus: undefined,
-          newStatus: "Pending",
+          newStatus: 'Pending',
           metadata: {
             category: ideaData.category,
             priority: ideaData.priority,
-            hasAttachments: ideaData.attachments && ideaData.attachments.length > 0
-          }
+            hasAttachments:
+              ideaData.attachments && ideaData.attachments.length > 0,
+          },
         });
       } catch (trailError) {
-        logError('Failed to create trail event for idea creation', trailError);
+        logError("Failed to create trail event for idea creation", trailError);
         // Don't fail the idea creation if trail event fails
       }
 
       // Fetch and return the complete idea
       return (await this.getIdeaById(newIdeaId)) as ProcessedIdea;
     } catch (error) {
-      logError('Failed to create idea', error);
+      logError("Failed to create idea", error);
       throw error;
     }
   }
@@ -156,7 +184,7 @@ export class IdeaApiService {
 
       const data: any = {
         __metadata: {
-          type: 'SP.Data.Innovative_x005f_ideasListItem',
+          type: "SP.Data.Innovative_x005f_ideasListItem",
         },
       };
       if (updates.title) data.Title = updates.title;
@@ -191,61 +219,131 @@ export class IdeaApiService {
     }
   }
 
+  // Get tasks assigned to a user
+  async getTasksForUser(userId?: number): Promise<ProcessedTask[]> {
+    try {
+      let endpoint = `/_api/web/lists/getbytitle('${LISTS.tasks}')/items?$select=${TASK_SELECT}&$expand=AssignedTo,IdeaId&$orderby=Created desc&$top=500`;
+
+      // If userId is provided, filter by assigned user
+      if (userId) {
+        endpoint += `&$filter=AssignedTo/Id eq ${userId}`;
+      }
+
+      logInfo(`Fetching tasks for user ${userId} with endpoint: ${endpoint}`);
+
+      const response = await sharePointApi.get<any>(endpoint);
+
+      logInfo(`Received ${response.d.results.length} tasks for user ${userId}`, {
+        totalResults: response.d.results.length,
+        sampleTask: response.d.results[0] ? {
+          id: response.d.results[0].ID,
+          title: response.d.results[0].Title,
+          assignedTo: response.d.results[0].AssignedTo?.results?.map((u: any) => ({ id: u.Id, name: u.Title })) || []
+        } : null
+      });
+
+      return response.d.results.map(this.processTask);
+    } catch (error) {
+      logError(`Failed to fetch tasks for user ${userId}`, error);
+      throw error;
+    }
+  }
+
   // Create task for idea
   async createTaskForIdea(
     ideaId: number,
-    task: Omit<Task, 'id' | 'ideaId'>,
-    user?: { id: number; name: string }
+    task: Omit<Task, "id" | "ideaId">,
+    user?: { id: number; name: string },
   ): Promise<ProcessedTask> {
     try {
       const endpoint = `/_api/web/lists/getbytitle('${LISTS.tasks}')/items`;
 
       const data = {
         __metadata: {
-          type: 'SP.Data.Innovative_x005f_idea_x005f_tasksListItem',
+          type: "SP.Data.ino_x005f_ideas_x005f_tasksListItem",
         },
         Title: task.title,
         Body: task.description,
         Status: task.status,
-        Priority: task.priority || 'Normal',
-        PercentComplete: (task.percentComplete || 0) / 100, // SharePoint expects 0-1
+        Priority: task.priority || "Normal",
+        PercentComplete: (task.percentComplete || 0) / 100, // Convert percentage to decimal for SharePoint
         DueDate: task.dueDate,
         StartDate: task.startDate,
-        AssignedToId: task.assignedTo?.map((userId) => parseInt(userId)),
-        IdeaId: ideaId, // This would need a lookup field
+        AssignedToId: task.assignedTo?.length ? { results: task.assignedTo.map((userId) => parseInt(userId)) } : null,
+        IdeaIdId: ideaId,
       };
+
+      logInfo("Creating task with data", { endpoint, data });
 
       const response = await sharePointApi.post<any>(endpoint, data);
 
-      logInfo('Task created successfully', { id: response.d.ID, ideaId });
+      logInfo("Task created successfully", { id: response.d.ID, ideaId });
 
       // Create trail event for task creation
       try {
         await this.createIdeaTrailEvent({
-          ideaId: ideaId,
-          eventType: "task_created",
-          title: "Task Created",
+          ideaId,
+          taskId: response.d.ID,
+          eventType: 'task_created',
+          title: 'Task Created',
           description: `Task "${task.title}" was created for the idea`,
-          actor: user?.name || "Unknown User",
+          actor: user?.name || 'Unknown User',
           actorId: user?.id || 0,
           previousStatus: undefined,
           newStatus: undefined,
           metadata: {
-            taskId: response.d.ID,
             taskTitle: task.title,
             assignedTo: task.assignedTo,
             priority: task.priority,
-            dueDate: task.dueDate
-          }
+            dueDate: task.dueDate,
+          },
         });
       } catch (trailError) {
-        logError('Failed to create trail event for task creation', trailError);
+        logError("Failed to create trail event for task creation", trailError);
         // Don't fail the task creation if trail event fails
       }
 
       return this.processTask(response.d);
     } catch (error) {
-      logError('Failed to create task', error);
+      logError("Failed to create task", error);
+      throw error;
+    }
+  }
+
+  // Update task status and progress
+  async updateTask(taskId: number, updates: Partial<Pick<Task, 'status' | 'percentComplete'>>): Promise<ProcessedTask> {
+    try {
+      const endpoint = `/_api/web/lists/getbytitle('${LISTS.tasks}')/items(${taskId})`;
+
+      const data: any = {
+        __metadata: {
+          type: "SP.Data.Ino_x005f_ideas_x005f_tasksListItem",
+        },
+      };
+
+      // Only allow updating status and percentComplete for contributors
+      if (updates.status !== undefined) {
+        data.Status = updates.status;
+      }
+      if (updates.percentComplete !== undefined) {
+        // Convert percentage (0-100) back to decimal (0.0-1.0) for SharePoint
+        data.PercentComplete = updates.percentComplete / 100;
+      }
+
+      logInfo(`Updating task ${taskId} with data`, { endpoint, data, updates });
+
+      // Use MERGE method without ETag to avoid concurrency issues
+      await sharePointApi.put<any>(endpoint, data);
+
+      logInfo(`Task ${taskId} updated successfully in SharePoint`);
+
+      // Fetch updated task
+      const updatedTask = await this.getTaskById(taskId);
+      logInfo(`Fetched updated task ${taskId}`, updatedTask);
+
+      return updatedTask as ProcessedTask;
+    } catch (error) {
+      logError(`Failed to update task ${taskId}`, { error, updates, taskId });
       throw error;
     }
   }
@@ -267,14 +365,14 @@ export class IdeaApiService {
   // Create discussion for task
   async createDiscussionForTask(
     taskId: number,
-    discussion: Omit<Discussion, 'id' | 'taskId'>,
+    discussion: Omit<Discussion, "id" | "taskId">,
   ): Promise<ProcessedDiscussion> {
     try {
       const endpoint = `/_api/web/lists/getbytitle('${LISTS.discussions}')/items`;
 
       const data = {
         __metadata: {
-          type: 'SP.Data.Innovative_x005f_idea_x005f_discussionsListItem',
+          type: "SP.Data.Innovative_x005f_idea_x005f_discussionsListItem",
         },
         Title: discussion.title,
         Body: discussion.body,
@@ -283,10 +381,10 @@ export class IdeaApiService {
 
       const response = await sharePointApi.post<any>(endpoint, data);
 
-      logInfo('Discussion created successfully', { id: response.d.ID, taskId });
+      logInfo("Discussion created successfully", { id: response.d.ID, taskId });
       return this.processDiscussion(response.d);
     } catch (error) {
-      logError('Failed to create discussion', error);
+      logError("Failed to create discussion", error);
       throw error;
     }
   }
@@ -298,22 +396,22 @@ export class IdeaApiService {
 
     // Validate dates
     if (isNaN(createdDate.getTime())) {
-      logError('Invalid created date for idea', {
+      logError("Invalid created date for idea", {
         rawCreated: raw.Created,
         ideaId: raw.ID,
       });
     }
     if (isNaN(modifiedDate.getTime())) {
-      logError('Invalid modified date for idea', {
+      logError("Invalid modified date for idea", {
         rawModified: raw.Modified,
         ideaId: raw.ID,
       });
     }
 
     // Extract category and priority from SharePoint fields first
-    let category = raw.Category || 'Other';
-    let priority = raw.Priority || 'Medium';
-    let description = raw.Description || '';
+    let category = raw.Category || "Other";
+    let priority = raw.Priority || "Medium";
+    let description = raw.Description || "";
 
     // For backward compatibility: if SharePoint fields are null/empty,
     // try to extract from description metadata
@@ -321,18 +419,18 @@ export class IdeaApiService {
       (!raw.Category || raw.Category === null) &&
       (!raw.Priority || raw.Priority === null)
     ) {
-      const descLines = description.split('\n');
-      const metadataStart = descLines.findIndex((line) => line === '---');
+      const descLines = description.split("\n");
+      const metadataStart = descLines.findIndex((line) => line === "---");
       if (metadataStart !== -1) {
         // Extract metadata and clean description
         const metadata = descLines.slice(metadataStart + 1);
-        description = descLines.slice(0, metadataStart).join('\n');
+        description = descLines.slice(0, metadataStart).join("\n");
 
         metadata.forEach((line: string) => {
-          if (line.startsWith('Category: ')) {
-            category = line.replace('Category: ', '');
-          } else if (line.startsWith('Priority: ')) {
-            priority = line.replace('Priority: ', '');
+          if (line.startsWith("Category: ")) {
+            category = line.replace("Category: ", "");
+          } else if (line.startsWith("Priority: ")) {
+            priority = line.replace("Priority: ", "");
           }
         });
       }
@@ -359,10 +457,11 @@ export class IdeaApiService {
             email: raw.ApprovedBy.EMail,
           }
         : undefined,
-      attachments: raw.AttachmentFiles?.results?.map((file: any) => ({
-        fileName: file.FileName,
-        serverRelativeUrl: file.ServerRelativeUrl,
-      })) || [],
+      attachments:
+        raw.AttachmentFiles?.results?.map((file: any) => ({
+          fileName: file.FileName,
+          serverRelativeUrl: file.ServerRelativeUrl,
+        })) || [],
     };
   }
 
@@ -373,13 +472,13 @@ export class IdeaApiService {
 
     // Validate dates
     if (isNaN(createdDate.getTime())) {
-      logError('Invalid created date for task', {
+      logError("Invalid created date for task", {
         rawCreated: raw.Created,
         taskId: raw.ID,
       });
     }
     if (isNaN(modifiedDate.getTime())) {
-      logError('Invalid modified date for task', {
+      logError("Invalid modified date for task", {
         rawModified: raw.Modified,
         taskId: raw.ID,
       });
@@ -399,11 +498,11 @@ export class IdeaApiService {
           id: user.Id,
           name: user.Title,
           email: user.EMail,
-          source: 'AD', // Assuming AD users
+          source: "AD", // Assuming AD users
         })) || [],
       created: createdDate,
       modified: modifiedDate,
-      ideaId: raw.IdeaId, // Would need lookup field
+      ideaId: raw.IdeaId?.Id || 0, // Get the ID from the expanded lookup field
     };
   }
 
@@ -414,13 +513,13 @@ export class IdeaApiService {
 
     // Validate dates
     if (isNaN(createdDate.getTime())) {
-      logError('Invalid created date for discussion', {
+      logError("Invalid created date for discussion", {
         rawCreated: raw.Created,
         discussionId: raw.ID,
       });
     }
     if (isNaN(modifiedDate.getTime())) {
-      logError('Invalid modified date for discussion', {
+      logError("Invalid modified date for discussion", {
         rawModified: raw.Modified,
         discussionId: raw.ID,
       });
@@ -444,7 +543,7 @@ export class IdeaApiService {
   // Idea Trail Events API
   async getIdeaTrailEvents(ideaId?: number): Promise<IdeaTrailEvent[]> {
     try {
-      let endpoint = `/_api/web/lists/getbytitle('${LISTS.ideaTrail}')/items?$select=${IDEA_TRAIL_SELECT}&$expand=Actor,Idea&$orderby=Created desc&$top=1000`;
+      let endpoint = `/_api/web/lists/getbytitle('${LISTS.ideaTrail}')/items?$select=${IDEA_TRAIL_SELECT}&$expand=Actor,Idea,Task,Discussion&$orderby=Created desc&$top=1000`;
 
       if (ideaId) {
         endpoint += `&$filter=Idea/Id eq ${ideaId}`;
@@ -453,15 +552,22 @@ export class IdeaApiService {
       const response = await sharePointApi.get<any>(endpoint);
       return response.d.results.map(this.processIdeaTrailEvent);
     } catch (error) {
-      logError('Failed to fetch idea trail events', error);
+      logError("Failed to fetch idea trail events", error);
       throw error;
     }
   }
 
-  async createIdeaTrailEvent(event: Omit<IdeaTrailEvent, 'id' | 'timestamp'>): Promise<IdeaTrailEvent> {
+  async createIdeaTrailEvent(
+    event: Omit<IdeaTrailEvent, "id" | "timestamp">,
+  ): Promise<IdeaTrailEvent> {
     try {
       const itemData = {
+        __metadata: {
+          type: "SP.Data.Innovative_x005f_idea_x005f_trailListItem",
+        },
         IdeaId: event.ideaId, // Lookup field - provide the ID of the related item
+        TaskId: event.taskId, // Lookup field for task-related events
+        DiscussionId: event.discussionId, // Lookup field for discussion-related events
         EventType: event.eventType,
         Title: event.title,
         Description: event.description,
@@ -476,17 +582,17 @@ export class IdeaApiService {
       const response = await sharePointApi.post<any>(endpoint, itemData);
 
       // Fetch the created item to return complete data
-      const createdEvent = await this.getIdeaTrailEvents().then(events =>
-        events.find(e => e.id === response.d.ID)
+      const createdEvent = await this.getIdeaTrailEvents().then((events) =>
+        events.find((e) => e.id === response.d.ID),
       );
 
       if (!createdEvent) {
-        throw new Error('Failed to retrieve created trail event');
+        throw new Error("Failed to retrieve created trail event");
       }
 
       return createdEvent;
     } catch (error) {
-      logError('Failed to create idea trail event', error);
+      logError("Failed to create idea trail event", error);
       throw error;
     }
   }
@@ -498,16 +604,18 @@ export class IdeaApiService {
     try {
       metadata = raw.Metadata ? JSON.parse(raw.Metadata) : {};
     } catch (e) {
-      logError('Failed to parse trail event metadata', e);
+      logError("Failed to parse trail event metadata", e);
     }
 
     return {
       id: raw.ID,
       ideaId: raw.Idea?.Id || 0,
+      taskId: raw.Task?.Id || undefined,
+      discussionId: raw.Discussion?.Id || undefined,
       eventType: raw.EventType,
       title: raw.Title,
       description: raw.Description,
-      actor: raw.Actor?.Title || 'Unknown',
+      actor: raw.Actor?.Title || "Unknown",
       actorId: raw.Actor?.Id || 0,
       timestamp: createdDate,
       previousStatus: raw.PreviousStatus,

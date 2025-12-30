@@ -1,16 +1,22 @@
-import React from 'react';
-import styles from './AssigneeCharts.module.css';
+import React from "react";
+import styles from "./AssigneeCharts.module.css";
 
 const AssigneeCharts = ({ tasks }) => {
   // Calculate assignee workload statistics
   const assigneeStats = tasks.reduce((acc, task) => {
-    let assigneeNames = ['Unassigned'];
+    let assigneeNames = ["Unassigned"];
 
-    if (task.AssignedTo && Array.isArray(task.AssignedTo) && task.AssignedTo.length > 0) {
-      assigneeNames = task.AssignedTo.map(assignee => assignee.Title || 'Unknown');
+    if (
+      task.AssignedTo &&
+      Array.isArray(task.AssignedTo) &&
+      task.AssignedTo.length > 0
+    ) {
+      assigneeNames = task.AssignedTo.map(
+        (assignee) => assignee.Title || "Unknown",
+      );
     }
 
-    assigneeNames.forEach(name => {
+    assigneeNames.forEach((name) => {
       acc[name] = (acc[name] || 0) + 1;
     });
 
@@ -20,25 +26,38 @@ const AssigneeCharts = ({ tasks }) => {
   const assigneeEntries = Object.entries(assigneeStats);
   const totalAssignees = assigneeEntries.length;
   const totalTasks = tasks.length;
-  const averageTasksPerAssignee = totalAssignees > 0 ? (totalTasks / totalAssignees).toFixed(1) : 0;
+  const averageTasksPerAssignee =
+    totalAssignees > 0 ? (totalTasks / totalAssignees).toFixed(1) : 0;
 
   // Find most loaded assignee
-  const mostLoaded = assigneeEntries.reduce((max, [name, count]) =>
-    count > max.count ? { name, count } : max,
-    { name: 'None', count: 0 }
+  const mostLoaded = assigneeEntries.reduce(
+    (max, [name, count]) => (count > max.count ? { name, count } : max),
+    { name: "None", count: 0 },
   );
 
   // Calculate workload distribution
-  const workloadDistribution = assigneeEntries.reduce((acc, [, count]) => {
-    if (count >= 5) acc.high++;
-    else if (count >= 2) acc.medium++;
-    else acc.low++;
-    return acc;
-  }, { high: 0, medium: 0, low: 0 });
+  const workloadDistribution = assigneeEntries.reduce(
+    (acc, [, count]) => {
+      if (count >= 5) acc.high++;
+      else if (count >= 2) acc.medium++;
+      else acc.low++;
+      return acc;
+    },
+    { high: 0, medium: 0, low: 0 },
+  );
 
-  const highWorkloadPercentage = totalAssignees > 0 ? ((workloadDistribution.high / totalAssignees) * 100).toFixed(0) : 0;
-  const mediumWorkloadPercentage = totalAssignees > 0 ? ((workloadDistribution.medium / totalAssignees) * 100).toFixed(0) : 0;
-  const lowWorkloadPercentage = totalAssignees > 0 ? ((workloadDistribution.low / totalAssignees) * 100).toFixed(0) : 0;
+  const highWorkloadPercentage =
+    totalAssignees > 0
+      ? ((workloadDistribution.high / totalAssignees) * 100).toFixed(0)
+      : 0;
+  const mediumWorkloadPercentage =
+    totalAssignees > 0
+      ? ((workloadDistribution.medium / totalAssignees) * 100).toFixed(0)
+      : 0;
+  const lowWorkloadPercentage =
+    totalAssignees > 0
+      ? ((workloadDistribution.low / totalAssignees) * 100).toFixed(0)
+      : 0;
 
   return (
     <div className={styles.assigneeOverview}>
@@ -81,11 +100,13 @@ const AssigneeCharts = ({ tasks }) => {
                 className={styles.distributionFill}
                 style={{
                   width: `${highWorkloadPercentage}%`,
-                  backgroundColor: '#dc3545'
+                  backgroundColor: "#dc3545",
                 }}
               ></div>
             </div>
-            <span className={styles.distributionValue}>{workloadDistribution.high} ({highWorkloadPercentage}%)</span>
+            <span className={styles.distributionValue}>
+              {workloadDistribution.high} ({highWorkloadPercentage}%)
+            </span>
           </div>
 
           <div className={styles.distributionItem}>
@@ -98,11 +119,13 @@ const AssigneeCharts = ({ tasks }) => {
                 className={styles.distributionFill}
                 style={{
                   width: `${mediumWorkloadPercentage}%`,
-                  backgroundColor: '#ffc107'
+                  backgroundColor: "#ffc107",
                 }}
               ></div>
             </div>
-            <span className={styles.distributionValue}>{workloadDistribution.medium} ({mediumWorkloadPercentage}%)</span>
+            <span className={styles.distributionValue}>
+              {workloadDistribution.medium} ({mediumWorkloadPercentage}%)
+            </span>
           </div>
 
           <div className={styles.distributionItem}>
@@ -115,11 +138,13 @@ const AssigneeCharts = ({ tasks }) => {
                 className={styles.distributionFill}
                 style={{
                   width: `${lowWorkloadPercentage}%`,
-                  backgroundColor: '#28a745'
+                  backgroundColor: "#28a745",
                 }}
               ></div>
             </div>
-            <span className={styles.distributionValue}>{workloadDistribution.low} ({lowWorkloadPercentage}%)</span>
+            <span className={styles.distributionValue}>
+              {workloadDistribution.low} ({lowWorkloadPercentage}%)
+            </span>
           </div>
         </div>
       </div>

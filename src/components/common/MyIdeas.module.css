@@ -554,3 +554,82 @@
     padding: 1rem;
   }
 }
+
+/* Empty State */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  padding: 2rem;
+}
+
+.emptyIcon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.6;
+}
+
+.emptyTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary, #1f2937);
+  margin-bottom: 0.5rem;
+}
+
+.emptyMessage {
+  color: var(--text-secondary, #6b7280);
+  margin-bottom: 1.5rem;
+  max-width: 300px;
+}
+
+/* Edit Actions */
+.editActions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  padding: 1rem 0;
+}
+
+.actionButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+  border: 1px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.actionButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.saveButton {
+  background-color: #059669;
+  color: white;
+  border-color: #059669;
+}
+
+.saveButton:hover {
+  background-color: #047857;
+  border-color: #047857;
+}
+
+.cancelButton {
+  background-color: #dc2626;
+  color: white;
+  border-color: #dc2626;
+}
+
+.cancelButton:hover {
+  background-color: #b91c1c;
+  border-color: #b91c1c;
+}

@@ -1,6 +1,8 @@
 // SharePoint Context Initialization
 // src/utils/sharePointInit.ts
 
+import { sharePointApi } from './secureApi';
+
 // Initialize SharePoint context for development
 export const initializeSharePointContext = () => {
   // Only set mock context if not already provided by SharePoint
@@ -24,6 +26,16 @@ export const initializeSharePointContext = () => {
   } else {
     console.log(
       "[Innovative Ideas] Production mode: Using real SharePoint context",
+    );
+  }
+
+  // Update API client with correct base URL
+  const spContext = (window as any)._spPageContextInfo;
+  if (spContext && spContext.webAbsoluteUrl) {
+    sharePointApi.updateConfig({ baseUrl: spContext.webAbsoluteUrl });
+    console.log(
+      "[Innovative Ideas] Updated API client base URL:",
+      spContext.webAbsoluteUrl,
     );
   }
 };

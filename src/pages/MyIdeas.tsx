@@ -1,17 +1,18 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
-import { useIdeaData } from "../contexts/DataContext";
+import React, { useEffect, useMemo, useState } from 'react';
+import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import { useIdeaData , ProcessedIdea } from "../contexts/DataContext";
 import { useUser } from "../contexts/UserContext";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import StatusBar from "../components/common/StatusBar";
-import { ProcessedIdea } from "../contexts/DataContext";
-import IdeaTrailModal from "./IdeaTrailModal";
-import styles from "../components/common/MyIdeas.module.css";
+
+import IdeaTrailModal from './IdeaTrailModal';
+import styles from '../components/common/MyIdeas.module.css';
 
 const MyIdeas: React.FC = () => {
   const navigate = useNavigate();
-  const { data, loading, error, loadIdeas, loadIdeaTrailEvents } = useIdeaData();
+  const { data, loading, error, loadIdeas, loadIdeaTrailEvents } =
+    useIdeaData();
   const { user, isAdmin, isApprover, isContributor } = useUser();
   const [selectedIdea, setSelectedIdea] = useState<ProcessedIdea | null>(null);
   const [isTrailModalOpen, setIsTrailModalOpen] = useState(false);
@@ -25,7 +26,7 @@ const MyIdeas: React.FC = () => {
   // Filter to show only the current user's ideas
   const myIdeas = useMemo(() => {
     if (!user?.user?.Title) return [];
-    return data.ideas.filter(idea => idea.createdBy === user.user.Title);
+    return data.ideas.filter((idea) => idea.createdBy === user.user.Title);
   }, [data.ideas, user]);
 
   // Set first idea as selected when ideas load
@@ -39,16 +40,16 @@ const MyIdeas: React.FC = () => {
   const stats = useMemo(() => {
     const totalIdeas = myIdeas.length;
     const pendingIdeas = myIdeas.filter(
-      (idea) => idea.status === "Pending Approval",
+      (idea) => idea.status === 'Pending Approval',
     ).length;
     const approvedIdeas = myIdeas.filter(
-      (idea) => idea.status === "Approved",
+      (idea) => idea.status === 'Approved',
     ).length;
     const inProgressIdeas = myIdeas.filter(
-      (idea) => idea.status === "In Progress",
+      (idea) => idea.status === 'In Progress',
     ).length;
     const rejectedIdeas = myIdeas.filter(
-      (idea) => idea.status === "Rejected",
+      (idea) => idea.status === 'Rejected',
     ).length;
 
     return {
@@ -159,7 +160,7 @@ const MyIdeas: React.FC = () => {
           <div className={styles.panelHeader}>
             <h2 className={styles.panelTitle}>Your Ideas</h2>
             <button
-              onClick={() => navigate("/idea/new")}
+              onClick={() => navigate('/idea/new')}
               className={styles.submitButton}
             >
               + New Idea
@@ -171,10 +172,11 @@ const MyIdeas: React.FC = () => {
               <div className={styles.emptyIcon}>💡</div>
               <h3 className={styles.emptyTitle}>No ideas yet</h3>
               <p className={styles.emptyMessage}>
-                You haven't submitted any ideas yet. Start by submitting your first idea!
+                You haven't submitted any ideas yet. Start by submitting your
+                first idea!
               </p>
               <button
-                onClick={() => navigate("/idea/new")}
+                onClick={() => navigate('/idea/new')}
                 className={styles.submitButton}
               >
                 Submit Your First Idea
@@ -190,7 +192,9 @@ const MyIdeas: React.FC = () => {
                   transition={{ delay: 0.05 * index }}
                   onClick={() => setSelectedIdea(idea)}
                   className={`${styles.compactCard} ${
-                    selectedIdea?.id === idea.id ? styles.compactCardSelected : ''
+                    selectedIdea?.id === idea.id
+                      ? styles.compactCardSelected
+                      : ""
                   }`}
                 >
                   <div className={styles.compactCardHeader}>
@@ -198,13 +202,13 @@ const MyIdeas: React.FC = () => {
                     <div className={styles.compactStatusBadge}>
                       <span
                         className={`${styles.status} ${
-                          idea.status === "Approved"
+                          idea.status === 'Approved'
                             ? styles.statusApproved
-                            : idea.status === "Pending Approval"
+                            : idea.status === 'Pending Approval'
                               ? styles.statusPending
-                              : idea.status === "Rejected"
+                              : idea.status === 'Rejected'
                                 ? styles.statusRejected
-                                : idea.status === "In Progress"
+                                : idea.status === 'In Progress'
                                   ? styles.statusInProgress
                                   : styles.statusDefault
                         }`}
@@ -221,14 +225,16 @@ const MyIdeas: React.FC = () => {
                   </p>
 
                   <div className={styles.compactCardMeta}>
-                    <span className={styles.compactCategory}>{idea.category}</span>
+                    <span className={styles.compactCategory}>
+                      {idea.category}
+                    </span>
                     <span
                       className={`${styles.compactPriority} ${
-                        idea.priority === "Critical"
+                        idea.priority === 'Critical'
                           ? styles.priorityCritical
-                          : idea.priority === "High"
+                          : idea.priority === 'High'
                             ? styles.priorityHigh
-                            : idea.priority === "Medium"
+                            : idea.priority === 'Medium'
                               ? styles.priorityMedium
                               : styles.priorityLow
                       }`}
@@ -240,7 +246,7 @@ const MyIdeas: React.FC = () => {
                   <div className={styles.compactCardDate}>
                     {idea.created && !isNaN(idea.created.getTime())
                       ? idea.created.toLocaleDateString()
-                      : 'Date unavailable'}
+                      : "Date unavailable"}
                   </div>
                 </motion.div>
               ))}
@@ -258,13 +264,13 @@ const MyIdeas: React.FC = () => {
                   <div className={styles.detailStatusBadges}>
                     <span
                       className={`${styles.status} ${
-                        selectedIdea.status === "Approved"
+                        selectedIdea.status === 'Approved'
                           ? styles.statusApproved
-                          : selectedIdea.status === "Pending Approval"
+                          : selectedIdea.status === 'Pending Approval'
                             ? styles.statusPending
-                            : selectedIdea.status === "Rejected"
+                            : selectedIdea.status === 'Rejected'
                               ? styles.statusRejected
-                              : selectedIdea.status === "In Progress"
+                              : selectedIdea.status === 'In Progress'
                                 ? styles.statusInProgress
                                 : styles.statusDefault
                       }`}
@@ -273,11 +279,11 @@ const MyIdeas: React.FC = () => {
                     </span>
                     <span
                       className={`${styles.priority} ${
-                        selectedIdea.priority === "Critical"
+                        selectedIdea.priority === 'Critical'
                           ? styles.priorityCritical
-                          : selectedIdea.priority === "High"
+                          : selectedIdea.priority === 'High'
                             ? styles.priorityHigh
-                            : selectedIdea.priority === "Medium"
+                            : selectedIdea.priority === 'Medium'
                               ? styles.priorityMedium
                               : styles.priorityLow
                       }`}
@@ -291,7 +297,9 @@ const MyIdeas: React.FC = () => {
               <div className={styles.detailContent}>
                 <div className={styles.detailSection}>
                   <h3 className={styles.detailSectionTitle}>Description</h3>
-                  <p className={styles.detailDescription}>{selectedIdea.description}</p>
+                  <p className={styles.detailDescription}>
+                    {selectedIdea.description}
+                  </p>
                 </div>
 
                 <div className={styles.detailSection}>
@@ -299,52 +307,70 @@ const MyIdeas: React.FC = () => {
                   <div className={styles.detailGrid}>
                     <div className={styles.detailItem}>
                       <span className={styles.detailLabel}>Category:</span>
-                      <span className={styles.detailValue}>{selectedIdea.category}</span>
+                      <span className={styles.detailValue}>
+                        {selectedIdea.category}
+                      </span>
                     </div>
                     <div className={styles.detailItem}>
                       <span className={styles.detailLabel}>Priority:</span>
-                      <span className={styles.detailValue}>{selectedIdea.priority}</span>
+                      <span className={styles.detailValue}>
+                        {selectedIdea.priority}
+                      </span>
                     </div>
                     <div className={styles.detailItem}>
                       <span className={styles.detailLabel}>Created:</span>
                       <span className={styles.detailValue}>
-                        {selectedIdea.created && !isNaN(selectedIdea.created.getTime())
+                        {selectedIdea.created &&
+                        !isNaN(selectedIdea.created.getTime())
                           ? selectedIdea.created.toLocaleString()
-                          : 'Date unavailable'}
+                          : "Date unavailable"}
                       </span>
                     </div>
                     <div className={styles.detailItem}>
                       <span className={styles.detailLabel}>Last Modified:</span>
                       <span className={styles.detailValue}>
-                        {selectedIdea.modified && !isNaN(selectedIdea.modified.getTime())
+                        {selectedIdea.modified &&
+                        !isNaN(selectedIdea.modified.getTime())
                           ? selectedIdea.modified.toLocaleString()
-                          : 'Date unavailable'}
+                          : "Date unavailable"}
                       </span>
                     </div>
                   </div>
                 </div>
 
                 <div className={styles.detailSection}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      marginBottom: "1rem",
+                    }}
+                  >
                     <h3 className={styles.detailSectionTitle}>Idea Trail</h3>
                     <button
                       onClick={() => setIsTrailModalOpen(true)}
                       style={{
-                        padding: '0.5rem 1rem',
-                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '8px',
-                        cursor: 'pointer',
-                        fontSize: '0.9rem',
-                        fontWeight: '500',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        transition: 'all 0.3s ease'
+                        padding: "0.5rem 1rem",
+                        background:
+                          "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "8px",
+                        cursor: "pointer",
+                        fontSize: "0.9rem",
+                        fontWeight: "500",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.5rem",
+                        transition: "all 0.3s ease",
                       }}
-                      onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-                      onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                      onMouseOver={(e) =>
+                        (e.currentTarget.style.transform = "scale(1.05)")
+                      }
+                      onMouseOut={(e) =>
+                        (e.currentTarget.style.transform = "scale(1)")
+                      }
                     >
                       <span>👁️</span>
                       View Full Trail
@@ -359,32 +385,37 @@ const MyIdeas: React.FC = () => {
                           Idea was submitted for review
                         </p>
                         <span className={styles.trailDate}>
-                          {selectedIdea.created && !isNaN(selectedIdea.created.getTime())
+                          {selectedIdea.created &&
+                          !isNaN(selectedIdea.created.getTime())
                             ? selectedIdea.created.toLocaleString()
-                            : 'Date unavailable'}
+                            : "Date unavailable"}
                         </span>
                       </div>
                     </div>
 
-                    {selectedIdea.status !== "Pending Approval" && (
+                    {selectedIdea.status !== 'Pending Approval' && (
                       <div className={styles.trailItem}>
                         <div className={styles.trailIcon}>
-                          {selectedIdea.status === "Approved" ? "✅" :
-                           selectedIdea.status === "Rejected" ? "❌" : "⚡"}
+                          {selectedIdea.status === 'Approved' ? '✅' :
+                           selectedIdea.status === "Rejected"
+                              ? "❌"
+                              : "⚡"}
                         </div>
                         <div className={styles.trailContent}>
                           <h4 className={styles.trailTitle}>
-                            {selectedIdea.status === "Approved" ? "Idea Approved" :
-                             selectedIdea.status === "Rejected" ? "Idea Rejected" :
-                             "Status Updated"}
+                            {selectedIdea.status === 'Approved' ? 'Idea Approved' :
+                             selectedIdea.status === "Rejected"
+                                ? "Idea Rejected"
+                                : "Status Updated"}
                           </h4>
                           <p className={styles.trailDescription}>
                             Idea status changed to "{selectedIdea.status}"
                           </p>
                           <span className={styles.trailDate}>
-                            {selectedIdea.modified && !isNaN(selectedIdea.modified.getTime())
+                            {selectedIdea.modified &&
+                            !isNaN(selectedIdea.modified.getTime())
                               ? selectedIdea.modified.toLocaleString()
-                              : 'Date unavailable'}
+                              : "Date unavailable"}
                           </span>
                         </div>
                       </div>

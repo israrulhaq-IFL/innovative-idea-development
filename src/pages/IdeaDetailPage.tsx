@@ -1,13 +1,12 @@
-import React, { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { useParams, useNavigate } from "react-router-dom";
-import { useIdeaData } from "../contexts/DataContext";
+import React, { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useIdeaData , ProcessedIdea } from "../contexts/DataContext";
 import { useUser } from "../contexts/UserContext";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import StatusBar from "../components/common/StatusBar";
-import { ProcessedIdea } from "../contexts/DataContext";
-import IdeaTrailModal from "./IdeaTrailModal";
-import styles from "../components/common/IdeaDetail.module.css";
+import IdeaTrailModal from './IdeaTrailModal';
+import styles from '../components/common/IdeaDetail.module.css';
 
 const IdeaDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -19,11 +18,11 @@ const IdeaDetailPage: React.FC = () => {
 
   useEffect(() => {
     if (ideas.length > 0 && id) {
-      const foundIdea = ideas.find(i => i.id.toString() === id);
+      const foundIdea = ideas.find((i) => i.id.toString() === id);
       if (foundIdea) {
         setIdea(foundIdea);
       } else {
-        navigate("/dashboard");
+        navigate('/dashboard');
       }
     }
   }, [ideas, id, navigate]);
@@ -58,7 +57,7 @@ const IdeaDetailPage: React.FC = () => {
           <div className="text-center py-8">
             <p className="text-gray-500">Idea not found.</p>
             <button
-              onClick={() => navigate("/dashboard")}
+              onClick={() => navigate('/dashboard')}
               className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
             >
               Back to Dashboard
@@ -78,7 +77,7 @@ const IdeaDetailPage: React.FC = () => {
     >
       <div className={styles.header}>
         <button
-          onClick={() => navigate("/dashboard")}
+          onClick={() => navigate('/dashboard')}
           className={styles.backButton}
         >
           ← Back to Dashboard
@@ -88,13 +87,13 @@ const IdeaDetailPage: React.FC = () => {
           <span className={styles.category}>{idea.category}</span>
           <span
             className={`${styles.status} ${
-              idea.status === "Approved"
+              idea.status === 'Approved'
                 ? styles.statusApproved
-                : idea.status === "Pending Approval"
+                : idea.status === 'Pending Approval'
                   ? styles.statusPending
-                  : idea.status === "Rejected"
+                  : idea.status === 'Rejected'
                     ? styles.statusRejected
-                    : idea.status === "In Progress"
+                    : idea.status === 'In Progress'
                       ? styles.statusInProgress
                       : styles.statusDefault
             }`}
@@ -103,11 +102,11 @@ const IdeaDetailPage: React.FC = () => {
           </span>
           <span
             className={`${styles.priority} ${
-              idea.priority === "Critical"
+              idea.priority === 'Critical'
                 ? styles.priorityCritical
-                : idea.priority === "High"
+                : idea.priority === 'High'
                   ? styles.priorityHigh
-                  : idea.priority === "Medium"
+                  : idea.priority === 'Medium'
                     ? styles.priorityMedium
                     : styles.priorityLow
             }`}
@@ -129,14 +128,16 @@ const IdeaDetailPage: React.FC = () => {
             <div className={styles.detailsGrid}>
               <div className={styles.detailItem}>
                 <span className={styles.detailLabel}>Submitted by:</span>
-                <span className={styles.detailValue}>{idea.createdBy.name}</span>
+                <span className={styles.detailValue}>
+                  {idea.createdBy.name}
+                </span>
               </div>
               <div className={styles.detailItem}>
                 <span className={styles.detailLabel}>Date submitted:</span>
                 <span className={styles.detailValue}>
                   {idea.created && !isNaN(idea.created.getTime())
                     ? idea.created.toLocaleDateString()
-                    : 'Date unavailable'}
+                    : "Date unavailable"}
                 </span>
               </div>
               <div className={styles.detailItem}>
@@ -152,26 +153,35 @@ const IdeaDetailPage: React.FC = () => {
         </div>
 
         <div className={styles.trailSection}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "1rem",
+            }}
+          >
             <h2 className={styles.sectionTitle}>Idea Trail</h2>
             <button
               onClick={() => setIsTrailModalOpen(true)}
               style={{
-                padding: '0.5rem 1rem',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                fontSize: '0.9rem',
-                fontWeight: '500',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                transition: 'all 0.3s ease'
+                padding: "0.5rem 1rem",
+                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                color: "white",
+                border: "none",
+                borderRadius: "8px",
+                cursor: "pointer",
+                fontSize: "0.9rem",
+                fontWeight: "500",
+                display: "flex",
+                alignItems: "center",
+                gap: "0.5rem",
+                transition: "all 0.3s ease",
               }}
-              onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-              onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+              onMouseOver={(e) =>
+                (e.currentTarget.style.transform = "scale(1.05)")
+              }
+              onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
             >
               <span>👁️</span>
               View Full Trail
@@ -185,29 +195,30 @@ const IdeaDetailPage: React.FC = () => {
               <div className={styles.trailContent}>
                 <h3 className={styles.trailTitle}>Idea Submitted</h3>
                 <p className={styles.trailDescription}>
-                  Idea was submitted by {idea.createdBy.name} on{' '}
+                  Idea was submitted by {idea.createdBy.name} on{" "}
                   {idea.created && !isNaN(idea.created.getTime())
                     ? idea.created.toLocaleDateString()
-                    : 'unknown date'}
+                    : "unknown date"}
                 </p>
                 <span className={styles.trailDate}>
                   {idea.created && !isNaN(idea.created.getTime())
                     ? idea.created.toLocaleString()
-                    : 'Date unavailable'}
+                    : "Date unavailable"}
                 </span>
               </div>
             </div>
 
-            {idea.status !== "Pending Approval" && (
+            {idea.status !== 'Pending Approval' && (
               <div className={styles.trailItem}>
                 <div className={styles.trailIcon}>
                   <span className={styles.iconReviewed}>👁️</span>
                 </div>
                 <div className={styles.trailContent}>
                   <h3 className={styles.trailTitle}>
-                    {idea.status === "Approved" ? "Idea Approved" :
-                     idea.status === "Rejected" ? "Idea Rejected" :
-                     "Status Updated"}
+                    {idea.status === 'Approved' ? 'Idea Approved' :
+                     idea.status === "Rejected"
+                        ? "Idea Rejected"
+                        : 'Status Updated'}
                   </h3>
                   <p className={styles.trailDescription}>
                     Idea status changed to "{idea.status}"
@@ -215,13 +226,13 @@ const IdeaDetailPage: React.FC = () => {
                   <span className={styles.trailDate}>
                     {idea.modified && !isNaN(idea.modified.getTime())
                       ? idea.modified.toLocaleString()
-                      : 'Date unavailable'}
+                      : "Date unavailable"}
                   </span>
                 </div>
               </div>
             )}
 
-            {idea.status === "In Progress" && (
+            {idea.status === 'In Progress' && (
               <div className={styles.trailItem}>
                 <div className={styles.trailIcon}>
                   <span className={styles.iconProgress}>⚡</span>
@@ -234,7 +245,7 @@ const IdeaDetailPage: React.FC = () => {
                   <span className={styles.trailDate}>
                     {idea.modified && !isNaN(idea.modified.getTime())
                       ? idea.modified.toLocaleString()
-                      : 'Date unavailable'}
+                      : "Date unavailable"}
                   </span>
                 </div>
               </div>

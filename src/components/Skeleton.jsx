@@ -1,17 +1,15 @@
-import styles from './Skeleton.module.css';
+import styles from "./Skeleton.module.css";
 
 const Skeleton = ({
-  width = '100%',
-  height = '1rem',
-  borderRadius = '4px',
-  className = '',
-  variant = 'text'
+  width = "100%",
+  height = "1rem",
+  borderRadius = "4px",
+  className = "",
+  variant = "text",
 }) => {
-  const skeletonClasses = [
-    styles.skeleton,
-    styles[variant],
-    className
-  ].filter(Boolean).join(' ');
+  const skeletonClasses = [styles.skeleton, styles[variant], className]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <div
@@ -19,27 +17,27 @@ const Skeleton = ({
       style={{
         width,
         height,
-        borderRadius
+        borderRadius,
       }}
     />
   );
 };
 
 // Predefined skeleton components for common UI patterns
-export const SkeletonText = ({ lines = 1, className = '' }) => (
+export const SkeletonText = ({ lines = 1, className = "" }) => (
   <div className={`${styles.skeletonText} ${className}`}>
     {Array.from({ length: lines }, (_, i) => (
       <Skeleton
         key={i}
         height="1rem"
-        width={i === lines - 1 ? '60%' : '100%'}
+        width={i === lines - 1 ? "60%" : "100%"}
         className={styles.textLine}
       />
     ))}
   </div>
 );
 
-export const SkeletonCard = ({ className = '' }) => (
+export const SkeletonCard = ({ className = "" }) => (
   <div className={`${styles.skeletonCard} ${className}`}>
     <Skeleton height="1.5rem" width="70%" className={styles.cardTitle} />
     <Skeleton height="8rem" className={styles.cardContent} />
@@ -50,7 +48,7 @@ export const SkeletonCard = ({ className = '' }) => (
   </div>
 );
 
-export const SkeletonChart = ({ className = '' }) => (
+export const SkeletonChart = ({ className = "" }) => (
   <div className={`${styles.skeletonChart} ${className}`}>
     <Skeleton height="2rem" width="60%" className={styles.chartTitle} />
     <Skeleton height="12rem" className={styles.chartArea} />
@@ -62,7 +60,7 @@ export const SkeletonChart = ({ className = '' }) => (
   </div>
 );
 
-export const SkeletonTable = ({ rows = 5, columns = 4, className = '' }) => (
+export const SkeletonTable = ({ rows = 5, columns = 4, className = "" }) => (
   <div className={`${styles.skeletonTable} ${className}`}>
     <div className={styles.tableHeader}>
       {Array.from({ length: columns }, (_, i) => (
@@ -72,11 +70,7 @@ export const SkeletonTable = ({ rows = 5, columns = 4, className = '' }) => (
     {Array.from({ length: rows }, (_, rowIndex) => (
       <div key={rowIndex} className={styles.tableRow}>
         {Array.from({ length: columns }, (_, colIndex) => (
-          <Skeleton
-            key={colIndex}
-            height="1rem"
-            width="100%"
-          />
+          <Skeleton key={colIndex} height="1rem" width="100%" />
         ))}
       </div>
     ))}

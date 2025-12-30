@@ -15,7 +15,7 @@ const ChartModal = ({ isOpen, onClose, title, children }) => {
   };
 
   React.useEffect(() => {
-    let previousOverflow = document.body.style.overflow;
+    const previousOverflow = document.body.style.overflow;
 
     if (isOpen) {
       document.addEventListener('keydown', handleKeyDown);
@@ -46,9 +46,7 @@ const ChartModal = ({ isOpen, onClose, title, children }) => {
             ✕
           </button>
         </div>
-        <div className={styles.modalBody}>
-          {children}
-        </div>
+        <div className={styles.modalBody}>{children}</div>
       </div>
     </div>
   );

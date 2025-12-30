@@ -23,7 +23,7 @@ ChartJS.register(
   Legend,
   ArcElement,
   PointElement,
-  LineElement
+  LineElement,
 );
 
 const PriorityCharts = ({
@@ -34,55 +34,59 @@ const PriorityCharts = ({
   showLegend = true,
   showTitle = true,
   horizontal = false,
-  onSegmentClick
+  onSegmentClick,
 }) => {
   const priorityCounts = tasks.reduce((acc, task) => {
-    const rawPriority = task.Priority || 'Unknown'
+    const rawPriority = task.Priority || 'Unknown';
     // Handle SharePoint priorities that may have numeric prefixes like "(1) High"
-    const priorityMatch = rawPriority.match(/^\(\d+\)\s*(.+)$/)
-    const extractedPriority = priorityMatch ? priorityMatch[1] : rawPriority
+    const priorityMatch = rawPriority.match(/^\(\d+\)\s*(.+)$/);
+    const extractedPriority = priorityMatch ? priorityMatch[1] : rawPriority;
     // Map SharePoint priority names to display values
     const priorityMap = {
-      'High': 'High',
-      'Normal': 'Medium', // SharePoint "Normal" maps to display "Medium"
-      'Low': 'Low',
-      'Critical': 'Critical'
-    }
-    const priority = priorityMap[extractedPriority] || extractedPriority
-    acc[priority] = (acc[priority] || 0) + 1
-    return acc
-  }, {})
+      High: 'High',
+      Normal: 'Medium', // SharePoint "Normal" maps to display "Medium"
+      Low: 'Low',
+      Critical: 'Critical',
+    };
+    const priority = priorityMap[extractedPriority] || extractedPriority;
+    acc[priority] = (acc[priority] || 0) + 1;
+    return acc;
+  }, {});
 
   const labels = Object.keys(priorityCounts);
   const data = Object.values(priorityCounts);
 
   const colors = {
-    'Low': '#28a745',
-    'Medium': '#ffc107',
-    'High': '#fd7e14',
-    'Critical': '#dc3545',
-    'Unknown': '#6c757d'
+    Low: '#28a745',
+    Medium: '#ffc107',
+    High: '#fd7e14',
+    Critical: '#dc3545',
+    Unknown: '#6c757d',
   };
 
-  const backgroundColors = labels.map(label => colors[label] || '#6c757d');
-  const borderColors = backgroundColors.map(color => color);
+  const backgroundColors = labels.map((label) => colors[label] || '#6c757d');
+  const borderColors = backgroundColors.map((color) => color);
 
   const chartData = {
     labels,
-    datasets: [{
-      label: 'Tasks by Priority',
-      data,
-      backgroundColor: backgroundColors,
-      borderColor: borderColors,
-      borderWidth: 1,
-    }],
+    datasets: [
+      {
+        label: 'Tasks by Priority',
+        data,
+        backgroundColor: backgroundColors,
+        borderColor: borderColors,
+        borderWidth: 1,
+      },
+    ],
   };
 
   const options = {
     responsive: true,
     maintainAspectRatio: false,
     layout: {
-      padding: compact ? { top: 10, bottom: 10, left: 10, right: 10 } : { top: 20, bottom: 20, left: 20, right: 20 },
+      padding: compact
+        ? { top: 10, bottom: 10, left: 10, right: 10 }
+        : { top: 20, bottom: 20, left: 20, right: 20 },
     },
     indexAxis: horizontal ? 'y' : 'x',
     interaction: {
@@ -98,15 +102,18 @@ const PriorityCharts = ({
       onSegmentClick({ label, value: priorityCounts[label] || 0 });
     },
     plugins: {
-      legend: showLegend && !compact ? {
-        position: 'bottom',
-        labels: {
-          padding: 12,
-          usePointStyle: true,
-          font: { size: 12 },
-          color: 'var(--chart-text)',
-        },
-      } : { display: false },
+      legend:
+        showLegend && !compact
+          ? {
+              position: 'bottom',
+              labels: {
+                padding: 12,
+                usePointStyle: true,
+                font: { size: 12 },
+                color: 'var(--chart-text)',
+              },
+            }
+          : { display: false },
       title: {
         display: showTitle && !compact,
         text: title,
@@ -122,7 +129,8 @@ const PriorityCharts = ({
           label: (context) => {
             const total = context.dataset.data.reduce((a, b) => a + b, 0);
             const value = context.dataset.data[context.dataIndex] || 0;
-            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
+            const percentage =
+              total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
             return `${context.label}: ${value} (${percentage}%)`;
           },
         },
@@ -133,47 +141,54 @@ const PriorityCharts = ({
         borderWidth: 1,
       },
     },
-    scales: chartType === 'bar' ? {
-      x: horizontal ? {
-        beginAtZero: true,
-        ticks: {
-          stepSize: 1,
-          color: 'var(--chart-text)',
-          font: { size: 11 },
-        },
-        grid: {
-          color: 'var(--border-color)',
-          display: false
-        },
-      } : {
-        ticks: {
-          color: 'var(--chart-text)',
-          font: { size: 11 },
-        },
-        grid: {
-          color: 'var(--border-color)',
-        },
-      },
-      y: horizontal ? {
-        ticks: {
-          color: 'var(--chart-text)',
-          font: { size: 11 },
-        },
-        grid: {
-          color: 'var(--border-color)',
-        },
-      } : {
-        beginAtZero: true,
-        ticks: {
-          stepSize: 1,
-          color: 'var(--chart-text)',
-          font: { size: 11 },
-        },
-        grid: {
-          color: 'var(--border-color)',
-        },
-      },
-    } : undefined,
+    scales:
+      chartType === 'bar'
+        ? {
+            x: horizontal
+              ? {
+                  beginAtZero: true,
+                  ticks: {
+                    stepSize: 1,
+                    color: 'var(--chart-text)',
+                    font: { size: 11 },
+                  },
+                  grid: {
+                    color: 'var(--border-color)',
+                    display: false,
+                  },
+                }
+              : {
+                  ticks: {
+                    color: 'var(--chart-text)',
+                    font: { size: 11 },
+                  },
+                  grid: {
+                    color: 'var(--border-color)',
+                  },
+                },
+            y: horizontal
+              ? {
+                  ticks: {
+                    color: 'var(--chart-text)',
+                    font: { size: 11 },
+                  },
+                  grid: {
+                    color: 'var(--border-color)',
+                  },
+                }
+              : {
+                  beginAtZero: true,
+                  ticks: {
+                    stepSize: 1,
+                    color: 'var(--chart-text)',
+                    font: { size: 11 },
+                  },
+                  grid: {
+                    color: 'var(--border-color)',
+                  },
+                },
+          }
+        : undefined,
   };
 
   const renderChart = () => {
@@ -201,9 +216,7 @@ const PriorityCharts = ({
 
   return (
     <div className={styles.chartContainer}>
-      <div className={styles.chartWrapper}>
-        {renderChart()}
-      </div>
+      <div className={styles.chartWrapper}>{renderChart()}</div>
       {compact && (
         <div className={styles.compactStats}>
           {labels.slice(0, 3).map((label, index) => (
@@ -218,7 +231,9 @@ const PriorityCharts = ({
           ))}
           {labels.length > 3 && (
             <div className={styles.compactStat}>
-              <span className={styles.compactStatLabel}>+{labels.length - 3} more</span>
+              <span className={styles.compactStatLabel}>
+                +{labels.length - 3} more
+              </span>
             </div>
           )}
         </div>
@@ -232,7 +247,9 @@ const PriorityCharts = ({
                 style={{ backgroundColor: backgroundColors[index] }}
               ></span>
               <span className={styles.legendLabel}>{priority}</span>
-              <span className={styles.legendCount}>({priorityCounts[priority]})</span>
+              <span className={styles.legendCount}>
+                ({priorityCounts[priority]})
+              </span>
             </div>
           ))}
         </div>

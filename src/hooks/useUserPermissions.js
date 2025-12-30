@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import getSharePointService from '../services/sharePointService';
+import { useState, useEffect } from "react";
+import getSharePointService from "../services/sharePointService";
 
 const useUserPermissions = () => {
   const [permissions, setPermissions] = useState(null); // Start with null to force loading
@@ -11,13 +11,13 @@ const useUserPermissions = () => {
       try {
         setLoading(true);
         setError(null);
-        console.log('🔄 Fetching fresh user permissions...');
+        console.log("🔄 Fetching fresh user permissions...");
         const sharePointService = getSharePointService();
         const userPermissions = await sharePointService.getUserPermissions();
-        console.log('✅ Permissions loaded:', userPermissions);
+        console.log("✅ Permissions loaded:", userPermissions);
         setPermissions(userPermissions);
       } catch (err) {
-        console.error('❌ Failed to load permissions:', err);
+        console.error("❌ Failed to load permissions:", err);
         setError(err);
         // Set fallback permissions on error
         setPermissions({
@@ -27,8 +27,8 @@ const useUserPermissions = () => {
           canViewAll: false,
           canEdit: false,
           canEditDepartments: [],
-          userCategory: 'limited',
-          allowedDepartments: ['infra']
+          userCategory: "limited",
+          allowedDepartments: ["infra"],
         });
       } finally {
         setLoading(false);

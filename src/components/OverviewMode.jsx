@@ -1,12 +1,12 @@
-import React from 'react';
-import KPISection from './KPISection';
-import { LazyStatusCharts } from './LazyCharts';
-import DelayedTasks from './DelayedTasks';
-import styles from './OverviewMode.module.css';
+import React from "react";
+import KPISection from "./KPISection";
+import { LazyStatusCharts } from "./LazyCharts";
+import DelayedTasks from "./DelayedTasks";
+import styles from "./OverviewMode.module.css";
 
 const OverviewMode = ({ tasks, analytics, filters }) => {
   // Get recent tasks (last 7 days)
-  const recentTasks = tasks.filter(task => {
+  const recentTasks = tasks.filter((task) => {
     const taskDate = new Date(task.Created);
     const weekAgo = new Date();
     weekAgo.setDate(weekAgo.getDate() - 7);
@@ -14,8 +14,8 @@ const OverviewMode = ({ tasks, analytics, filters }) => {
   });
 
   // Get upcoming due tasks (next 7 days)
-  const upcomingTasks = tasks.filter(task => {
-    if (!task.DueDate || task.Status === 'Completed') return false;
+  const upcomingTasks = tasks.filter((task) => {
+    if (!task.DueDate || task.Status === "Completed") return false;
     const dueDate = new Date(task.DueDate);
     const weekFromNow = new Date();
     weekFromNow.setDate(weekFromNow.getDate() + 7);
@@ -24,7 +24,7 @@ const OverviewMode = ({ tasks, analytics, filters }) => {
 
   // Get tasks by status for quick overview
   const statusSummary = tasks.reduce((acc, task) => {
-    const status = task.Status || 'Unknown';
+    const status = task.Status || "Unknown";
     acc[status] = (acc[status] || 0) + 1;
     return acc;
   }, {});
@@ -43,7 +43,7 @@ const OverviewMode = ({ tasks, analytics, filters }) => {
             </div>
             <div className={styles.miniStat}>
               <span className={styles.miniValue}>
-                {recentTasks.filter(t => t.Status === 'Completed').length}
+                {recentTasks.filter((t) => t.Status === "Completed").length}
               </span>
               <span className={styles.miniLabel}>Completed</span>
             </div>
@@ -59,7 +59,11 @@ const OverviewMode = ({ tasks, analytics, filters }) => {
             </div>
             <div className={styles.miniStat}>
               <span className={styles.miniValue}>
-                {upcomingTasks.filter(t => t.Priority === 'High' || t.Priority === 'Critical').length}
+                {
+                  upcomingTasks.filter(
+                    (t) => t.Priority === "High" || t.Priority === "Critical",
+                  ).length
+                }
               </span>
               <span className={styles.miniLabel}>High Priority</span>
             </div>

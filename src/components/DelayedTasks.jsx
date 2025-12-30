@@ -1,18 +1,20 @@
-import React from 'react';
-import styles from './DelayedTasks.module.css';
+import React from "react";
+import styles from "./DelayedTasks.module.css";
 
 const DelayedTasks = ({ tasks, showDetails = false, onViewDetails }) => {
   const now = new Date();
 
-  const delayedTasks = tasks.filter(task => {
-    if (!task.DueDate || task.Status === 'Completed') return false;
-    const dueDate = new Date(task.DueDate);
-    return dueDate < now;
-  }).sort((a, b) => {
-    const aDue = new Date(a.DueDate);
-    const bDue = new Date(b.DueDate);
-    return aDue - bDue; // Sort by due date ascending (most overdue first)
-  });
+  const delayedTasks = tasks
+    .filter((task) => {
+      if (!task.DueDate || task.Status === "Completed") return false;
+      const dueDate = new Date(task.DueDate);
+      return dueDate < now;
+    })
+    .sort((a, b) => {
+      const aDue = new Date(a.DueDate);
+      const bDue = new Date(b.DueDate);
+      return aDue - bDue; // Sort by due date ascending (most overdue first)
+    });
 
   const getDelayDays = (dueDate) => {
     const due = new Date(dueDate);
@@ -23,12 +25,12 @@ const DelayedTasks = ({ tasks, showDetails = false, onViewDetails }) => {
 
   const getPriorityColor = (priority) => {
     const colors = {
-      'Critical': 'var(--danger-color)',
-      'High': 'var(--warning-color)',
-      'Medium': 'var(--info-color)',
-      'Low': 'var(--success-color)',
+      Critical: "var(--danger-color)",
+      High: "var(--warning-color)",
+      Medium: "var(--info-color)",
+      Low: "var(--success-color)",
     };
-    return colors[priority] || 'var(--text-muted)';
+    return colors[priority] || "var(--text-muted)";
   };
 
   // Modern compact layout for overview
@@ -51,19 +53,21 @@ const DelayedTasks = ({ tasks, showDetails = false, onViewDetails }) => {
       <div className={styles.compactDelayed}>
         <div className={styles.compactHeader}>
           <div className={styles.statusIcon}>⚠️</div>
-          <div className={styles.compactTitle}>{delayedTasks.length} Delayed Tasks</div>
+          <div className={styles.compactTitle}>
+            {delayedTasks.length} Delayed Tasks
+          </div>
         </div>
 
         <div className={styles.delayedStats}>
           <div className={styles.statItem}>
             <span className={styles.statNumber}>
-              {delayedTasks.filter(t => t.Priority === 'Critical').length}
+              {delayedTasks.filter((t) => t.Priority === "Critical").length}
             </span>
             <span className={styles.statLabel}>Critical</span>
           </div>
           <div className={styles.statItem}>
             <span className={styles.statNumber}>
-              {Math.max(...delayedTasks.map(t => getDelayDays(t.DueDate)), 0)}
+              {Math.max(...delayedTasks.map((t) => getDelayDays(t.DueDate)), 0)}
             </span>
             <span className={styles.statLabel}>Max Days</span>
           </div>
@@ -73,20 +77,25 @@ const DelayedTasks = ({ tasks, showDetails = false, onViewDetails }) => {
           {delayedTasks.slice(0, 3).map((task, index) => (
             <div key={task.Id || index} className={styles.delayedTaskCard}>
               <div className={styles.taskHeader}>
-                <span className={styles.taskPriority} style={{
-                  backgroundColor: getPriorityColor(task.Priority)
-                }}>
-                  {task.Priority || 'Med'}
+                <span
+                  className={styles.taskPriority}
+                  style={{
+                    backgroundColor: getPriorityColor(task.Priority),
+                  }}
+                >
+                  {task.Priority || "Med"}
                 </span>
                 <span className={styles.delayDays}>
                   {getDelayDays(task.DueDate)}d
                 </span>
               </div>
               <div className={styles.taskTitle}>
-                {task.Title.length > 30 ? `${task.Title.substring(0, 30)}...` : task.Title}
+                {task.Title.length > 30
+                  ? `${task.Title.substring(0, 30)}...`
+                  : task.Title}
               </div>
               <div className={styles.taskAssignee}>
-                {task.AssignedTo?.[0]?.Title || 'Unassigned'}
+                {task.AssignedTo?.[0]?.Title || "Unassigned"}
               </div>
             </div>
           ))}
@@ -109,7 +118,7 @@ const DelayedTasks = ({ tasks, showDetails = false, onViewDetails }) => {
 
   // Group delayed tasks by priority for better visualization
   const priorityGroups = delayedTasks.reduce((acc, task) => {
-    const priority = task.Priority || 'Unknown';
+    const priority = task.Priority || "Unknown";
     if (!acc[priority]) {
       acc[priority] = [];
     }
@@ -136,7 +145,9 @@ const DelayedTasks = ({ tasks, showDetails = false, onViewDetails }) => {
         <div className={styles.summaryCard}>
           <div className={styles.cardIcon}>🚨</div>
           <div className={styles.cardContent}>
-            <h4>{delayedTasks.filter(t => t.Priority === 'Critical').length}</h4>
+            <h4>
+              {delayedTasks.filter((t) => t.Priority === "Critical").length}
+            </h4>
             <p>Critical Priority</p>
           </div>
         </div>
@@ -144,7 +155,9 @@ const DelayedTasks = ({ tasks, showDetails = false, onViewDetails }) => {
         <div className={styles.summaryCard}>
           <div className={styles.cardIcon}>📅</div>
           <div className={styles.cardContent}>
-            <h4>{Math.max(...delayedTasks.map(t => getDelayDays(t.DueDate)))}</h4>
+            <h4>
+              {Math.max(...delayedTasks.map((t) => getDelayDays(t.DueDate)))}
+            </h4>
             <p>Max Delay (days)</p>
           </div>
         </div>
@@ -168,7 +181,7 @@ const DelayedTasks = ({ tasks, showDetails = false, onViewDetails }) => {
                 className={styles.priorityFill}
                 style={{
                   width: `${(tasks.length / delayedTasks.length) * 100}%`,
-                  backgroundColor: getPriorityColor(priority)
+                  backgroundColor: getPriorityColor(priority),
                 }}
               />
             </div>
@@ -193,7 +206,7 @@ const DelayedTasks = ({ tasks, showDetails = false, onViewDetails }) => {
                 </div>
                 <div className={styles.taskMeta}>
                   <span className={styles.assignee}>
-                    {task.AssignedTo?.[0]?.Title || 'Unassigned'}
+                    {task.AssignedTo?.[0]?.Title || "Unassigned"}
                   </span>
                   <span className={styles.dueDate}>
                     Due: {new Date(task.DueDate).toLocaleDateString()}

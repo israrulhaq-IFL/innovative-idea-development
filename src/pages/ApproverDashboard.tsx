@@ -1,6 +1,15 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle, XCircle, Eye, Download, User, Calendar, FileText, Paperclip } from "lucide-react";
+import {
+  CheckCircle,
+  XCircle,
+  Eye,
+  Download,
+  User,
+  Calendar,
+  FileText,
+  Paperclip,
+} from 'lucide-react';
 import { useIdeaData } from "../contexts/DataContext";
 import { useUser } from "../contexts/UserContext";
 import { useToast } from "../components/common/Toast";
@@ -49,7 +58,7 @@ const ApproverDashboard: React.FC = () => {
         if (new Date(parsed.timestamp) > fiveMinutesAgo) {
           return {
             ...parsed,
-            timestamp: new Date(parsed.timestamp)
+            timestamp: new Date(parsed.timestamp),
           };
         }
       }
@@ -76,8 +85,16 @@ const ApproverDashboard: React.FC = () => {
   React.useEffect(() => {
     if (data?.ideas && Array.isArray(data.ideas)) {
       const filtered = data.ideas
-        .filter((idea: any) => idea.status === "Pending Approval" || idea.Status === "Pending Approval")
-        .sort((a: any, b: any) => new Date(a.created || a.Created).getTime() - new Date(b.created || b.Created).getTime())
+        .filter(
+          (idea: any) =>
+            idea.status === 'Pending Approval' ||
+            idea.Status === 'Pending Approval',
+        )
+        .sort(
+          (a: any, b: any) =>
+            new Date(a.created || a.Created).getTime() -
+            new Date(b.created || b.Created).getTime(),
+        )
         .map((idea: any) => ({
           id: idea.id || idea.ID,
           title: idea.title || idea.Title,
@@ -88,7 +105,7 @@ const ApproverDashboard: React.FC = () => {
           createdBy: idea.createdBy || idea.Author?.Title || idea.CreatedBy,
           created: idea.created || idea.Created,
           modified: idea.modified || idea.Modified,
-          attachments: idea.attachments || []
+          attachments: idea.attachments || [],
         }));
 
       // Only update if not currently animating to prevent flickering
@@ -116,7 +133,7 @@ const ApproverDashboard: React.FC = () => {
       originalStatus,
       timestamp: new Date(),
       ideaTitle: idea.title,
-      idea: idea // Store full idea object for undo
+      idea, // Store full idea object for undo
     };
     setLastAction(actionData);
 
@@ -129,18 +146,18 @@ const ApproverDashboard: React.FC = () => {
     try {
       // Update status and show toast with undo option
       setTimeout(async () => {
-        const newStatus = action === 'approve' ? "Approved" : "Rejected";
+        const newStatus = action === 'approve' ? 'Approved' : 'Rejected';
         await updateIdeaStatus(parseInt(idea.id), newStatus, true); // Skip refresh to prevent flickering
 
         // Immediately remove from local state to prevent reloading/flickering
-        setPendingIdeas(prev => prev.filter(i => i.id !== idea.id));
+        setPendingIdeas((prev) => prev.filter((i) => i.id !== idea.id));
 
         // Show toast with undo option
         addToast({
           type: action === 'approve' ? 'success' : 'error',
           title: `Idea ${action === 'approve' ? 'Approved' : 'Rejected'}`,
           message: `"${idea.title}" has been ${action === 'approve' ? 'approved' : 'rejected'}`,
-          duration: 4000 // Reduced duration since no action button needed
+          duration: 4000, // Reduced duration since no action button needed
         });
 
         setAnimatingCard(null);
@@ -156,7 +173,7 @@ const ApproverDashboard: React.FC = () => {
         type: 'error',
         title: 'Action Failed',
         message: `Failed to ${action} "${idea.title}". Please try again.`,
-        duration: 5000
+        duration: 5000,
       });
     }
   };
@@ -167,7 +184,7 @@ const ApproverDashboard: React.FC = () => {
         type: 'warning',
         title: 'Nothing to Undo',
         message: 'No recent action to undo.',
-        duration: 3000
+        duration: 3000,
       });
       return;
     }
@@ -180,7 +197,7 @@ const ApproverDashboard: React.FC = () => {
         type: 'info',
         title: 'Undoing Action',
         message: `Reverting "${ideaTitle}"...`,
-        duration: 2000
+        duration: 2000,
       });
 
       // Revert the status (skip server refresh to prevent overwriting local state)
@@ -188,9 +205,9 @@ const ApproverDashboard: React.FC = () => {
 
       // If reverting to "Pending Approval", add the idea back to local state
       if (originalStatus === "Pending Approval" && lastAction.idea) {
-        setPendingIdeas(prev => {
+        setPendingIdeas((prev) => {
           // Check if idea is already in the list (avoid duplicates)
-          const exists = prev.some(i => i.id === ideaId);
+          const exists = prev.some((i) => i.id === ideaId);
           if (!exists) {
             // Add the idea back at the beginning of the list
             return [lastAction.idea, ...prev];
@@ -208,7 +225,7 @@ const ApproverDashboard: React.FC = () => {
         type: 'success',
         title: 'Action Undone',
         message: `"${ideaTitle}" status reverted to ${originalStatus}.`,
-        duration: 4000
+        duration: 4000,
       });
 
       // Clear last action
@@ -219,10 +236,11 @@ const ApproverDashboard: React.FC = () => {
         type: 'error',
         title: 'Undo Failed',
         message: `Failed to revert "${ideaTitle}". Please try again.`,
-        duration: 5000
+        duration: 5000,
       });
     }
-  };  const handleExpand = (idea: Idea) => {
+  };
+  const handleExpand = (idea: Idea) => {
     setSelectedIdea(idea);
     setIsExpanded(true);
   };
@@ -252,9 +270,7 @@ const ApproverDashboard: React.FC = () => {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h1 className={styles.title}>
-          Idea Approvals
-        </h1>
+        <h1 className={styles.title}>Idea Approvals</h1>
         <p className={styles.subtitle}>
           Review and approve innovative ideas from your team
         </p>
@@ -272,7 +288,9 @@ const ApproverDashboard: React.FC = () => {
           >
             <div className={styles.undoInfo}>
               <span className={styles.undoText}>
-                Last action: {lastAction.action === 'approve' ? 'Approved' : 'Rejected'} "{lastAction.ideaTitle}"
+                Last action:{' '}
+                {lastAction.action === 'approve' ? 'Approved' : 'Rejected'} "
+                {lastAction.ideaTitle}"
               </span>
               <button
                 className={styles.undoButton}
@@ -303,12 +321,17 @@ const ApproverDashboard: React.FC = () => {
           <div className={styles.emptyState}>
             <CheckCircle size={64} className={styles.emptyIcon} />
             <h3 className={styles.emptyTitle}>All Caught Up!</h3>
-            <p className={styles.emptyMessage}>No pending ideas to review at the moment.</p>
+            <p className={styles.emptyMessage}>
+              No pending ideas to review at the moment.
+            </p>
           </div>
         ) : (
           <div className={styles.cardStack}>
             {pendingIdeas.map((idea, index) => (
-              <div key={`button-container-${idea.id}`} className={styles.cardContainer}>
+              <div
+                key={`button-container-${idea.id}`}
+                className={styles.cardContainer}
+              >
                 {/* Left side reject button */}
                 {index === 0 && (
                   <button
@@ -336,60 +359,67 @@ const ApproverDashboard: React.FC = () => {
                           opacity: 1,
                           x: 0,
                           rotate: 0,
-                          scale: 1
+                          scale: 1,
                         }
                   }
                   transition={{
-                    duration: animatingCard === idea.id ? 0.8 : 0.3
+                    duration: animatingCard === idea.id ? 0.8 : 0.3,
                   }}
                   layout={false}
                 >
-
-                <div className={styles.cardHeader}>
-                  <div className={styles.cardMeta}>
-                    <div className={styles.creator}>
-                      <User size={14} />
-                      <span>{idea.createdBy}</span>
+                  <div className={styles.cardHeader}>
+                    <div className={styles.cardMeta}>
+                      <div className={styles.creator}>
+                        <User size={14} />
+                        <span>{idea.createdBy}</span>
+                      </div>
+                      <div className={styles.date}>
+                        <Calendar size={14} />
+                        <span>
+                          {new Date(idea.created).toLocaleDateString()}
+                        </span>
+                      </div>
                     </div>
-                    <div className={styles.date}>
-                      <Calendar size={14} />
-                      <span>{new Date(idea.created).toLocaleDateString()}</span>
-                    </div>
-                  </div>
-                  <button
-                    className={styles.expandButton}
-                    onClick={() => handleExpand(idea)}
-                    title="View Details"
-                    disabled={animatingCard !== null}
-                  >
-                    <Eye size={16} />
-                  </button>
-                </div>
-
-                <div className={styles.cardContent}>
-                  <h3 className={styles.cardTitle}>{idea.title}</h3>
-                  <p className={styles.cardDescription}>
-                    {idea.description.length > 150
-                      ? `${idea.description.substring(0, 150)}...`
-                      : idea.description
-                    }
-                  </p>
-
-                  <div className={styles.cardTags}>
-                    <span className={`${styles.tag} ${styles.category}`}>{idea.category}</span>
-                    <span className={`${styles.tag} ${styles.priority} ${idea.priority === 'Critical' ? styles.priorityCritical : idea.priority === 'High' ? styles.priorityHigh : idea.priority === 'Medium' ? styles.priorityMedium : styles.priorityLow}`}>
-                      {idea.priority}
-                    </span>
+                    <button
+                      className={styles.expandButton}
+                      onClick={() => handleExpand(idea)}
+                      title="View Details"
+                      disabled={animatingCard !== null}
+                    >
+                      <Eye size={16} />
+                    </button>
                   </div>
 
-                  {idea.attachments && idea.attachments.length > 0 && (
-                    <div className={styles.attachments}>
-                      <Paperclip size={14} />
-                      <span>{idea.attachments.length} attachment{idea.attachments.length > 1 ? 's' : ''}</span>
+                  <div className={styles.cardContent}>
+                    <h3 className={styles.cardTitle}>{idea.title}</h3>
+                    <p className={styles.cardDescription}>
+                      {idea.description.length > 150
+                        ? `${idea.description.substring(0, 150)}...`
+                        : idea.description}
+                    </p>
+
+                    <div className={styles.cardTags}>
+                      <span className={`${styles.tag} ${styles.category}`}>
+                        {idea.category}
+                      </span>
+                      <span
+                        className={`${styles.tag} ${styles.priority} ${idea.priority === 'Critical' ? styles.priorityCritical : idea.priority === 'High' ? styles.priorityHigh : idea.priority === 'Medium' ? styles.priorityMedium : styles.priorityLow}`}
+                      >
+                        {idea.priority}
+                      </span>
                     </div>
-                  )}
-                </div>
-              </motion.div>
+
+                    {idea.attachments && idea.attachments.length > 0 && (
+                      <div className={styles.attachments}>
+                        <Paperclip size={14} />
+                        <span>
+                          {idea.attachments.length} attachment
+                          {idea.attachments.length > 1 ? 's' : ''}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
 
                 {/* Right side approve button */}
                 {index === 0 && (
@@ -439,13 +469,19 @@ const ApproverDashboard: React.FC = () => {
                 </div>
                 <div className={styles.metaItem}>
                   <Calendar size={16} />
-                  <span>{new Date(selectedIdea.created).toLocaleDateString()}</span>
+                  <span>
+                    {new Date(selectedIdea.created).toLocaleDateString()}
+                  </span>
                 </div>
                 <div className={styles.metaItem}>
-                  <span className={`${styles.tag} ${styles.category}`}>{selectedIdea.category}</span>
+                  <span className={`${styles.tag} ${styles.category}`}>
+                    {selectedIdea.category}
+                  </span>
                 </div>
                 <div className={styles.metaItem}>
-                  <span className={`${styles.tag} ${styles.priority} ${styles[`priority${selectedIdea.priority}`]}`}>
+                  <span
+                    className={`${styles.tag} ${styles.priority} ${styles[`priority${selectedIdea.priority}`]}`}
+                  >
                     {selectedIdea.priority}
                   </span>
                 </div>
@@ -457,28 +493,36 @@ const ApproverDashboard: React.FC = () => {
                   <p>{selectedIdea.description}</p>
                 </div>
 
-                {selectedIdea.attachments && selectedIdea.attachments.length > 0 && (
-                  <div className={styles.attachments}>
-                    <h3>Attachments</h3>
-                    <div className={styles.attachmentList}>
-                      {selectedIdea.attachments.map((attachment, index) => (
-                        <div key={index} className={styles.attachmentItem}>
-                          <FileText size={16} />
-                          <span>{attachment.fileName}</span>
-                          <button
-                            className={styles.downloadButton}
-                            onClick={() => downloadAttachment(attachment)}
-                          >
-                            <Download size={14} />
-                          </button>
-                        </div>
-                      ))}
+                {selectedIdea.attachments &&
+                  selectedIdea.attachments.length > 0 && (
+                    <div className={styles.attachments}>
+                      <h3>Attachments</h3>
+                      <div className={styles.attachmentList}>
+                        {selectedIdea.attachments.map((attachment, index) => (
+                          <div key={index} className={styles.attachmentItem}>
+                            <FileText size={16} />
+                            <span>{attachment.fileName}</span>
+                            <button
+                              className={styles.downloadButton}
+                              onClick={() => downloadAttachment(attachment)}
+                            >
+                              <Download size={14} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
               </div>
 
-              <div className={styles.modalActions} style={{ display: 'flex', gap: '20px', justifyContent: 'center' }}>
+              <div
+                className={styles.modalActions}
+                style={{
+                  display: 'flex',
+                  gap: '20px',
+                  justifyContent: 'center',
+                }}
+              >
                 <button
                   className={`${styles.actionButton} ${styles.reject}`}
                   onClick={handleReject}
@@ -519,14 +563,43 @@ const ApproverDashboard: React.FC = () => {
               onClick={(e) => e.stopPropagation()}
             >
               <div className={styles.confirmationHeader}>
-                <h3 style={{ color: '#ffffffff', fontWeight: '600' }}>Confirm {pendingAction.action === 'approve' ? 'Approval' : 'Rejection'}</h3>
+                <h3 style={{ color: '#ffffffff', fontWeight: '600' }}>
+                  Confirm{' '}
+                  {pendingAction.action === 'approve'
+                    ? 'Approval'
+                    : 'Rejection'}
+                </h3>
               </div>
               <div className={styles.confirmationBody}>
-                <p style={{ color: '#f0f0f0ff', fontWeight: '500' }}>Are you sure you want to <strong style={{ color: 'hsla(120, 72%, 70%, 1.00)', fontWeight: '600' }}>{pendingAction.action}</strong> the idea:</p>
-                <h4 style={{ color: '#ffffffff', fontWeight: '600' }}>{pendingAction.idea.title}</h4>
-                <p style={{ color: '#ffffffff', fontWeight: '400' }}>{pendingAction.idea.description.length > 150 ? `${pendingAction.idea.description.substring(0, 150)}...` : pendingAction.idea.description}</p>
+                <p style={{ color: '#f0f0f0ff', fontWeight: '500' }}>
+                  Are you sure you want to{' '}
+                  <strong
+                    style={{
+                      color: 'hsla(120, 72%, 70%, 1.00)',
+                      fontWeight: '600',
+                    }}
+                  >
+                    {pendingAction.action}
+                  </strong>{' '}
+                  the idea:
+                </p>
+                <h4 style={{ color: '#ffffffff', fontWeight: '600' }}>
+                  {pendingAction.idea.title}
+                </h4>
+                <p style={{ color: '#ffffffff', fontWeight: '400' }}>
+                  {pendingAction.idea.description.length > 150
+                    ? `${pendingAction.idea.description.substring(0, 150)}...`
+                    : pendingAction.idea.description}
+                </p>
               </div>
-              <div className={styles.confirmationActions} style={{ display: 'flex', gap: '20px', justifyContent: 'center' }}>
+              <div
+                className={styles.confirmationActions}
+                style={{
+                  display: 'flex',
+                  gap: '20px',
+                  justifyContent: 'center',
+                }}
+              >
                 <button
                   className={`${styles.actionButton} ${styles.cancel}`}
                   onClick={handleCancelAction}

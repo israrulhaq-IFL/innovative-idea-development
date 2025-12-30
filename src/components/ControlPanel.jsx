@@ -1,12 +1,12 @@
-import React from 'react';
-import styles from './ControlPanel.module.css';
+import React from "react";
+import styles from "./ControlPanel.module.css";
 
 const ControlPanel = ({
   viewMode,
   onViewModeChange,
   filters,
   onFilterChange,
-  onRefresh
+  onRefresh,
 }) => {
   const handleFilterChange = (filterType, value) => {
     onFilterChange({ [filterType]: value });
@@ -14,14 +14,16 @@ const ControlPanel = ({
 
   const clearFilters = () => {
     onFilterChange({
-      status: 'all',
-      priority: 'all',
-      assignee: 'all',
-      dateRange: 'all'
+      status: "all",
+      priority: "all",
+      assignee: "all",
+      dateRange: "all",
     });
   };
 
-  const hasActiveFilters = Object.values(filters).some(value => value !== 'all');
+  const hasActiveFilters = Object.values(filters).some(
+    (value) => value !== "all",
+  );
 
   return (
     <div className={styles.controlPanel}>
@@ -29,14 +31,14 @@ const ControlPanel = ({
         <label>View Mode:</label>
         <div className={styles.viewButtons}>
           <button
-            className={`${styles.viewBtn} ${viewMode === 'overview' ? styles.active : ''}`}
-            onClick={() => onViewModeChange('overview')}
+            className={`${styles.viewBtn} ${viewMode === "overview" ? styles.active : ""}`}
+            onClick={() => onViewModeChange("overview")}
           >
             📊 Overview
           </button>
           <button
-            className={`${styles.viewBtn} ${viewMode === 'detailed' ? styles.active : ''}`}
-            onClick={() => onViewModeChange('detailed')}
+            className={`${styles.viewBtn} ${viewMode === "detailed" ? styles.active : ""}`}
+            onClick={() => onViewModeChange("detailed")}
           >
             📈 Detailed
           </button>
@@ -49,7 +51,7 @@ const ControlPanel = ({
           <select
             id="statusFilter"
             value={filters.status}
-            onChange={(e) => handleFilterChange('status', e.target.value)}
+            onChange={(e) => handleFilterChange("status", e.target.value)}
             className={styles.select}
           >
             <option value="all">All Statuses</option>
@@ -66,7 +68,7 @@ const ControlPanel = ({
           <select
             id="priorityFilter"
             value={filters.priority}
-            onChange={(e) => handleFilterChange('priority', e.target.value)}
+            onChange={(e) => handleFilterChange("priority", e.target.value)}
             className={styles.select}
           >
             <option value="all">All Priorities</option>
@@ -82,7 +84,7 @@ const ControlPanel = ({
           <select
             id="assigneeFilter"
             value={filters.assignee}
-            onChange={(e) => handleFilterChange('assignee', e.target.value)}
+            onChange={(e) => handleFilterChange("assignee", e.target.value)}
             className={styles.select}
           >
             <option value="all">All Assignees</option>
@@ -96,7 +98,7 @@ const ControlPanel = ({
           <select
             id="dateFilter"
             value={filters.dateRange}
-            onChange={(e) => handleFilterChange('dateRange', e.target.value)}
+            onChange={(e) => handleFilterChange("dateRange", e.target.value)}
             className={styles.select}
           >
             <option value="all">All Time</option>

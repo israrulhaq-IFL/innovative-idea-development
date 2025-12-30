@@ -68,7 +68,19 @@ export interface Approver {
 export interface IdeaTrailEvent {
   id: number;
   ideaId: number;
-  eventType: "submitted" | "reviewed" | "approved" | "rejected" | "implementation_started" | "implementation_completed" | "status_changed" | "commented" | "attachment_added" | "task_created";
+  taskId?: number;
+  discussionId?: number;
+  eventType:
+    | 'submitted'
+    | 'reviewed'
+    | 'approved'
+    | 'rejected'
+    | 'implementation_started'
+    | 'implementation_completed'
+    | 'status_changed'
+    | 'commented'
+    | 'attachment_added'
+    | 'task_created';
   title: string;
   description: string;
   actor: string;
@@ -289,7 +301,11 @@ const DataContext = createContext<
       loadApprovers: () => Promise<void>;
       loadIdeaTrailEvents: () => Promise<void>;
       createInitialTrailEvents: () => Promise<void>;
-      updateIdeaStatus: (ideaId: number, newStatus: string, skipRefresh?: boolean) => Promise<any>;
+      updateIdeaStatus: (
+        ideaId: number,
+        newStatus: string,
+        skipRefresh?: boolean,
+      ) => Promise<any>;
     }
   | undefined
 >(undefined);
@@ -470,88 +486,114 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
     }
   }, []);
 
-  const updateIdeaStatus = useCallback(async (ideaId: number, newStatus: string, skipRefresh = false) => {
-    try {
-      // Prepare update data
-      const updateData: any = { status: newStatus };
-
-      // If approving or rejecting, set the approvedBy field
-      if ((newStatus === "Approved" || newStatus === "Rejected") && user?.user?.Id) {
-        updateData.approvedBy = user.user.Id.toString();
-      }
-
-      // Update the idea status via API
-      const updatedIdea = await ideaApi.updateIdea(ideaId, updateData);
-
-      // Create trail event for status change
+  const updateIdeaStatus = useCallback(
+    async (ideaId: number, newStatus: string, skipRefresh = false) => {
       try {
-        const currentIdea = state.data.ideas.find(idea => idea.id === ideaId);
-        if (currentIdea) {
-          let eventType: IdeaTrailEvent['eventType'] = "status_changed";
-          let eventTitle = `Idea ${newStatus}`;
-          let eventDescription = `Idea "${currentIdea.title}" status changed to ${newStatus}`;
+        // Prepare update data
+        const updateData: any = { status: newStatus };
 
-          // Determine specific event type based on status transition
-          if (newStatus === "Approved") {
-            eventType = "approved";
-          } else if (newStatus === "Rejected") {
-            eventType = "rejected";
-          } else if (newStatus === "In Progress" && currentIdea.status === "Approved") {
-            eventType = "implementation_started";
-            eventTitle = "Implementation Started";
-            eventDescription = `Implementation of idea "${currentIdea.title}" has begun`;
-          } else if (newStatus === "Completed" && currentIdea.status === "In Progress") {
-            eventType = "implementation_completed";
-            eventTitle = "Implementation Completed";
-            eventDescription = `Implementation of idea "${currentIdea.title}" has been completed`;
-          }
-
-          await ideaApi.createIdeaTrailEvent({
-            ideaId: ideaId,
-            eventType: eventType,
-            title: eventTitle,
-            description: eventDescription,
-            actor: user?.user?.Title || "System",
-            actorId: user?.user?.Id || 0,
-            previousStatus: currentIdea.status,
-            newStatus: newStatus,
-            metadata: {
-              approvedBy: user?.user?.Title,
-              previousStatus: currentIdea.status
-            }
-          });
+        // If approving or rejecting, set the approvedBy field
+        if (
+          (newStatus === 'Approved' || newStatus === 'Rejected') &&
+          user?.user?.Id
+        ) {
+          updateData.approvedBy = user.user.Id.toString();
         }
-      } catch (trailError) {
-        console.error('Failed to create trail event for status change', trailError);
-        // Don't fail the status update if trail event fails
-      }
 
-      // Update local state
-      const updatedIdeas = state.data.ideas.map(idea =>
-        idea.id === ideaId
-          ? {
-              ...idea,
-              status: newStatus as any,
-              approvedBy: newStatus === "Approved" || newStatus === "Rejected" ? user?.user?.Title : idea.approvedBy,
-              approvedDate: newStatus === "Approved" || newStatus === "Rejected" ? new Date() : idea.approvedDate
+        // Update the idea status via API
+        const updatedIdea = await ideaApi.updateIdea(ideaId, updateData);
+
+        // Create trail event for status change
+        try {
+          const currentIdea = state.data.ideas.find(
+            (idea) => idea.id === ideaId,
+          );
+          if (currentIdea) {
+            let eventType: IdeaTrailEvent['eventType'] = 'status_changed';
+            let eventTitle = `Idea ${newStatus}`;
+            let eventDescription = `Idea "${currentIdea.title}" status changed to ${newStatus}`;
+
+            // Determine specific event type based on status transition
+            if (newStatus === 'Approved') {
+              eventType = 'approved';
+            } else if (newStatus === 'Rejected') {
+              eventType = 'rejected';
+            } else if (
+              newStatus === 'In Progress' &&
+              currentIdea.status === 'Approved'
+            ) {
+              eventType = 'implementation_started';
+              eventTitle = 'Implementation Started';
+              eventDescription = `Implementation of idea "${currentIdea.title}" has begun`;
+            } else if (
+              newStatus === 'Completed' &&
+              currentIdea.status === 'In Progress'
+            ) {
+              eventType = 'implementation_completed';
+              eventTitle = 'Implementation Completed';
+              eventDescription = `Implementation of idea "${currentIdea.title}" has been completed`;
             }
-          : idea
-      );
 
-      dispatch({ type: "SET_IDEAS", payload: updatedIdeas });
-      dispatch({ type: "UPDATE_LAST_UPDATED" });
+            await ideaApi.createIdeaTrailEvent({
+              ideaId,
+              eventType,
+              title: eventTitle,
+              description: eventDescription,
+              actor: user?.user?.Title || 'System',
+              actorId: user?.user?.Id || 0,
+              previousStatus: currentIdea.status,
+              newStatus,
+              metadata: {
+                approvedBy: user?.user?.Title,
+                previousStatus: currentIdea.status,
+              },
+            });
+          }
+        } catch (trailError) {
+          console.error(
+            'Failed to create trail event for status change',
+            trailError,
+          );
+          // Don't fail the status update if trail event fails
+        }
 
-      // Refresh data from server to ensure consistency (skip for undo operations)
-      if (!skipRefresh) {
-        setTimeout(() => loadIdeas(), 1000);
+        // Update local state
+        const updatedIdeas = state.data.ideas.map((idea) =>
+          idea.id === ideaId
+            ? {
+                ...idea,
+                status: newStatus as any,
+                approvedBy:
+                  newStatus === 'Approved' || newStatus === 'Rejected'
+                    ? user?.user?.Title
+                    : idea.approvedBy,
+                approvedDate:
+                  newStatus === 'Approved' || newStatus === 'Rejected'
+                    ? new Date()
+                    : idea.approvedDate,
+              }
+            : idea,
+        );
+
+        dispatch({ type: 'SET_IDEAS', payload: updatedIdeas });
+        dispatch({ type: 'UPDATE_LAST_UPDATED' });
+
+        // Refresh data from server to ensure consistency (skip for undo operations)
+        if (!skipRefresh) {
+          setTimeout(() => loadIdeas(), 1000);
+        }
+
+        return updatedIdea;
+      } catch (error) {
+        console.error(
+          `Failed to update idea ${ideaId} status to ${newStatus}`,
+          error,
+        );
+        throw error;
       }
-
-      return updatedIdea;
-    } catch (error) {
-      console.error(`Failed to update idea ${ideaId} status to ${newStatus}`, error);
-      throw error;
-    }
-  }, [state.data.ideas, user?.user?.Id, user?.user?.Title, loadIdeas]);
+    },
+    [state.data.ideas, user?.user?.Id, user?.user?.Title, loadIdeas],
+  );
 
   const loadIdeaTrailEvents = useCallback(async () => {
     try {
@@ -591,8 +633,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
             newStatus: "Pending",
             metadata: {
               category: idea.category,
-              priority: idea.priority
-            }
+              priority: idea.priority,
+            },
           });
 
           // Create approval/rejection event if applicable
@@ -607,8 +649,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
               previousStatus: "Pending",
               newStatus: idea.status,
               metadata: {
-                approvedBy: idea.approvedBy
-              }
+                approvedBy: idea.approvedBy,
+              },
             });
           }
 
@@ -622,7 +664,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
               actor: "System",
               actorId: 3,
               previousStatus: "Approved",
-              newStatus: "In Progress"
+              newStatus: "In Progress",
             });
 
             if (idea.status === "Completed") {
@@ -634,12 +676,15 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
                 actor: "System",
                 actorId: 3,
                 previousStatus: "In Progress",
-                newStatus: "Completed"
+                newStatus: "Completed",
               });
             }
           }
         } catch (error) {
-          console.error(`Failed to create trail events for idea ${idea.id}`, error);
+          console.error(
+            `Failed to create trail events for idea ${idea.id}`,
+            error,
+          );
         }
       }
 

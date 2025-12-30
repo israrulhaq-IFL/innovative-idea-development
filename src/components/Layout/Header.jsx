@@ -1,7 +1,7 @@
-import React from 'react';
-import { useSharePoint } from '../../context/SharePointContext';
-import { useTheme } from '../../context/ThemeContext';
-import styles from './Header.module.css';
+import React from "react";
+import { useSharePoint } from "../../context/SharePointContext";
+import { useTheme } from "../../context/ThemeContext";
+import styles from "./Header.module.css";
 
 const Header = ({ onMenuClick, onThemeToggle, currentTheme }) => {
   const { user, permissions } = useSharePoint();
@@ -23,15 +23,15 @@ const Header = ({ onMenuClick, onThemeToggle, currentTheme }) => {
         <button
           className={styles.themeBtn}
           onClick={onThemeToggle}
-          aria-label={`Switch to ${currentTheme === 'light' ? 'dark' : 'light'} mode`}
+          aria-label={`Switch to ${currentTheme === "light" ? "dark" : "light"} mode`}
         >
-          {currentTheme === 'light' ? '🌙' : '☀️'}
+          {currentTheme === "light" ? "🌙" : "☀️"}
         </button>
 
         {user && (
           <div className={styles.userMenu}>
             <div className={styles.userAvatar}>
-              {user.Title ? user.Title.charAt(0).toUpperCase() : 'U'}
+              {user.Title ? user.Title.charAt(0).toUpperCase() : "U"}
             </div>
             <span className={styles.userName}>{user.Title}</span>
           </div>

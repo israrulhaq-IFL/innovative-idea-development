@@ -1,8 +1,8 @@
 // Secure API Client for SharePoint Integration
 // src/utils/secureApi.ts
 
-import { logError, logInfo } from "./logger";
-import { ApiResponse } from "../types";
+import { logError, logInfo } from './logger';
+import { ApiResponse } from '../types';
 
 // SharePoint API Configuration
 export interface SharePointConfig {
@@ -17,20 +17,31 @@ export interface SharePointConfig {
 
 // Default configuration
 export const DEFAULT_CONFIG: SharePointConfig = {
-  baseUrl: "http://hospp16srv:36156",
+  baseUrl: 'http://hospp16srv:36156',
   lists: {
-    ideas: "innovative_ideas",
-    tasks: "ino_ideas_tasks",
-    discussions: "innovative_idea_discussions",
-    ideaTrail: "innovative_idea_trail",
+    ideas: 'innovative_ideas',
+    tasks: 'ino_ideas_tasks',
+    discussions: 'innovative_idea_discussions',
+    ideaTrail: 'innovative_idea_trail',
   },
+};
+
+// Get base URL from SharePoint context or fallback to default
+const getBaseUrl = (): string => {
+  // Check if SharePoint context is available
+  const spContext = (window as any)._spPageContextInfo;
+  if (spContext && spContext.webAbsoluteUrl) {
+    return spContext.webAbsoluteUrl;
+  }
+  // Fallback to environment variable or default
+  return import.meta.env?.VITE_SHAREPOINT_BASE_URL || DEFAULT_CONFIG.baseUrl;
 };
 
 // API Response types
 export interface SharePointApiResponse<T> {
   d: T;
-  "odata.metadata"?: string;
-  "odata.nextLink"?: string;
+  'odata.metadata'?: string;
+  'odata.nextLink'?: string;
 }
 
 // Secure API Client Class
@@ -40,19 +51,28 @@ export class SecureApiClient {
   private rateLimitDelay = 100; // ms between requests
 
   constructor(config: SharePointConfig = DEFAULT_CONFIG) {
-    this.config = config;
+    // Use dynamic base URL if not explicitly provided
+    this.config = {
+      ...config,
+      baseUrl: config.baseUrl || getBaseUrl(),
+    };
+  }
+
+  // Update configuration (useful for dynamic SharePoint context)
+  updateConfig(newConfig: Partial<SharePointConfig>): void {
+    this.config = { ...this.config, ...newConfig };
   }
 
   // Get form digest for CSRF protection
   private async getFormDigest(): Promise<string> {
     try {
       const response = await fetch(`${this.config.baseUrl}/_api/contextinfo`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          Accept: "application/json;odata=verbose",
-          "Content-Type": "application/json;odata=verbose",
+          Accept: 'application/json;odata=verbose',
+          'Content-Type': 'application/json;odata=verbose',
         },
-        credentials: "include",
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -62,7 +82,7 @@ export class SecureApiClient {
       const data = await response.json();
       return data.d.GetContextWebInformation.FormDigestValue;
     } catch (error) {
-      logError("Failed to get SharePoint form digest", error);
+      logError('Failed to get SharePoint form digest', error);
       throw error;
     }
   }
@@ -78,25 +98,25 @@ export class SecureApiClient {
     try {
       // Add form digest for POST/PUT/DELETE
       if (
-        ["POST", "PUT", "DELETE", "PATCH"].includes(options.method || "GET")
+        ['POST', 'PUT', 'DELETE', 'PATCH'].includes(options.method || 'GET')
       ) {
         const digest = await this.getFormDigest();
         options.headers = {
           ...options.headers,
-          "X-RequestDigest": digest,
+          'X-RequestDigest': digest,
         };
       }
 
       // Default headers
       const defaultHeaders = {
-        Accept: "application/json;odata=verbose",
-        "Content-Type": "application/json;odata=verbose",
+        Accept: 'application/json;odata=verbose',
+        'Content-Type': 'application/json;odata=verbose',
       };
 
       const response = await fetch(url, {
         ...options,
         headers: { ...defaultHeaders, ...options.headers },
-        credentials: "include",
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -122,7 +142,7 @@ export class SecureApiClient {
         return this.makeRequest<T>(url, options, retryCount + 1);
       }
 
-      logError("Request failed after retries", { url, error });
+      logError('Request failed after retries', { url, error });
       throw error;
     }
   }
@@ -154,10 +174,10 @@ export class SecureApiClient {
 
   // GET request
   async get<T>(endpoint: string): Promise<SharePointApiResponse<T>> {
-    const url = endpoint.startsWith("http")
+    const url = endpoint.startsWith('http')
       ? endpoint
       : `${this.config.baseUrl}${endpoint}`;
-    return this.rateLimitedRequest<T>(url, { method: "GET" });
+    return this.rateLimitedRequest<T>(url, { method: 'GET' });
   }
 
   // POST request
@@ -165,28 +185,32 @@ export class SecureApiClient {
     endpoint: string,
     data: any,
   ): Promise<SharePointApiResponse<T>> {
-    const url = endpoint.startsWith("http")
+    const url = endpoint.startsWith('http')
       ? endpoint
       : `${this.config.baseUrl}${endpoint}`;
     return this.rateLimitedRequest<T>(url, {
-      method: "POST",
+      method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
   // PUT request
-  async put<T>(endpoint: string, data: any, etag?: string): Promise<SharePointApiResponse<T>> {
-    const url = endpoint.startsWith("http")
+  async put<T>(
+    endpoint: string,
+    data: any,
+    etag?: string,
+  ): Promise<SharePointApiResponse<T>> {
+    const url = endpoint.startsWith('http')
       ? endpoint
       : `${this.config.baseUrl}${endpoint}`;
 
     const headers: Record<string, string> = {
-      "X-HTTP-Method": "MERGE",
-      "If-Match": etag || "*", // Use "*" to bypass ETag concurrency control
+      'X-HTTP-Method': 'MERGE',
+      'If-Match': etag || '*', // Use "*" to bypass ETag concurrency control
     };
 
     return this.rateLimitedRequest<T>(url, {
-      method: "POST",
+      method: 'POST',
       headers,
       body: JSON.stringify(data),
     });
@@ -194,15 +218,25 @@ export class SecureApiClient {
 
   // DELETE request
   async delete(endpoint: string): Promise<SharePointApiResponse<any>> {
-    const url = endpoint.startsWith("http")
+    const url = endpoint.startsWith('http')
       ? endpoint
       : `${this.config.baseUrl}${endpoint}`;
     return this.rateLimitedRequest<any>(url, {
-      method: "POST",
-      headers: { "X-HTTP-Method": "DELETE" },
+      method: 'POST',
+      headers: { 'X-HTTP-Method': 'DELETE' },
     });
   }
 }
 
-// Singleton instance
-export const sharePointApi = new SecureApiClient();
+// Singleton instance - lazy loaded to use correct base URL
+let _sharePointApi: SecureApiClient | null = null;
+
+export const getSharePointApi = (): SecureApiClient => {
+  if (!_sharePointApi) {
+    _sharePointApi = new SecureApiClient();
+  }
+  return _sharePointApi;
+};
+
+// For backward compatibility
+export const sharePointApi = getSharePointApi();

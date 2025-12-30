@@ -1,17 +1,26 @@
-import React from 'react'
-import styles from './ExecutiveDashboardControls.module.css'
+import React from 'react';
+import styles from './ExecutiveDashboardControls.module.css';
 
 const ExecutiveDashboardControls = ({ filters, onFiltersChange }) => {
-  const set = (patch) => onFiltersChange({ ...filters, ...patch })
+  const set = (patch) => onFiltersChange({ ...filters, ...patch });
 
-  const hasActiveFilters = Object.entries(filters).some(([k, v]) => k !== 'search' && v !== 'all') || Boolean(filters.search)
+  const hasActiveFilters =
+    Object.entries(filters).some(([k, v]) => k !== 'search' && v !== 'all') ||
+    Boolean(filters.search);
 
   return (
     <div className={styles.controls}>
       <div className={styles.left}>
         <div className={styles.group}>
-          <label className={styles.label} htmlFor="status">Status</label>
-          <select id="status" className={styles.select} value={filters.status} onChange={(e) => set({ status: e.target.value })}>
+          <label className={styles.label} htmlFor="status">
+            Status
+          </label>
+          <select
+            id="status"
+            className={styles.select}
+            value={filters.status}
+            onChange={(e) => set({ status: e.target.value })}
+          >
             <option value="all">All</option>
             <option value="Not Started">Not Started</option>
             <option value="In Progress">In Progress</option>
@@ -22,8 +31,15 @@ const ExecutiveDashboardControls = ({ filters, onFiltersChange }) => {
         </div>
 
         <div className={styles.group}>
-          <label className={styles.label} htmlFor="priority">Priority</label>
-          <select id="priority" className={styles.select} value={filters.priority} onChange={(e) => set({ priority: e.target.value })}>
+          <label className={styles.label} htmlFor="priority">
+            Priority
+          </label>
+          <select
+            id="priority"
+            className={styles.select}
+            value={filters.priority}
+            onChange={(e) => set({ priority: e.target.value })}
+          >
             <option value="all">All</option>
             <option value="Low">Low</option>
             <option value="Medium">Medium</option>
@@ -33,8 +49,15 @@ const ExecutiveDashboardControls = ({ filters, onFiltersChange }) => {
         </div>
 
         <div className={styles.group}>
-          <label className={styles.label} htmlFor="timeRange">Time</label>
-          <select id="timeRange" className={styles.select} value={filters.timeRange} onChange={(e) => set({ timeRange: e.target.value })}>
+          <label className={styles.label} htmlFor="timeRange">
+            Time
+          </label>
+          <select
+            id="timeRange"
+            className={styles.select}
+            value={filters.timeRange}
+            onChange={(e) => set({ timeRange: e.target.value })}
+          >
             <option value="all">All</option>
             <option value="7d">7 days</option>
             <option value="30d">30 days</option>
@@ -57,14 +80,21 @@ const ExecutiveDashboardControls = ({ filters, onFiltersChange }) => {
           <button
             type="button"
             className={styles.btnGhost}
-            onClick={() => onFiltersChange({ status: 'all', priority: 'all', timeRange: 'all', search: '' })}
+            onClick={() =>
+              onFiltersChange({
+                status: 'all',
+                priority: 'all',
+                timeRange: 'all',
+                search: '',
+              })
+            }
           >
             Clear
           </button>
         )}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default ExecutiveDashboardControls
+export default ExecutiveDashboardControls;

@@ -1,5 +1,5 @@
-import React from 'react';
-import styles from './KPISection.module.css';
+import React from "react";
+import styles from "./KPISection.module.css";
 
 const KPISection = ({ analytics }) => {
   if (!analytics) {
@@ -12,41 +12,43 @@ const KPISection = ({ analytics }) => {
 
   const kpis = [
     {
-      title: 'Total Tasks',
+      title: "Total Tasks",
       value: analytics.totalTasks || 0,
-      icon: '📊',
-      color: 'primary'
+      icon: "📊",
+      color: "primary",
     },
     {
-      title: 'Completed',
+      title: "Completed",
       value: analytics.completedTasks || 0,
-      icon: '✅',
-      color: 'success'
+      icon: "✅",
+      color: "success",
     },
     {
-      title: 'In Progress',
+      title: "In Progress",
       value: analytics.inProgressTasks || 0,
-      icon: '🔄',
-      color: 'warning'
+      icon: "🔄",
+      color: "warning",
     },
     {
-      title: 'Overdue',
+      title: "Overdue",
       value: analytics.overdueTasks || 0,
-      icon: '⚠️',
-      color: 'danger'
+      icon: "⚠️",
+      color: "danger",
     },
     {
-      title: 'Completion Rate',
-      value: analytics.completionRate ? `${analytics.completionRate}%` : '0%',
-      icon: '📈',
-      color: 'info'
+      title: "Completion Rate",
+      value: analytics.completionRate ? `${analytics.completionRate}%` : "0%",
+      icon: "📈",
+      color: "info",
     },
     {
-      title: 'Avg. Completion Time',
-      value: analytics.avgCompletionTime ? `${analytics.avgCompletionTime}d` : 'N/A',
-      icon: '⏱️',
-      color: 'secondary'
-    }
+      title: "Avg. Completion Time",
+      value: analytics.avgCompletionTime
+        ? `${analytics.avgCompletionTime}d`
+        : "N/A",
+      icon: "⏱️",
+      color: "secondary",
+    },
   ];
 
   return (
@@ -55,9 +57,7 @@ const KPISection = ({ analytics }) => {
       <div className={styles.kpiGrid}>
         {kpis.map((kpi, index) => (
           <div key={index} className={`${styles.kpiCard} ${styles[kpi.color]}`}>
-            <div className={styles.kpiIcon}>
-              {kpi.icon}
-            </div>
+            <div className={styles.kpiIcon}>{kpi.icon}</div>
             <div className={styles.kpiContent}>
               <h3 className={styles.kpiValue}>{kpi.value}</h3>
               <p className={styles.kpiTitle}>{kpi.title}</p>

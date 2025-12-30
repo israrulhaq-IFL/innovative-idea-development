@@ -1,6 +1,6 @@
-import React from 'react';
-import { useSharePoint } from '../context/SharePointContext';
-import styles from './GroupInfo.module.css';
+import React from "react";
+import { useSharePoint } from "../context/SharePointContext";
+import styles from "./GroupInfo.module.css";
 
 const GroupInfo = () => {
   const { siteGroups, userGroups, loading } = useSharePoint();
@@ -16,13 +16,22 @@ const GroupInfo = () => {
       <div className={styles.section}>
         <h3>All Site Groups ({siteGroups.length})</h3>
         <div className={styles.groupList}>
-          {siteGroups.map(group => (
+          {siteGroups.map((group) => (
             <div key={group.Id} className={styles.groupCard}>
               <h4>{group.Title}</h4>
-              <p><strong>ID:</strong> {group.Id}</p>
-              <p><strong>Description:</strong> {group.Description || 'No description'}</p>
-              <p><strong>Owner:</strong> {group.OwnerTitle}</p>
-              <p><strong>Login Name:</strong> {group.LoginName}</p>
+              <p>
+                <strong>ID:</strong> {group.Id}
+              </p>
+              <p>
+                <strong>Description:</strong>{" "}
+                {group.Description || "No description"}
+              </p>
+              <p>
+                <strong>Owner:</strong> {group.OwnerTitle}
+              </p>
+              <p>
+                <strong>Login Name:</strong> {group.LoginName}
+              </p>
             </div>
           ))}
         </div>
@@ -31,12 +40,19 @@ const GroupInfo = () => {
       <div className={styles.section}>
         <h3>Current User Group Memberships ({userGroups.length})</h3>
         <div className={styles.groupList}>
-          {userGroups.map(group => (
+          {userGroups.map((group) => (
             <div key={group.Id} className={styles.userGroupCard}>
               <h4>{group.Title}</h4>
-              <p><strong>ID:</strong> {group.Id}</p>
-              <p><strong>Description:</strong> {group.Description || 'No description'}</p>
-              <p><strong>Owner:</strong> {group.OwnerTitle}</p>
+              <p>
+                <strong>ID:</strong> {group.Id}
+              </p>
+              <p>
+                <strong>Description:</strong>{" "}
+                {group.Description || "No description"}
+              </p>
+              <p>
+                <strong>Owner:</strong> {group.OwnerTitle}
+              </p>
             </div>
           ))}
         </div>

@@ -1,14 +1,9 @@
-import React, { useMemo } from 'react';
-import { FiTrendingUp, FiTarget, FiClock } from 'react-icons/fi';
-import { LazyStatusCharts, LazyPriorityCharts } from './LazyCharts';
-import styles from './AnalyticsTrends.module.css';
+import React, { useMemo } from "react";
+import { FiTrendingUp, FiTarget, FiClock } from "react-icons/fi";
+import { LazyStatusCharts, LazyPriorityCharts } from "./LazyCharts";
+import styles from "./AnalyticsTrends.module.css";
 
-const AnalyticsTrends = ({
-  tasks,
-  timeRange,
-  department,
-  chartType
-}) => {
+const AnalyticsTrends = ({ tasks, timeRange, department, chartType }) => {
   return (
     <div className={styles.trends}>
       <div className={styles.header}>
@@ -19,7 +14,9 @@ const AnalyticsTrends = ({
       {/* Key Metrics Overview */}
       <div className={styles.metricsOverview}>
         <div className={styles.metric}>
-          <div className={styles.metricIcon}><FiTrendingUp /></div>
+          <div className={styles.metricIcon}>
+            <FiTrendingUp />
+          </div>
           <div className={styles.metricContent}>
             <h3>Completion Trend</h3>
             <p>Tasks completed over time</p>
@@ -27,7 +24,9 @@ const AnalyticsTrends = ({
         </div>
 
         <div className={styles.metric}>
-          <div className={styles.metricIcon}><FiClock /></div>
+          <div className={styles.metricIcon}>
+            <FiClock />
+          </div>
           <div className={styles.metricContent}>
             <h3>Overdue Pattern</h3>
             <p>Delayed tasks identification</p>
@@ -35,7 +34,9 @@ const AnalyticsTrends = ({
         </div>
 
         <div className={styles.metric}>
-          <div className={styles.metricIcon}><FiTarget /></div>
+          <div className={styles.metricIcon}>
+            <FiTarget />
+          </div>
           <div className={styles.metricContent}>
             <h3>Priority Focus</h3>
             <p>High priority task trends</p>

@@ -1,10 +1,10 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import { HashRouter } from 'react-router-dom'
-import { HelmetProvider } from 'react-helmet-async'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import App from './App'
-import './styles/global.css'
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { HashRouter } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import App from './App';
+import './styles/global.css';
 
 // Create a client with optimized settings for SharePoint environment
 const queryClient = new QueryClient({
@@ -27,15 +27,15 @@ const queryClient = new QueryClient({
       // Refetch on window focus for real-time updates
       refetchOnWindowFocus: true,
       // Don't refetch on reconnect (SharePoint handles this)
-      refetchOnReconnect: false
+      refetchOnReconnect: false,
     },
     mutations: {
       // Retry mutations once on failure
       retry: 1,
-      retryDelay: 1000
-    }
-  }
-})
+      retryDelay: 1000,
+    },
+  },
+});
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -47,4 +47,4 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       </QueryClientProvider>
     </HelmetProvider>
   </React.StrictMode>,
-)
+);

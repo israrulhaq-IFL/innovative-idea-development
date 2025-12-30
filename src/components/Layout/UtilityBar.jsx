@@ -1,10 +1,10 @@
-import React from 'react';
-import { FiRefreshCw, FiMoon, FiSun } from 'react-icons/fi';
-import { useSharePoint } from '../../context/SharePointContext';
-import { useTheme } from '../../context/ThemeContext';
-import UserInfo from '../UserInfo';
-import ReloadStatus from './ReloadStatus';
-import styles from './UtilityBar.module.css';
+import React from "react";
+import { FiRefreshCw, FiMoon, FiSun } from "react-icons/fi";
+import { useSharePoint } from "../../context/SharePointContext";
+import { useTheme } from "../../context/ThemeContext";
+import UserInfo from "../UserInfo";
+import ReloadStatus from "./ReloadStatus";
+import styles from "./UtilityBar.module.css";
 
 const UtilityBar = () => {
   const { user, permissions, refreshData } = useSharePoint();
@@ -41,14 +41,14 @@ const UtilityBar = () => {
           <button
             className={styles.themeToggle}
             onClick={toggleTheme}
-            aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
-            title={`Switch to ${isDark ? 'light' : 'dark'} mode`}
+            aria-label={`Switch to ${isDark ? "light" : "dark"} mode`}
+            title={`Switch to ${isDark ? "light" : "dark"} mode`}
           >
             <span className={styles.themeIcon}>
               {isDark ? <FiSun /> : <FiMoon />}
             </span>
             <span className={styles.themeText}>
-              {isDark ? 'Light' : 'Dark'}
+              {isDark ? "Light" : "Dark"}
             </span>
           </button>
 

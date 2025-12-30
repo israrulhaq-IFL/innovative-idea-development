@@ -1,44 +1,44 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { FiBarChart2, FiTrendingUp, FiSettings, FiHome } from 'react-icons/fi';
-import { useSharePoint } from '../../context/SharePointContext';
-import styles from './Sidebar.module.css';
+import React from "react";
+import { Link, useLocation } from "react-router-dom";
+import { FiBarChart2, FiTrendingUp, FiSettings, FiHome } from "react-icons/fi";
+import { useSharePoint } from "../../context/SharePointContext";
+import styles from "./Sidebar.module.css";
 
 const Sidebar = ({ currentPath }) => {
   const { user, permissions } = useSharePoint();
 
   const menuItems = [
     {
-      path: '/',
-      label: 'Dashboard',
+      path: "/",
+      label: "Dashboard",
       icon: <FiBarChart2 />,
-      permission: 'view'
+      permission: "view",
     },
     {
-      path: '/analytics',
-      label: 'Analytics',
+      path: "/analytics",
+      label: "Analytics",
       icon: <FiTrendingUp />,
-      permission: 'view'
+      permission: "view",
     },
     {
-      path: '/settings',
-      label: 'Settings',
+      path: "/settings",
+      label: "Settings",
       icon: <FiSettings />,
-      permission: 'view'
-    }
+      permission: "view",
+    },
   ];
 
   const hasPermission = (requiredPermission) => {
     if (!permissions) return false;
 
     switch (requiredPermission) {
-      case 'view':
+      case "view":
         return true;
-      case 'edit':
+      case "edit":
         return permissions.canEdit;
-      case 'admin':
+      case "admin":
         return permissions.isManagement;
-      case 'executive':
+      case "executive":
         return permissions.isExecutive || permissions.isManagement;
       default:
         return false;
@@ -58,13 +58,13 @@ const Sidebar = ({ currentPath }) => {
       <nav className={styles.nav}>
         <ul className={styles.navList}>
           {menuItems
-            .filter(item => hasPermission(item.permission))
-            .map(item => (
+            .filter((item) => hasPermission(item.permission))
+            .map((item) => (
               <li key={item.path} className={styles.navItem}>
                 <Link
                   to={item.path}
                   className={`${styles.navLink} ${
-                    currentPath === item.path ? styles.active : ''
+                    currentPath === item.path ? styles.active : ""
                   }`}
                   title={item.label}
                 >
@@ -78,7 +78,7 @@ const Sidebar = ({ currentPath }) => {
       {user && (
         <div className={styles.userSection}>
           <div className={styles.userAvatar}>
-            {user.Title ? user.Title.charAt(0).toUpperCase() : 'U'}
+            {user.Title ? user.Title.charAt(0).toUpperCase() : "U"}
           </div>
         </div>
       )}
