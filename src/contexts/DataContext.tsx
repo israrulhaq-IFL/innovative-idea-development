@@ -68,7 +68,7 @@ export interface Approver {
 export interface IdeaTrailEvent {
   id: number;
   ideaId: number;
-  eventType: "submitted" | "reviewed" | "approved" | "rejected" | "implementation_started" | "implementation_completed" | "status_changed" | "commented" | "attachment_added";
+  eventType: "submitted" | "reviewed" | "approved" | "rejected" | "implementation_started" | "implementation_completed" | "status_changed" | "commented" | "attachment_added" | "task_created";
   title: string;
   description: string;
   actor: string;
@@ -482,6 +482,49 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
 
       // Update the idea status via API
       const updatedIdea = await ideaApi.updateIdea(ideaId, updateData);
+
+      // Create trail event for status change
+      try {
+        const currentIdea = state.data.ideas.find(idea => idea.id === ideaId);
+        if (currentIdea) {
+          let eventType: IdeaTrailEvent['eventType'] = "status_changed";
+          let eventTitle = `Idea ${newStatus}`;
+          let eventDescription = `Idea "${currentIdea.title}" status changed to ${newStatus}`;
+
+          // Determine specific event type based on status transition
+          if (newStatus === "Approved") {
+            eventType = "approved";
+          } else if (newStatus === "Rejected") {
+            eventType = "rejected";
+          } else if (newStatus === "In Progress" && currentIdea.status === "Approved") {
+            eventType = "implementation_started";
+            eventTitle = "Implementation Started";
+            eventDescription = `Implementation of idea "${currentIdea.title}" has begun`;
+          } else if (newStatus === "Completed" && currentIdea.status === "In Progress") {
+            eventType = "implementation_completed";
+            eventTitle = "Implementation Completed";
+            eventDescription = `Implementation of idea "${currentIdea.title}" has been completed`;
+          }
+
+          await ideaApi.createIdeaTrailEvent({
+            ideaId: ideaId,
+            eventType: eventType,
+            title: eventTitle,
+            description: eventDescription,
+            actor: user?.user?.Title || "System",
+            actorId: user?.user?.Id || 0,
+            previousStatus: currentIdea.status,
+            newStatus: newStatus,
+            metadata: {
+              approvedBy: user?.user?.Title,
+              previousStatus: currentIdea.status
+            }
+          });
+        }
+      } catch (trailError) {
+        console.error('Failed to create trail event for status change', trailError);
+        // Don't fail the status update if trail event fails
+      }
 
       // Update local state
       const updatedIdeas = state.data.ideas.map(idea =>

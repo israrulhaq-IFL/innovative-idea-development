@@ -94,7 +94,7 @@ export class IdeaApiService {
     priority: string;
     status: string;
     attachments?: File[];
-  }): Promise<ProcessedIdea> {
+  }, user?: { id: number; name: string }): Promise<ProcessedIdea> {
     try {
       const endpoint = `/_api/web/lists/getbytitle('${LISTS.ideas}')/items`;
 
@@ -117,6 +117,28 @@ export class IdeaApiService {
       // Handle attachments if provided
       if (ideaData.attachments && ideaData.attachments.length > 0) {
         await this.uploadAttachments(newIdeaId, ideaData.attachments);
+      }
+
+      // Create trail event for idea creation
+      try {
+        await this.createIdeaTrailEvent({
+          ideaId: newIdeaId,
+          eventType: "submitted",
+          title: "Idea Submitted",
+          description: `Idea "${ideaData.title}" was submitted for review`,
+          actor: user?.name || "Unknown User",
+          actorId: user?.id || 0,
+          previousStatus: undefined,
+          newStatus: "Pending",
+          metadata: {
+            category: ideaData.category,
+            priority: ideaData.priority,
+            hasAttachments: ideaData.attachments && ideaData.attachments.length > 0
+          }
+        });
+      } catch (trailError) {
+        logError('Failed to create trail event for idea creation', trailError);
+        // Don't fail the idea creation if trail event fails
       }
 
       // Fetch and return the complete idea
@@ -173,6 +195,7 @@ export class IdeaApiService {
   async createTaskForIdea(
     ideaId: number,
     task: Omit<Task, 'id' | 'ideaId'>,
+    user?: { id: number; name: string }
   ): Promise<ProcessedTask> {
     try {
       const endpoint = `/_api/web/lists/getbytitle('${LISTS.tasks}')/items`;
@@ -195,6 +218,31 @@ export class IdeaApiService {
       const response = await sharePointApi.post<any>(endpoint, data);
 
       logInfo('Task created successfully', { id: response.d.ID, ideaId });
+
+      // Create trail event for task creation
+      try {
+        await this.createIdeaTrailEvent({
+          ideaId: ideaId,
+          eventType: "task_created",
+          title: "Task Created",
+          description: `Task "${task.title}" was created for the idea`,
+          actor: user?.name || "Unknown User",
+          actorId: user?.id || 0,
+          previousStatus: undefined,
+          newStatus: undefined,
+          metadata: {
+            taskId: response.d.ID,
+            taskTitle: task.title,
+            assignedTo: task.assignedTo,
+            priority: task.priority,
+            dueDate: task.dueDate
+          }
+        });
+      } catch (trailError) {
+        logError('Failed to create trail event for task creation', trailError);
+        // Don't fail the task creation if trail event fails
+      }
+
       return this.processTask(response.d);
     } catch (error) {
       logError('Failed to create task', error);

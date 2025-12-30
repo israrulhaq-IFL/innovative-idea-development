@@ -236,6 +236,9 @@ const IdeaFormPage: React.FC = () => {
         priority: formData.priority,
         status: "Pending Approval",
         attachments: formData.attachments.map(att => att.file),
+      }, {
+        id: user.user.Id,
+        name: user.user.Title
       });
 
       logInfo("Idea submitted successfully", { ideaId: newIdea.id });

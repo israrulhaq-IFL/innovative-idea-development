@@ -98,6 +98,10 @@ const IdeaTrailModal: React.FC<IdeaTrailModalProps> = ({ isOpen, onClose, idea }
           status = 'completed';
           iconType = 'completed';
           break;
+        case 'task_created':
+          status = 'completed';
+          iconType = 'task';
+          break;
         default:
           status = 'completed';
           iconType = 'default';
