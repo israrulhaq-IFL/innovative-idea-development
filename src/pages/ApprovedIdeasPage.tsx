@@ -175,7 +175,7 @@ const ApprovedIdeasPage: React.FC = () => {
       // Prepare task data for SharePoint
       const taskData = {
         Title: taskFormData.title,
-        innovative_ideasId: parseInt(taskFormData.ideaId),
+        IdeaIdId: parseInt(taskFormData.ideaId),
         Priority: taskFormData.priority,
         Status: taskFormData.status,
         PercentComplete: taskFormData.percentComplete / 100, // Convert to decimal
@@ -184,6 +184,9 @@ const ApprovedIdeasPage: React.FC = () => {
         StartDate: taskFormData.startDate ? new Date(taskFormData.startDate).toISOString() : null,
         DueDate: taskFormData.dueDate ? new Date(taskFormData.dueDate).toISOString() : null,
       };
+
+      console.log("[ApprovedIdeasPage] Prepared task data:", taskData);
+      logInfo("[ApprovedIdeasPage] Creating task:", taskData);
 
       const result = await ideaApi.createTask(taskData);
 
@@ -420,7 +423,7 @@ const ApprovedIdeasPage: React.FC = () => {
 
                     <div className={formStyles.row}>
                       <ValidatedInput
-                        label="Task Title *"
+                        label="Task Title"
                         type="text"
                         value={taskFormData.title}
                         onChange={(value) => handleInputChange("title", value)}
@@ -533,7 +536,8 @@ const ApprovedIdeasPage: React.FC = () => {
                       Cancel
                     </button>
                     <button
-                      type="submit"
+                      type="button"
+                      onClick={handleSubmit}
                       className={formStyles.submitBtn}
                       disabled={isSubmitting}
                     >

@@ -91,7 +91,7 @@ export const ValidatedSelect: React.FC<ValidatedSelectProps> = ({
       {label && (
         <label htmlFor={id} className="validated-select-label">
           {label}
-          {required && <span className="validated-select-required">*</span>}
+          {required && <span style={{color: '#d13438', marginLeft: '2px', fontWeight: 'bold'}}>*</span>}
         </label>
       )}
 

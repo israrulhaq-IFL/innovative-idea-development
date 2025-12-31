@@ -123,6 +123,56 @@
   outline-offset: 1px;
 }
 
+/* Selected users list for multiple selection */
+.selectedUsersList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding: 8px;
+  background-color: var(--input-bg, #f9f9f9);
+  border: 1px solid var(--border-color, #ddd);
+  border-radius: 4px;
+}
+
+.selectedUserChip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  background-color: #e8f4fc;
+  border: 1px solid var(--utility-bg-primary, #0078d4);
+  border-radius: 16px;
+  color: var(--text-primary, #333);
+  font-size: 0.85rem;
+}
+
+.selectedUserChip i.fa-user {
+  color: var(--utility-bg-primary, #0078d4);
+  font-size: 0.8rem;
+}
+
+.selectedUserChip .userName {
+  font-weight: 600;
+}
+
+.selectedUserChip .userEmail {
+  color: #666;
+  font-size: 0.75rem;
+}
+
+.selectedUserChip .removeButton {
+  margin-left: 4px;
+  padding: 2px 4px;
+  font-size: 0.7rem;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 /* Suggestions dropdown */
 .suggestions {
   position: absolute;

@@ -256,11 +256,16 @@ export class IdeaApiService {
     user?: { id: number; name: string },
   ): Promise<ProcessedTask> {
     try {
+      // Get the list item type
+      const listEndpoint = `/_api/web/lists/getbytitle('${LISTS.tasks}')`;
+      const listResponse = await sharePointApi.get<any>(listEndpoint);
+      const listItemType = listResponse.d.ListItemEntityTypeFullName;
+
       const endpoint = `/_api/web/lists/getbytitle('${LISTS.tasks}')/items`;
 
       const data = {
         __metadata: {
-          type: "SP.Data.ino_x005f_ideas_x005f_tasksListItem",
+          type: listItemType,
         },
         Title: task.title,
         Body: task.description,
@@ -306,6 +311,66 @@ export class IdeaApiService {
       return this.processTask(response.d);
     } catch (error) {
       logError("Failed to create task", error);
+      throw error;
+    }
+  }
+
+  // Create task (generic method for backward compatibility)
+  async createTask(taskData: any): Promise<any> {
+    logInfo("createTask method called with data:", taskData);
+    try {
+      // Test basic API connectivity first
+      logInfo("Testing SharePoint API connectivity...");
+      const testEndpoint = `/_api/web/currentuser`;
+      try {
+        const testResponse = await sharePointApi.get<any>(testEndpoint);
+        logInfo("API connectivity test passed:", testResponse.d.Title);
+      } catch (testError) {
+        logError("API connectivity test failed:", testError);
+        throw new Error("Cannot connect to SharePoint API");
+      }
+
+      // Check if the list exists
+      const listEndpoint = `/_api/web/lists/getbytitle('${LISTS.tasks}')`;
+      logInfo("Checking if list exists:", listEndpoint);
+      const listResponse = await sharePointApi.get<any>(listEndpoint);
+      logInfo("List exists:", listResponse.d.Title);
+
+      const endpoint = `/_api/web/lists/getbytitle('${LISTS.tasks}')/items`;
+      logInfo("Creating task at endpoint:", endpoint);
+
+      const data = {
+        __metadata: {
+          type: "SP.Data.Ino_x005f_ideas_x005f_tasksListItem",
+        },
+        Title: taskData.Title,
+        Status: taskData.Status,
+        Priority: taskData.Priority || "Normal",
+        PercentComplete: taskData.PercentComplete || 0,
+        IdeaIdId: taskData.IdeaIdId,
+      };
+
+      // Add optional fields if they exist
+      if (taskData.Description) data.Body = taskData.Description;
+      if (taskData.DueDate) data.DueDate = taskData.DueDate;
+      if (taskData.StartDate) data.StartDate = taskData.StartDate;
+      if (taskData.AssignedToId) data.AssignedToId = taskData.AssignedToId;
+
+      logInfo("Creating task with data", { data });
+
+      logInfo("About to make POST request to SharePoint API");
+      const response = await sharePointApi.post<any>(endpoint, data);
+      logInfo("POST request completed, got response");
+
+      logInfo("Task created successfully", { id: response.d.ID });
+
+      return response.d;
+    } catch (error) {
+      logError("Failed to create task", error);
+      logError("Error type:", typeof error);
+      logError("Error message:", error?.message);
+      logError("Error stack:", error?.stack);
+      logError("Task data that failed", taskData);
       throw error;
     }
   }

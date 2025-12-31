@@ -36,24 +36,33 @@ interface SelectedUser {
 interface PeoplePickerProps {
   id: string;
   label: string;
-  value: SelectedUser | null;
-  onChange: (user: SelectedUser | null) => void;
+  value?: SelectedUser | null; // For backward compatibility
+  selectedUsers?: SelectedUser[]; // For multiple selection
+  onChange?: (user: SelectedUser | null) => void; // For backward compatibility
+  onSelectionChange?: (users: SelectedUser[]) => void; // For multiple selection
   placeholder?: string;
   disabled?: boolean;
   required?: boolean;
   className?: string;
+  multiple?: boolean;
 }
 
 const PeoplePicker: React.FC<PeoplePickerProps> = ({
   id,
   label,
   value,
+  selectedUsers = [],
   onChange,
+  onSelectionChange,
   placeholder = "Search for a person...",
   disabled = false,
   required = false,
   className = "",
+  multiple = false,
 }) => {
+  // Use the appropriate value based on mode
+  const currentUsers = multiple ? selectedUsers : (value ? [value] : []);
+  const isMultiple = multiple;
   const [searchText, setSearchText] = useState("");
   const [suggestions, setSuggestions] = useState<PeoplePickerResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -217,14 +226,21 @@ const PeoplePicker: React.FC<PeoplePickerProps> = ({
           email: user.EntityData.Email || user.Description || "",
         };
 
-        onChange(selectedUser);
-        logInfo(
-          `[PeoplePicker] Selected user: ${user.DisplayText} (ID: ${userId})`,
-        );
+        if (isMultiple) {
+          // Check if user is already selected
+          const isAlreadySelected = currentUsers.some(u => u.id === selectedUser.id);
+          if (!isAlreadySelected) {
+            const newUsers = [...currentUsers, selectedUser];
+            onSelectionChange?.(newUsers);
+            logInfo(`[PeoplePicker] Added user: ${user.DisplayText} (ID: ${userId})`);
+          }
+        } else {
+          // Single selection mode
+          onChange?.(selectedUser);
+          logInfo(`[PeoplePicker] Selected user: ${user.DisplayText} (ID: ${userId})`);
+        }
       } else {
-        logError(
-          `[PeoplePicker] Could not resolve user ID for: ${user.DisplayText}`,
-        );
+        logError(`[PeoplePicker] Could not resolve user ID for: ${user.DisplayText}`);
       }
     } catch (error) {
       logError("[PeoplePicker] Error selecting user:", error);
@@ -236,8 +252,13 @@ const PeoplePicker: React.FC<PeoplePickerProps> = ({
   };
 
   // Handle removing selected user
-  const handleRemoveUser = () => {
-    onChange(null);
+  const handleRemoveUser = (userId: number) => {
+    if (isMultiple) {
+      const newUsers = currentUsers.filter(u => u.id !== userId);
+      onSelectionChange?.(newUsers);
+    } else {
+      onChange?.(null);
+    }
     setSearchText("");
     inputRef.current?.focus();
   };
@@ -287,8 +308,33 @@ const PeoplePicker: React.FC<PeoplePickerProps> = ({
       </label>
 
       <div className={styles.inputWrapper}>
-        {/* Selected user chip */}
-        {value && (
+        {/* Selected users chips - show in multiple mode */}
+        {isMultiple && currentUsers.length > 0 && (
+          <div className={styles.selectedUsersList}>
+            {currentUsers.map((user) => (
+              <div key={user.id} className={styles.selectedUserChip}>
+                <i className="fas fa-user"></i>
+                <span className={styles.userName}>{user.name}</span>
+                {user.email && (
+                  <span className={styles.userEmail}>({user.email})</span>
+                )}
+                {!disabled && (
+                  <button
+                    type="button"
+                    className={styles.removeButton}
+                    onClick={() => handleRemoveUser(user.id)}
+                    aria-label={`Remove ${user.name}`}
+                  >
+                    <i className="fas fa-times"></i>
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Selected user chip - show in single mode */}
+        {!isMultiple && value && (
           <div className={styles.selectedUser}>
             <i className="fas fa-user"></i>
             <span className={styles.userName}>{value.name}</span>
@@ -299,7 +345,7 @@ const PeoplePicker: React.FC<PeoplePickerProps> = ({
               <button
                 type="button"
                 className={styles.removeButton}
-                onClick={handleRemoveUser}
+                onClick={() => handleRemoveUser(value.id)}
                 aria-label="Remove selected user"
               >
                 <i className="fas fa-times"></i>
@@ -308,8 +354,8 @@ const PeoplePicker: React.FC<PeoplePickerProps> = ({
           </div>
         )}
 
-        {/* Search input - only show when no user selected */}
-        {!value && (
+        {/* Search input - always show in multiple mode, only show when no user selected in single mode */}
+        {isMultiple || !value ? (
           <div className={styles.searchInputContainer}>
             <i className={`fas fa-search ${styles.searchIcon}`}></i>
             <input
@@ -332,10 +378,10 @@ const PeoplePicker: React.FC<PeoplePickerProps> = ({
               <i className={`fas fa-spinner fa-spin ${styles.loadingIcon}`}></i>
             )}
           </div>
-        )}
+        ) : null}
 
         {/* Suggestions dropdown */}
-        {showSuggestions && !value && (
+        {showSuggestions && (
           <ul
             id={`${id}-suggestions`}
             className={styles.suggestions}

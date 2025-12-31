@@ -51,6 +51,43 @@
   font-size: 0.9rem;
 }
 
+.required {
+  color: #d13438;
+  margin-left: 2px;
+  font-weight: bold;
+}
+
+.label .required {
+  color: #d13438;
+}
+
+.input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color, #ddd);
+  border-radius: 4px;
+  background-color: var(--input-bg, #fff);
+  color: var(--text-primary, #333);
+  font-size: 0.9rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--utility-bg-primary, #0078d4);
+  box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.15);
+}
+
+.input:disabled {
+  background-color: #f4f4f4;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.input::placeholder {
+  color: #999;
+}
+
 .fieldHint {
   font-size: 0.8rem;
   color: #666;

@@ -120,6 +120,13 @@ export class SecureApiClient {
       });
 
       if (!response.ok) {
+        const responseText = await response.text();
+        logError('HTTP Error Response:', {
+          status: response.status,
+          statusText: response.statusText,
+          url,
+          responseText: responseText.substring(0, 500), // First 500 chars
+        });
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
@@ -128,8 +135,20 @@ export class SecureApiClient {
         return { d: {} } as SharePointApiResponse<T>;
       }
 
-      const data = await response.json();
-      return data as SharePointApiResponse<T>;
+      // Log response details for debugging
+      const contentType = response.headers.get('content-type');
+      logInfo('Response details:', { status: response.status, contentType, url });
+
+      const responseText = await response.text();
+      logInfo('Raw response (first 200 chars):', responseText.substring(0, 200));
+
+      try {
+        const data = JSON.parse(responseText);
+        return data as SharePointApiResponse<T>;
+      } catch (jsonError) {
+        logError('JSON parse error:', { jsonError, responseText: responseText.substring(0, 500) });
+        throw jsonError;
+      }
     } catch (error) {
       if (retryCount < maxRetries) {
         logInfo(`Request failed, retrying (${retryCount + 1}/${maxRetries})`, {

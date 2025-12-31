@@ -87,7 +87,7 @@ export const ValidatedInput: React.FC<ValidatedInputProps> = ({
       {label && (
         <label htmlFor={id} className="form-label">
           {label}
-          {required && <span className="text-danger ms-1">*</span>}
+          {required && <span style={{color: '#d13438', marginLeft: '2px', fontWeight: 'bold'}}>*</span>}
         </label>
       )}
 
