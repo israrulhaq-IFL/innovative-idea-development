@@ -261,6 +261,29 @@ const ApprovedIdeasPage: React.FC = () => {
         </p>
       </div>
 
+      {/* Search Bar - Moved to top */}
+      <div className={styles.searchSection}>
+        <div className={styles.searchContainer}>
+          <i className={`fas fa-search ${styles.searchIcon}`}></i>
+          <input
+            type="text"
+            placeholder="Search approved ideas by title, description, category, or creator..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className={styles.searchInput}
+          />
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm("")}
+              className={styles.clearButton}
+              aria-label="Clear search"
+            >
+              <i className="fas fa-times"></i>
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Statistics Cards */}
       <div className={styles.statsGrid}>
         <motion.div
@@ -288,29 +311,6 @@ const ApprovedIdeasPage: React.FC = () => {
             <p className={styles.statLabel}>Filtered Results</p>
           </div>
         </motion.div>
-      </div>
-
-      {/* Search Bar */}
-      <div className={styles.searchSection}>
-        <div className={styles.searchContainer}>
-          <i className={`fas fa-search ${styles.searchIcon}`}></i>
-          <input
-            type="text"
-            placeholder="Search approved ideas by title, description, category, or creator..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className={styles.searchInput}
-          />
-          {searchTerm && (
-            <button
-              onClick={() => setSearchTerm("")}
-              className={styles.clearButton}
-              aria-label="Clear search"
-            >
-              <i className="fas fa-times"></i>
-            </button>
-          )}
-        </div>
       </div>
 
       {/* Split Screen Layout */}
@@ -526,11 +526,11 @@ const ApprovedIdeasPage: React.FC = () => {
                   </div>
 
                   {/* Form Actions */}
-                  <div className={formStyles.formActions}>
+                  <div className={formStyles.actions}>
                     <button
                       type="button"
                       onClick={handleCancelTask}
-                      className={formStyles.cancelBtn}
+                      className={formStyles.cancelButton}
                       disabled={isSubmitting}
                     >
                       Cancel
@@ -538,7 +538,7 @@ const ApprovedIdeasPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={handleSubmit}
-                      className={formStyles.submitBtn}
+                      className={formStyles.submitButton}
                       disabled={isSubmitting}
                     >
                       {isSubmitting ? "Creating Task..." : "Create Task"}
