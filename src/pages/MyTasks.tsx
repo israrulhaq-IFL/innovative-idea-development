@@ -7,8 +7,10 @@ import { useNotification } from "../contexts/NotificationContext";
 import { ideaApi } from "../services/ideaApi";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import StatusBar from "../components/common/StatusBar";
+import { ValidatedInput } from "../components/common/ValidatedInput.tsx";
+import { ValidatedSelect } from "../components/common/ValidatedSelect.tsx";
 import { logInfo, logError } from "../utils/logger";
-import styles from '../components/common/MyIdeas.module.css';
+import styles from './MyTasks.module.css';
 
 const MyTasks: React.FC = () => {
   const navigate = useNavigate();
@@ -363,17 +365,17 @@ const MyTasks: React.FC = () => {
                     <div className={styles.detailItem}>
                       <span className={styles.detailLabel}>Status</span>
                       {isEditMode ? (
-                        <select
+                        <ValidatedSelect
+                          label=""
                           value={editedTask?.status || selectedTask.status}
-                          onChange={(e) => handleStatusChange(e.target.value)}
-                          className={styles.detailValue}
-                          style={{ padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px', width: '100%' }}
-                        >
-                          <option value="Not Started">Not Started</option>
-                          <option value="In Progress">In Progress</option>
-                          <option value="Completed">Completed</option>
-                          <option value="On Hold">On Hold</option>
-                        </select>
+                          onChange={(value) => handleStatusChange(value)}
+                          options={[
+                            { value: "Not Started", label: "Not Started" },
+                            { value: "In Progress", label: "In Progress" },
+                            { value: "Completed", label: "Completed" },
+                            { value: "On Hold", label: "On Hold" },
+                          ]}
+                        />
                       ) : (
                         <span className={styles.detailValue}>{selectedTask.status}</span>
                       )}
@@ -385,14 +387,13 @@ const MyTasks: React.FC = () => {
                     <div className={styles.detailItem}>
                       <span className={styles.detailLabel}>Progress</span>
                       {isEditMode ? (
-                        <input
+                        <ValidatedInput
+                          label=""
                           type="number"
+                          value={editedTask?.percentComplete !== undefined ? Math.round(editedTask.percentComplete).toString() : Math.round(selectedTask.percentComplete).toString()}
+                          onChange={(value) => handleProgressChange(parseInt(value) || 0)}
                           min="0"
                           max="100"
-                          value={editedTask?.percentComplete !== undefined ? Math.round(editedTask.percentComplete) : Math.round(selectedTask.percentComplete)}
-                          onChange={(e) => handleProgressChange(parseInt(e.target.value) || 0)}
-                          className={styles.detailValue}
-                          style={{ padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px', width: '100%' }}
                         />
                       ) : (
                         <span className={styles.detailValue}>{Math.round(selectedTask.percentComplete)}%</span>
