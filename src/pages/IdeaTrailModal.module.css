@@ -73,16 +73,18 @@
 .modalBody {
   flex: 1;
   display: flex;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .trailCanvas {
   flex: 1;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
   background: #f8fafc;
 }
 
+/* Commented out old container styles that conflict with React Flow */
+/*
 .canvasViewport {
   position: absolute;
   top: 0;
@@ -104,14 +106,17 @@
   padding: 2rem;
 }
 
-.timelineContainer {
+.workflowContainer {
   position: relative;
-  min-width: 800px;
-  min-height: 600px;
+  min-width: 1200px;
+  min-height: 800px;
   padding: 2rem;
 }
+*/
 
-.timelineSvg {
+/* Commented out old SVG workflow styles that conflict with React Flow */
+/*
+.workflowSvg {
   position: absolute;
   top: 0;
   left: 0;
@@ -121,7 +126,7 @@
   z-index: 1;
 }
 
-.timelineConnector {
+.workflowLine {
   stroke-dasharray: 5, 5;
   animation: flow 2s linear infinite;
 }
@@ -132,26 +137,34 @@
   }
 }
 
-.timelineFlow {
+.workflowSteps {
   position: relative;
   z-index: 2;
 }
 
-.timelineItem {
+.workflowStep {
   position: absolute;
-  left: 150px;
-  width: calc(100% - 200px);
-  display: flex;
-  align-items: flex-start;
-  gap: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
-.timelineNode {
-  flex-shrink: 0;
+.workflowStep:hover {
+  transform: scale(1.1);
+  z-index: 10;
+}
+*/
+
+.reactFlowWrapper {
+  width: 100%;
+  height: 100%;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: white;
   position: relative;
+  overflow: visible;
 }
 
-.timelineNodeIcon {
+.workflowNode {
   width: 60px;
   height: 60px;
   border-radius: 50%;
@@ -161,23 +174,23 @@
   color: white;
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
   transition: all 0.3s ease;
-  position: relative;
-  z-index: 3;
+  border: 3px solid white;
+  cursor: pointer;
 }
 
-.timelineNodeIcon.completed {
-  background: linear-gradient(135deg, #10b981, #059669);
+.workflowNode.completed {
+  background: linear-gradient(135deg, #ff0000, #ff6666);
 }
 
-.timelineNodeIcon.rejected {
+.workflowNode.rejected {
   background: linear-gradient(135deg, #ef4444, #dc2626);
 }
 
-.timelineNodeIcon.pending {
+.workflowNode.pending {
   background: linear-gradient(135deg, #6b7280, #4b5563);
 }
 
-.timelineNodeIcon.current {
+.workflowNode.current {
   background: linear-gradient(135deg, #f59e0b, #d97706);
   animation: pulse 2s infinite;
 }
@@ -193,35 +206,40 @@
   }
 }
 
-.timelineNodeIcon svg {
-  width: 24px;
-  height: 24px;
-}
-
-.timelineCard {
+.workflowHoverCard {
+  position: absolute;
+  top: 20px;
+  right: 20px;
   background: white;
-  border-radius: 16px;
+  border-radius: 12px;
   padding: 1.5rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
   border: 1px solid #e5e7eb;
-  transition: all 0.3s ease;
-  flex: 1;
-  position: relative;
+  min-width: 300px;
+  max-width: 400px;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
 }
 
-.timelineCard:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.timelineCardHeader {
+.workflowHoverHeader {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 0.75rem;
 }
 
-.timelineCardTitle {
+.workflowHoverTitle {
   font-size: 1.1rem;
   font-weight: 600;
   color: #1f2937;
@@ -231,11 +249,11 @@
   flex: 1;
 }
 
-.timelineCardTitle svg {
+.workflowHoverTitle svg {
   color: #10b981;
 }
 
-.timelineCardTimestamp {
+.workflowHoverTimestamp {
   font-size: 0.85rem;
   color: #6b7280;
   font-weight: 500;
@@ -243,7 +261,7 @@
   margin-left: 1rem;
 }
 
-.timelineCardActor {
+.workflowHoverActor {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -255,21 +273,21 @@
   border-radius: 8px;
 }
 
-.timelineCardActor svg {
+.workflowHoverActor svg {
   color: #6b7280;
 }
 
-.timelineCardContent {
+.workflowHoverContent {
   color: #374151;
   line-height: 1.6;
 }
 
-.timelineCardDescription {
+.workflowHoverDescription {
   font-size: 0.95rem;
   margin-bottom: 0.5rem;
 }
 
-.timelineCardDetail {
+.workflowHoverDetail {
   font-size: 0.85rem;
   color: #6b7280;
   margin-bottom: 0.25rem;
@@ -277,40 +295,53 @@
   border-left: 2px solid #e5e7eb;
 }
 
-.timelineCardActions {
-  margin-top: 1rem;
-  display: flex;
-  gap: 0.75rem;
-}
-
-.timelineAction {
-  padding: 0.5rem 1rem;
+.workflowLegend {
+  position: absolute;
+  bottom: 1rem;
+  left: 1rem;
+  background: white;
   border-radius: 8px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: none;
+  padding: 1rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e5e7eb;
+  display: flex;
+  gap: 1rem;
+  z-index: 10;
 }
 
-.timelineAction.primary {
-  background: #3b82f6;
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: #374151;
+}
+
+.legendIcon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: white;
 }
 
-.timelineAction.primary:hover {
-  background: #2563eb;
-  transform: translateY(-1px);
+.legendIcon.completed {
+  background: linear-gradient(135deg, #10b981, #059669);
 }
 
-.timelineAction.secondary {
-  background: #f3f4f6;
-  color: #374151;
-  border: 1px solid #d1d5db;
+.legendIcon.rejected {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
 }
 
-.timelineAction.secondary:hover {
-  background: #e5e7eb;
+.legendIcon.pending {
+  background: linear-gradient(135deg, #6b7280, #4b5563);
+}
+
+.legendIcon svg {
+  width: 14px;
+  height: 14px;
 }
 
 /* Mini-map for navigation */

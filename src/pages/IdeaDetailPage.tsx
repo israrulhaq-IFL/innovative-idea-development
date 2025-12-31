@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useIdeaData , ProcessedIdea } from "../contexts/DataContext";
+import { useIdeaData, ProcessedIdea } from "../contexts/DataContext";
 import { useUser } from "../contexts/UserContext";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import StatusBar from "../components/common/StatusBar";
@@ -11,16 +11,41 @@ import styles from '../components/common/IdeaDetail.module.css';
 const IdeaDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { ideas, loading, error, loadIdeaTrailEvents } = useIdeaData();
+  const { data, loading, error, loadIdeaTrailEvents } = useIdeaData();
   const { user } = useUser();
   const [idea, setIdea] = useState<ProcessedIdea | null>(null);
   const [isTrailModalOpen, setIsTrailModalOpen] = useState(false);
+  const trailLoadedRef = useRef(false);
+
+  // Get ideas from data safely
+  const ideas = data?.ideas || [];
 
   useEffect(() => {
     if (ideas.length > 0 && id) {
       const foundIdea = ideas.find((i) => i.id.toString() === id);
       if (foundIdea) {
-        setIdea(foundIdea);
+        // Convert plain Idea to ProcessedIdea
+        const processedIdea: ProcessedIdea = {
+          id: foundIdea.id,
+          title: foundIdea.title,
+          description: foundIdea.description,
+          // Map status "Pending" to "Pending Approval" if needed
+          status: foundIdea.status === 'Pending' ? 'Pending Approval' : foundIdea.status as any,
+          category: foundIdea.category,
+          priority: foundIdea.priority,
+          created: foundIdea.createdDate,
+          modified: foundIdea.createdDate, // Fallback as modified date isn't in simple Idea
+          createdBy: {
+            id: 0, // Placeholder
+            name: foundIdea.createdBy,
+            email: ''
+          },
+          approvedBy: foundIdea.approvedBy ? {
+            id: 0,
+            name: foundIdea.approvedBy
+          } : undefined
+        };
+        setIdea(processedIdea);
       } else {
         navigate('/dashboard');
       }
@@ -28,9 +53,12 @@ const IdeaDetailPage: React.FC = () => {
   }, [ideas, id, navigate]);
 
   useEffect(() => {
-    // Load trail events when component mounts
-    loadIdeaTrailEvents();
-  }, [loadIdeaTrailEvents]);
+    // Load trail events when component mounts - only once
+    if (!trailLoadedRef.current) {
+      trailLoadedRef.current = true;
+      loadIdeaTrailEvents();
+    }
+  }, []);
 
   if (loading.ideas) {
     return (
@@ -86,30 +114,28 @@ const IdeaDetailPage: React.FC = () => {
         <div className={styles.headerMeta}>
           <span className={styles.category}>{idea.category}</span>
           <span
-            className={`${styles.status} ${
-              idea.status === 'Approved'
-                ? styles.statusApproved
-                : idea.status === 'Pending Approval'
-                  ? styles.statusPending
-                  : idea.status === 'Rejected'
-                    ? styles.statusRejected
-                    : idea.status === 'In Progress'
-                      ? styles.statusInProgress
-                      : styles.statusDefault
-            }`}
+            className={`${styles.status} ${idea.status === 'Approved'
+              ? styles.statusApproved
+              : idea.status === 'Pending Approval'
+                ? styles.statusPending
+                : idea.status === 'Rejected'
+                  ? styles.statusRejected
+                  : idea.status === 'In Progress'
+                    ? styles.statusInProgress
+                    : styles.statusDefault
+              }`}
           >
             {idea.status}
           </span>
           <span
-            className={`${styles.priority} ${
-              idea.priority === 'Critical'
-                ? styles.priorityCritical
-                : idea.priority === 'High'
-                  ? styles.priorityHigh
-                  : idea.priority === 'Medium'
-                    ? styles.priorityMedium
-                    : styles.priorityLow
-            }`}
+            className={`${styles.priority} ${idea.priority === 'Critical'
+              ? styles.priorityCritical
+              : idea.priority === 'High'
+                ? styles.priorityHigh
+                : idea.priority === 'Medium'
+                  ? styles.priorityMedium
+                  : styles.priorityLow
+              }`}
           >
             {idea.priority}
           </span>
@@ -216,7 +242,7 @@ const IdeaDetailPage: React.FC = () => {
                 <div className={styles.trailContent}>
                   <h3 className={styles.trailTitle}>
                     {idea.status === 'Approved' ? 'Idea Approved' :
-                     idea.status === "Rejected"
+                      idea.status === "Rejected"
                         ? "Idea Rejected"
                         : 'Status Updated'}
                   </h3>
