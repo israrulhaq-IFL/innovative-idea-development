@@ -178,10 +178,25 @@ export class UserApiService {
           (group) => group.Title === "Innovative Ideas - Approvers",
         ) || isAdmin; // Admins are also approvers
 
-      // Everyone in Contributors group can submit ideas
+      // Everyone in Contributors group can submit ideas, or if groups can't be determined, assume contributor
+      // Also check for "Everyone" group since SharePoint allows adding everyone to contributor groups
       const isContributor = groups.some(
-        (group) => group.Title === "Innovative Ideas - Contributors",
+        (group) => group.Title === "Innovative Ideas - Contributors" ||
+                   group.Title === "Everyone" ||
+                   group.Title.toLowerCase() === "everyone",
+      ) || groups.length === 0; // If no groups returned, assume contributor since everyone should be in the group
+
+      // Log group information for debugging
+      const contributorGroups = groups.filter(
+        (group) => group.Title === "Innovative Ideas - Contributors" ||
+                   group.Title === "Everyone" ||
+                   group.Title.toLowerCase() === "everyone"
       );
+      logInfo("Contributor group check", {
+        foundContributorGroups: contributorGroups.map(g => g.Title),
+        isContributor,
+        totalGroups: groups.length
+      });
 
       // Extract department/role from groups if available (exclude app-specific groups)
       const departmentGroup = groups.find(
