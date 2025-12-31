@@ -5,7 +5,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { motion } from "framer-motion";
 import { useUser } from "../contexts/UserContext";
-import { useIdeaData, ProcessedIdea } from "../contexts/DataContext";
+import { useIdeaData, ProcessedIdea, ProcessedTask } from "../contexts/DataContext";
 import { useNotification } from "../contexts/NotificationContext";
 import { ideaApi } from "../services/ideaApi";
 import LoadingSpinner from "../components/common/LoadingSpinner";
@@ -38,10 +38,11 @@ interface TaskFormData {
 
 const ApprovedIdeasPage: React.FC = () => {
   const { isAdmin, user } = useUser();
-  const { data, loading, error } = useIdeaData();
+  const { data, loading, error, loadTasks } = useIdeaData();
   const { addNotification } = useNotification();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedIdea, setSelectedIdea] = useState<ProcessedIdea | null>(null);
+  const [selectedTask, setSelectedTask] = useState<ProcessedTask | null>(null);
   const [isCreatingTask, setIsCreatingTask] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -70,6 +71,13 @@ const ApprovedIdeasPage: React.FC = () => {
     }
   }, [isAdmin]);
 
+  // Load tasks when component mounts
+  useEffect(() => {
+    if (isAdmin) {
+      loadTasks();
+    }
+  }, [isAdmin, loadTasks]);
+
   // Filter approved ideas
   const approvedIdeas = useMemo(() => {
     return (data.ideas || []).filter(idea => idea.status === "Approved");
@@ -90,13 +98,6 @@ const ApprovedIdeasPage: React.FC = () => {
     );
   }, [approvedIdeas, searchTerm]);
 
-  // Set first idea as selected when ideas load
-  useEffect(() => {
-    if (filteredIdeas.length > 0 && !selectedIdea) {
-      setSelectedIdea(filteredIdeas[0]);
-    }
-  }, [filteredIdeas, selectedIdea]);
-
   // Calculate statistics
   const stats = useMemo(() => {
     const totalIdeas = approvedIdeas.length;
@@ -104,11 +105,58 @@ const ApprovedIdeasPage: React.FC = () => {
     return { totalIdeas, filteredCount };
   }, [approvedIdeas.length, filteredIdeas.length]);
 
+  // Set first idea as selected when ideas load
+  useEffect(() => {
+    if (filteredIdeas.length > 0 && !selectedIdea) {
+      setSelectedIdea(filteredIdeas[0]);
+    }
+  }, [filteredIdeas, selectedIdea]);
+
+  // Calculate task count for each idea
+  const getTaskCountForIdea = useCallback((ideaId: number): number => {
+    return (data.tasks || []).filter(task => task.ideaId === ideaId).length;
+  }, [data.tasks]);
+
   // Handle idea selection
   const handleIdeaSelect = useCallback((idea: ProcessedIdea) => {
     setSelectedIdea(idea);
+    setSelectedTask(null); // Clear task selection when selecting different idea
     setIsCreatingTask(false); // Exit task creation mode when selecting different idea
   }, []);
+
+  // Handle task selection for detailed view
+  const handleTaskSelect = useCallback((task: ProcessedTask) => {
+    setSelectedTask(task);
+  }, []);
+
+  // Handle back to idea details
+  const handleBackToIdea = useCallback(() => {
+    setSelectedTask(null);
+  }, []);
+
+  // Handle view tasks for selected idea
+  const handleViewTasks = useCallback(() => {
+    if (!selectedIdea) return;
+
+    const ideaTasks = (data.tasks || []).filter(task => task.ideaId === selectedIdea.id);
+
+    if (ideaTasks.length === 0) {
+      addNotification({ message: "No tasks found for this idea", type: "info" });
+      return;
+    }
+
+    if (ideaTasks.length === 1) {
+      // Navigate to the single task discussion page
+      window.location.hash = `#/task/${ideaTasks[0].id}`;
+    } else {
+      // For multiple tasks, navigate to my-tasks page (could be enhanced later)
+      addNotification({
+        message: `This idea has ${ideaTasks.length} tasks. Navigate to My Tasks to view all tasks.`,
+        type: "info"
+      });
+      window.location.hash = `#/my-tasks`;
+    }
+  }, [selectedIdea, data.tasks, addNotification]);
 
   // Handle create task for selected idea
   const handleCreateTask = useCallback(() => {
@@ -383,6 +431,11 @@ const ApprovedIdeasPage: React.FC = () => {
                     <span className={styles.compactCardDate}>
                       {idea.createdDate.toLocaleDateString()}
                     </span>
+                    {getTaskCountForIdea(idea.id) > 0 && (
+                      <span className={styles.taskCount}>
+                        📋 {getTaskCountForIdea(idea.id)} task{getTaskCountForIdea(idea.id) !== 1 ? 's' : ''}
+                      </span>
+                    )}
                   </div>
 
                   {idea.approvedBy && (
@@ -550,6 +603,106 @@ const ApprovedIdeasPage: React.FC = () => {
                 </form>
               </div>
             </div>
+          ) : selectedTask ? (
+            /* Task Detail View */
+            <div className={styles.detailView}>
+              <div className={styles.detailHeader}>
+                <div className={styles.detailTitleSection}>
+                  <button
+                    onClick={handleBackToIdea}
+                    className={styles.backButton}
+                    title="Back to idea details"
+                  >
+                    ← Back to Idea
+                  </button>
+                  <h1 className={styles.detailTitle}>{selectedTask.title}</h1>
+                  <div className={styles.detailStatusBadges}>
+                    <span className={`${styles.taskStatus} ${
+                      selectedTask.status === 'Completed' ? styles.statusCompleted :
+                      selectedTask.status === 'In Progress' ? styles.statusInProgress :
+                      selectedTask.status === 'On Hold' ? styles.statusOnHold :
+                      styles.statusNotStarted
+                    }`}>
+                      {selectedTask.status}
+                    </span>
+                    <span className={`${styles.compactPriority} ${
+                      selectedTask.priority === 'Critical' ? styles.priorityCritical :
+                      selectedTask.priority === 'High' ? styles.priorityHigh :
+                      selectedTask.priority === 'Normal' ? styles.priorityMedium :
+                      styles.priorityLow
+                    }`}>
+                      {selectedTask.priority || 'Normal'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className={styles.detailContent}>
+                <div className={styles.detailSection}>
+                  <h3 className={styles.detailSectionTitle}>Description</h3>
+                  <p className={styles.detailDescription}>
+                    {selectedTask.description || 'No description provided.'}
+                  </p>
+                </div>
+
+                <div className={styles.detailSection}>
+                  <h3 className={styles.detailSectionTitle}>Task Details</h3>
+                  <div className={styles.detailGrid}>
+                    <div className={styles.detailItem}>
+                      <span className={styles.detailLabel}>Assigned To:</span>
+                      <span className={styles.detailValue}>
+                        {Array.isArray(selectedTask.assignedTo)
+                          ? selectedTask.assignedTo.join(', ')
+                          : 'Unassigned'
+                        }
+                      </span>
+                    </div>
+                    <div className={styles.detailItem}>
+                      <span className={styles.detailLabel}>Priority:</span>
+                      <span className={styles.detailValue}>{selectedTask.priority || 'Normal'}</span>
+                    </div>
+                    <div className={styles.detailItem}>
+                      <span className={styles.detailLabel}>Status:</span>
+                      <span className={styles.detailValue}>{selectedTask.status}</span>
+                    </div>
+                    <div className={styles.detailItem}>
+                      <span className={styles.detailLabel}>Progress:</span>
+                      <span className={styles.detailValue}>
+                        {selectedTask.percentComplete || 0}%
+                      </span>
+                    </div>
+                    {selectedTask.startDate && (
+                      <div className={styles.detailItem}>
+                        <span className={styles.detailLabel}>Start Date:</span>
+                        <span className={styles.detailValue}>
+                          {new Date(selectedTask.startDate).toLocaleDateString()}
+                        </span>
+                      </div>
+                    )}
+                    {selectedTask.dueDate && (
+                      <div className={styles.detailItem}>
+                        <span className={styles.detailLabel}>Due Date:</span>
+                        <span className={styles.detailValue}>
+                          {new Date(selectedTask.dueDate).toLocaleDateString()}
+                        </span>
+                      </div>
+                    )}
+                    <div className={styles.detailItem}>
+                      <span className={styles.detailLabel}>Created:</span>
+                      <span className={styles.detailValue}>
+                        {selectedTask.created ? new Date(selectedTask.created).toLocaleDateString() : 'N/A'}
+                      </span>
+                    </div>
+                    <div className={styles.detailItem}>
+                      <span className={styles.detailLabel}>Last Modified:</span>
+                      <span className={styles.detailValue}>
+                        {selectedTask.modified ? new Date(selectedTask.modified).toLocaleDateString() : 'N/A'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           ) : selectedIdea ? (
             /* Idea Detail View */
             <div className={styles.detailView}>
@@ -622,6 +775,51 @@ const ApprovedIdeasPage: React.FC = () => {
                     )}
                   </div>
                 </div>
+
+                {/* Tasks Section */}
+                {getTaskCountForIdea(selectedIdea.id) > 0 && (
+                  <div className={styles.detailSection}>
+                    <h3 className={styles.detailSectionTitle}>Tasks ({getTaskCountForIdea(selectedIdea.id)})</h3>
+                    <div className={styles.tasksList}>
+                      {(data.tasks || [])
+                        .filter(task => task.ideaId === selectedIdea.id)
+                        .map((task) => (
+                          <div key={task.id} className={styles.taskItem}>
+                            <div className={styles.taskHeader}>
+                              <h4 className={styles.taskTitle}>{task.title}</h4>
+                              <span className={`${styles.taskStatus} ${
+                                task.status === 'Completed' ? styles.statusCompleted :
+                                task.status === 'In Progress' ? styles.statusInProgress :
+                                task.status === 'On Hold' ? styles.statusOnHold :
+                                styles.statusNotStarted
+                              }`}>
+                                {task.status}
+                              </span>
+                            </div>
+                            {task.description && (
+                              <p className={styles.taskDescription}>{task.description}</p>
+                            )}
+                            <div className={styles.taskMeta}>
+                              <span className={styles.taskAssignee}>
+                                Assigned to: {task.assignedTo.join(', ') || 'Unassigned'}
+                              </span>
+                              {task.dueDate && (
+                                <span className={styles.taskDueDate}>
+                                  Due: {new Date(task.dueDate).toLocaleDateString()}
+                                </span>
+                              )}
+                            </div>
+                            <button
+                              onClick={() => handleTaskSelect(task)}
+                              className={styles.viewTaskDetailButton}
+                            >
+                              View Details
+                            </button>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           ) : (
