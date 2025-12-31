@@ -178,23 +178,23 @@ export class UserApiService {
           (group) => group.Title === "Innovative Ideas - Approvers",
         ) || isAdmin; // Admins are also approvers
 
-      // Everyone in Contributors group can submit ideas, or if groups can't be determined, assume contributor
-      // Also check for "Everyone" group since SharePoint allows adding everyone to contributor groups
-      const isContributor = groups.some(
-        (group) => group.Title === "Innovative Ideas - Contributors" ||
-                   group.Title === "Everyone" ||
-                   group.Title.toLowerCase() === "everyone",
-      ) || groups.length === 0; // If no groups returned, assume contributor since everyone should be in the group
+      // All authenticated users are contributors - they can submit ideas
+      // Only admin/approver roles are restricted to specific groups
+      const isContributor = true; // All authenticated users can contribute ideas
 
-      // Log group information for debugging
-      const contributorGroups = groups.filter(
-        (group) => group.Title === "Innovative Ideas - Contributors" ||
-                   group.Title === "Everyone" ||
-                   group.Title.toLowerCase() === "everyone"
+      // Log group information for debugging admin/approver roles
+      const adminGroups = groups.filter(
+        (group) => group.Title === "Innovative Ideas - Administrators"
       );
-      logInfo("Contributor group check", {
-        foundContributorGroups: contributorGroups.map(g => g.Title),
-        isContributor,
+      const approverGroups = groups.filter(
+        (group) => group.Title === "Innovative Ideas - Approvers"
+      );
+      logInfo("Role assignment check", {
+        foundAdminGroups: adminGroups.map(g => g.Title),
+        foundApproverGroups: approverGroups.map(g => g.Title),
+        isAdmin,
+        isApprover,
+        isContributor: true, // Always true for authenticated users
         totalGroups: groups.length
       });
 
