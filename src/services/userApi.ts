@@ -143,11 +143,14 @@ export class UserApiService {
         (group) => group.Title === "Innovative Ideas - Contributors",
       );
 
-      // Extract department/role from groups if available
+      // Extract department/role from groups if available (exclude app-specific groups)
       const departmentGroup = groups.find(
         (group) =>
-          group.Title.toLowerCase().includes("department") ||
-          group.Title.toLowerCase().includes("team"),
+          !group.Title.includes("Innovative Ideas") && // Exclude app-specific groups
+          (group.Title.toLowerCase().includes("department") ||
+          group.Title.toLowerCase().includes("team") ||
+          group.Title.toLowerCase().includes("division") ||
+          group.Title.toLowerCase().includes("unit")),
       );
 
       const roleGroup = groups.find(
