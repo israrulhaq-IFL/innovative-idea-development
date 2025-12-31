@@ -3,6 +3,7 @@
 
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import { ValidationRule } from "../../utils/validation";
+import styles from "./ValidatedSelect.module.css";
 
 interface SelectOption {
   value: string;
@@ -78,24 +79,24 @@ export const ValidatedSelect: React.FC<ValidatedSelectProps> = ({
   };
 
   const showErrors = touched && errors.length > 0;
-  const selectClassName = `validated-select ${
+  const selectClassName = `${styles.validatedSelect} ${
     showErrors
-      ? "validated-select--error"
+      ? styles.validatedSelectError
       : isValid && touched
-        ? "validated-select--success"
+        ? styles.validatedSelectSuccess
         : ""
-  } ${disabled ? "validated-select--disabled" : ""} ${className}`.trim();
+  } ${disabled ? styles.validatedSelectDisabled : ""} ${className}`.trim();
 
   return (
-    <div className="validated-select-container">
+    <div className={styles.validatedSelectContainer}>
       {label && (
-        <label htmlFor={id} className="validated-select-label">
+        <label htmlFor={id} className={styles.validatedSelectLabel}>
           {label}
           {required && <span style={{color: '#d13438', marginLeft: '2px', fontWeight: 'bold'}}>*</span>}
         </label>
       )}
 
-      <div className="validated-select-wrapper">
+      <div className={styles.validatedSelectWrapper}>
         <select
           id={id}
           value={value}
@@ -135,8 +136,8 @@ export const ValidatedSelect: React.FC<ValidatedSelectProps> = ({
       </div>
 
       {showErrors && (
-        <div id={`${id}-errors`} className="validated-select-errors">
-          <ul className="validated-select-error-list">
+        <div id={`${id}-errors`} className={styles.validatedSelectErrors}>
+          <ul className={styles.validatedSelectErrorList}>
             {errors.map((error, index) => (
               <li key={index}>{error}</li>
             ))}
