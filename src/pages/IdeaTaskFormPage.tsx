@@ -138,7 +138,7 @@ const IdeaTaskFormPage: React.FC = () => {
         type: "error",
         title: "Access denied. Admin privileges required.",
       });
-      navigate("/main-dashboard");
+      navigate("/");
     }
   }, [isAdmin, navigate, addToast]);
 
@@ -291,13 +291,13 @@ const IdeaTaskFormPage: React.FC = () => {
 
     // Navigate using React Router with a small delay to show the toast
     setTimeout(() => {
-      navigate("/main-dashboard");
+      navigate("/");
     }, 500);
   };
 
   const handleBack = () => {
     // Navigate using React Router
-    navigate("/main-dashboard");
+    navigate("/");
   };
 
   // Don't render if not admin

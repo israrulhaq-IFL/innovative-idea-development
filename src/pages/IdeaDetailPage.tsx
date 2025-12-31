@@ -47,7 +47,7 @@ const IdeaDetailPage: React.FC = () => {
         };
         setIdea(processedIdea);
       } else {
-        navigate('/dashboard');
+        navigate('/');
       }
     }
   }, [ideas, id, navigate]);
@@ -85,7 +85,7 @@ const IdeaDetailPage: React.FC = () => {
           <div className="text-center py-8">
             <p className="text-gray-500">Idea not found.</p>
             <button
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate('/')}
               className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
             >
               Back to Dashboard
@@ -105,7 +105,7 @@ const IdeaDetailPage: React.FC = () => {
     >
       <div className={styles.header}>
         <button
-          onClick={() => navigate('/dashboard')}
+          onClick={() => navigate('/')}
           style={{
             background: '#f3f4f6',
             border: '1px solid #d1d5db',
@@ -282,7 +282,7 @@ const IdeaDetailPage: React.FC = () => {
             View Full Trail
           </button>
           <button
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate('/')}
             className={`${styles.actionButton} ${styles.actionSecondary}`}
           >
             <span>←</span>
