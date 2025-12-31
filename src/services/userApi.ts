@@ -63,9 +63,10 @@ export class UserApiService {
     }
   }
 
-  // Get user's groups
+  // Get user's groups - try multiple approaches
   async getUserGroups(userId?: number): Promise<UserGroups[]> {
     try {
+      // First try the standard approach
       const endpoint = userId
         ? `/_api/web/GetUserById(${userId})/Groups`
         : "/_api/web/currentuser/Groups";
@@ -73,11 +74,50 @@ export class UserApiService {
       const response = await sharePointApi.get<any>(endpoint);
       const groups = response.d.results || [];
 
-      logInfo("User groups fetched", { groupCount: groups.length });
-      return groups;
+      if (groups.length > 0) {
+        logInfo("User groups fetched via standard API", { groupCount: groups.length });
+        return groups;
+      }
+
+      // If no groups returned, try alternative approach
+      // Get current user login name first
+      const currentUser = await this.getCurrentUser();
+      const userLoginName = currentUser.Name;
+
+      // Check if user is in specific groups by trying to access group info
+      const knownGroups = [
+        "Innovative Ideas - Contributors",
+        "Innovative Ideas - Approvers",
+        "Innovative Ideas - Administrators"
+      ];
+
+      const alternativeGroups: UserGroups[] = [];
+
+      for (const groupName of knownGroups) {
+        try {
+          const groupEndpoint = `/_api/web/sitegroups/getbyname('${encodeURIComponent(groupName)}')/Users/getbyloginname('${encodeURIComponent(userLoginName)}')`;
+          await sharePointApi.get<any>(groupEndpoint);
+          // If we get here without error, user is in the group
+          alternativeGroups.push({
+            Id: 0, // We don't have the actual ID
+            Title: groupName,
+            Description: `App group: ${groupName}`,
+            OwnerTitle: "System"
+          });
+          logInfo(`User confirmed in group: ${groupName}`);
+        } catch (error) {
+          // User is not in this group, continue
+          logInfo(`User not in group: ${groupName}`);
+        }
+      }
+
+      logInfo("User groups fetched via alternative method", { groupCount: alternativeGroups.length });
+      return alternativeGroups;
+
     } catch (error) {
       logError("Failed to fetch user groups", error);
-      throw error;
+      // Return empty array as fallback
+      return [];
     }
   }
 
@@ -121,7 +161,7 @@ export class UserApiService {
     try {
       const [user, groups, permissions] = await Promise.all([
         this.getCurrentUser(),
-        this.getUserGroups(),
+        this.getUserGroups().catch(() => []), // Fallback to empty array if groups can't be fetched
         this.getUserPermissions(),
       ]);
 
