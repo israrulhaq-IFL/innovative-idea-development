@@ -284,11 +284,10 @@ const IdeaTrailModal: React.FC<IdeaTrailModalProps> = ({
 
   if (!isOpen || !idea) return null;
 
-  // Group checkpoints into rows of 3
-  const checkpointRows: TrailCheckpoint[][] = [];
-  for (let i = 0; i < checkpoints.length; i += 3) {
-    checkpointRows.push(checkpoints.slice(i, i + 3));
-  }
+  // Create a vertical timeline layout instead of rows
+  const sortedCheckpoints = [...checkpoints].sort(
+    (a, b) => a.timestamp.getTime() - b.timestamp.getTime()
+  );
 
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
@@ -315,121 +314,192 @@ const IdeaTrailModal: React.FC<IdeaTrailModalProps> = ({
             >
               <div
                 ref={containerRef}
-                className={styles.trailContainer}
+                className={styles.timelineContainer}
                 style={{
                   transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoom})`,
                   transformOrigin: "0 0",
                 }}
               >
-                <div className={styles.trailFlow}>
-                  {checkpointRows.map((row, rowIndex) => (
-                    <div key={rowIndex} className={styles.flowRow}>
-                      {row.map((checkpoint, colIndex) => (
-                        <div key={checkpoint.id} className={styles.checkpoint}>
-                          <div
-                            className={`${styles.checkpointNode} ${styles[checkpoint.status]}`}
-                          >
-                            {checkpoint.id.includes("submitted") && (
-                              <FileText size={32} />
+                <svg className={styles.timelineSvg}>
+                  <defs>
+                    <marker
+                      id="arrowhead-completed"
+                      markerWidth="10"
+                      markerHeight="7"
+                      refX="9"
+                      refY="3.5"
+                      orient="auto"
+                    >
+                      <polygon
+                        points="0 0, 10 3.5, 0 7"
+                        fill="#10b981"
+                      />
+                    </marker>
+                    <marker
+                      id="arrowhead-rejected"
+                      markerWidth="10"
+                      markerHeight="7"
+                      refX="9"
+                      refY="3.5"
+                      orient="auto"
+                    >
+                      <polygon
+                        points="0 0, 10 3.5, 0 7"
+                        fill="#ef4444"
+                      />
+                    </marker>
+                    <marker
+                      id="arrowhead-pending"
+                      markerWidth="10"
+                      markerHeight="7"
+                      refX="9"
+                      refY="3.5"
+                      orient="auto"
+                    >
+                      <polygon
+                        points="0 0, 10 3.5, 0 7"
+                        fill="#6b7280"
+                      />
+                    </marker>
+                  </defs>
+
+                  {sortedCheckpoints.map((checkpoint, index) => {
+                    if (index === 0) return null;
+
+                    const prevCheckpoint = sortedCheckpoints[index - 1];
+                    const y1 = (index - 1) * 200 + 60; // Node center
+                    const y2 = index * 200 + 60; // Node center
+                    const x1 = 100; // Timeline center
+                    const x2 = 100; // Timeline center
+
+                    // Create curved path
+                    const midY = (y1 + y2) / 2;
+                    const curveOffset = 30;
+                    const pathData = `M ${x1} ${y1} Q ${x1 + curveOffset} ${midY} ${x2} ${y2}`;
+
+                    return (
+                      <path
+                        key={`connector-${index}`}
+                        d={pathData}
+                        stroke={
+                          checkpoint.status === "rejected"
+                            ? "#ef4444"
+                            : checkpoint.status === "completed"
+                            ? "#10b981"
+                            : "#6b7280"
+                        }
+                        strokeWidth="3"
+                        fill="none"
+                        markerEnd={`url(#arrowhead-${
+                          checkpoint.status === "rejected"
+                            ? "rejected"
+                            : checkpoint.status === "completed"
+                            ? "completed"
+                            : "pending"
+                        })`}
+                        className={styles.timelineConnector}
+                      />
+                    );
+                  })}
+                </svg>
+
+                <div className={styles.timelineFlow}>
+                  {sortedCheckpoints.map((checkpoint, index) => (
+                    <div
+                      key={checkpoint.id}
+                      className={styles.timelineItem}
+                      style={{ top: `${index * 200}px` }}
+                    >
+                      <div className={styles.timelineNode}>
+                        <div
+                          className={`${styles.timelineNodeIcon} ${styles[checkpoint.status]}`}
+                        >
+                          {checkpoint.id.includes("submitted") && (
+                            <FileText size={24} />
+                          )}
+                          {checkpoint.id.includes("approved") && (
+                            <CheckCircle size={24} />
+                          )}
+                          {checkpoint.id.includes("rejected") && (
+                            <XCircle size={24} />
+                          )}
+                          {checkpoint.id.includes("implementation") && (
+                            <Clock size={24} />
+                          )}
+                          {checkpoint.status === "current" && (
+                            <Clock size={24} />
+                          )}
+                          {checkpoint.status === "pending" && (
+                            <FileText size={24} />
+                          )}
+                          {checkpoint.status === "completed" &&
+                            !checkpoint.id.includes("submitted") &&
+                            !checkpoint.id.includes("approved") &&
+                            !checkpoint.id.includes("rejected") &&
+                            !checkpoint.id.includes("implementation") && (
+                              <CheckCircle size={24} />
                             )}
-                            {checkpoint.id.includes("approved") && (
-                              <CheckCircle size={32} />
+                        </div>
+                      </div>
+
+                      <div className={styles.timelineCard}>
+                        <div className={styles.timelineCardHeader}>
+                          <div className={styles.timelineCardTitle}>
+                            {checkpoint.status === "completed" && (
+                              <CheckCircle size={16} />
                             )}
-                            {checkpoint.id.includes("rejected") && (
-                              <XCircle size={32} />
-                            )}
-                            {checkpoint.id.includes("implementation") && (
-                              <Clock size={32} />
+                            {checkpoint.status === "rejected" && (
+                              <XCircle size={16} />
                             )}
                             {checkpoint.status === "current" && (
-                              <Clock size={32} />
+                              <Clock size={16} />
                             )}
                             {checkpoint.status === "pending" && (
-                              <FileText size={32} />
+                              <FileText size={16} />
                             )}
-                            {checkpoint.status === "completed" &&
-                              !checkpoint.id.includes("submitted") &&
-                              !checkpoint.id.includes("approved") &&
-                              !checkpoint.id.includes("rejected") &&
-                              !checkpoint.id.includes("implementation") && (
-                                <CheckCircle size={32} />
-                              )}
+                            {checkpoint.title}
                           </div>
-
-                          {colIndex < row.length - 1 && (
-                            <div
-                              className={`${styles.checkpointConnector} ${styles[checkpoint.status]}`}
-                            />
-                          )}
-
-                          <div className={styles.checkpointCard}>
-                            <div className={styles.checkpointTitle}>
-                              {checkpoint.status === "completed" && (
-                                <CheckCircle size={18} />
-                              )}
-                              {checkpoint.status === "rejected" && (
-                                <XCircle size={18} />
-                              )}
-                              {checkpoint.status === "current" && (
-                                <Clock size={18} />
-                              )}
-                              {checkpoint.status === "pending" && (
-                                <FileText size={18} />
-                              )}
-                              {checkpoint.title}
-                            </div>
-
-                            <div className={styles.checkpointMeta}>
-                              <div className={styles.checkpointMetaItem}>
-                                <Calendar size={14} />
-                                {checkpoint.timestamp &&
-                                checkpoint.timestamp instanceof Date &&
-                                !isNaN(checkpoint.timestamp.getTime())
-                                  ? `${checkpoint.timestamp.toLocaleDateString()} ${checkpoint.timestamp.toLocaleTimeString()}`
-                                  : "Date unavailable"}
-                              </div>
-                              {checkpoint.actor && (
-                                <div className={styles.checkpointMetaItem}>
-                                  <User size={14} />
-                                  {checkpoint.actor}
-                                </div>
-                              )}
-                            </div>
-
-                            <div className={styles.checkpointContent}>
-                              {checkpoint.description}
-                              {checkpoint.details && (
-                                <div
-                                  style={{
-                                    marginTop: "0.5rem",
-                                    fontSize: "0.85rem",
-                                    color: "#6b7280",
-                                  }}
-                                >
-                                  {checkpoint.details}
-                                </div>
-                              )}
-                            </div>
-
-                            {checkpoint.actions &&
-                              checkpoint.actions.length > 0 && (
-                                <div className={styles.checkpointActions}>
-                                  {checkpoint.actions.map(
-                                    (action, actionIndex) => (
-                                      <button
-                                        key={actionIndex}
-                                        className={`${styles.checkpointAction} ${styles[action.type]}`}
-                                        onClick={action.action}
-                                      >
-                                        {action.label}
-                                      </button>
-                                    ),
-                                  )}
-                                </div>
-                              )}
+                          <div className={styles.timelineCardTimestamp}>
+                            {checkpoint.timestamp &&
+                            checkpoint.timestamp instanceof Date &&
+                            !isNaN(checkpoint.timestamp.getTime())
+                              ? checkpoint.timestamp.toLocaleString()
+                              : "Date unavailable"}
                           </div>
                         </div>
-                      ))}
+
+                        {checkpoint.actor && (
+                          <div className={styles.timelineCardActor}>
+                            <User size={14} />
+                            {checkpoint.actor}
+                          </div>
+                        )}
+
+                        <div className={styles.timelineCardContent}>
+                          {checkpoint.description.split('\n').map((line, i) => (
+                            <div key={i} className={i === 0 ? styles.timelineCardDescription : styles.timelineCardDetail}>
+                              {line}
+                            </div>
+                          ))}
+                        </div>
+
+                        {checkpoint.actions &&
+                          checkpoint.actions.length > 0 && (
+                            <div className={styles.timelineCardActions}>
+                              {checkpoint.actions.map(
+                                (action, actionIndex) => (
+                                  <button
+                                    key={actionIndex}
+                                    className={`${styles.timelineAction} ${styles[action.type]}`}
+                                    onClick={action.action}
+                                  >
+                                    {action.label}
+                                  </button>
+                                ),
+                              )}
+                            </div>
+                          )}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -441,13 +511,14 @@ const IdeaTrailModal: React.FC<IdeaTrailModalProps> = ({
               <div className={styles.miniMapViewport}>
                 <div className={styles.miniMapContent}>
                   <div className={styles.miniMapTrail}>
-                    {checkpoints.map((checkpoint, index) => (
+                    {sortedCheckpoints.map((checkpoint, index) => (
                       <div
                         key={checkpoint.id}
                         className={styles.miniMapNode}
                         style={{
-                          left: `${(index % 3) * 33.33 + 16.67}%`,
-                          top: `${Math.floor(index / 3) * 50 + 25}%`,
+                          left: "50%",
+                          top: `${(index / Math.max(sortedCheckpoints.length - 1, 1)) * 100}%`,
+                          transform: "translate(-50%, -50%)",
                         }}
                       />
                     ))}
