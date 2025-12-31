@@ -175,6 +175,7 @@ const IdeaTrailModal: React.FC<IdeaTrailModalProps> = ({
 
       // Enhanced title with relationship context
       let enhancedTitle = event.title;
+      let enhancedDescription = event.description || "";
 
       if (relatedTask && event.eventType === "task_created") {
         enhancedTitle = `Task Created: ${relatedTask.title}`;

@@ -37,7 +37,7 @@ interface TaskFormData {
 }
 
 const ApprovedIdeasPage: React.FC = () => {
-  const { isAdmin } = useUser();
+  const { isAdmin, user } = useUser();
   const { data, loading, error } = useIdeaData();
   const { addNotification } = useNotification();
   const [searchTerm, setSearchTerm] = useState("");
@@ -172,23 +172,26 @@ const ApprovedIdeasPage: React.FC = () => {
     try {
       logInfo("[ApprovedIdeasPage] Creating task:", taskFormData);
 
-      // Prepare task data for SharePoint
+      // Prepare task data for the createTaskForIdea method
       const taskData = {
-        Title: taskFormData.title,
-        IdeaIdId: parseInt(taskFormData.ideaId),
-        Priority: taskFormData.priority,
-        Status: taskFormData.status,
-        PercentComplete: taskFormData.percentComplete / 100, // Convert to decimal
-        AssignedToId: taskFormData.assignees.length > 0 ? { results: taskFormData.assignees.map(u => u.id) } : null,
-        Description: taskFormData.description,
-        StartDate: taskFormData.startDate ? new Date(taskFormData.startDate).toISOString() : null,
-        DueDate: taskFormData.dueDate ? new Date(taskFormData.dueDate).toISOString() : null,
+        title: taskFormData.title,
+        description: taskFormData.description,
+        status: taskFormData.status,
+        priority: taskFormData.priority,
+        percentComplete: taskFormData.percentComplete,
+        assignedTo: taskFormData.assignees.map(u => u.id.toString()),
+        startDate: taskFormData.startDate ? new Date(taskFormData.startDate) : undefined,
+        dueDate: taskFormData.dueDate ? new Date(taskFormData.dueDate) : undefined,
       };
 
       console.log("[ApprovedIdeasPage] Prepared task data:", taskData);
-      logInfo("[ApprovedIdeasPage] Creating task:", taskData);
+      logInfo("[ApprovedIdeasPage] Creating task for idea:", { ideaId: parseInt(taskFormData.ideaId), taskData });
 
-      const result = await ideaApi.createTask(taskData);
+      const result = await ideaApi.createTaskForIdea(
+        parseInt(taskFormData.ideaId),
+        taskData,
+        user?.user ? { id: user.user.Id, name: user.user.Title } : undefined
+      );
 
       logInfo("[ApprovedIdeasPage] Task created successfully:", result);
       addNotification({ message: "Task created successfully!", type: "success" });

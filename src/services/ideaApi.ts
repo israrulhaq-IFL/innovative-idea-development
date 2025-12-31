@@ -178,8 +178,14 @@ export class IdeaApiService {
   }
 
   // Update idea
-  async updateIdea(id: number, updates: Partial<Idea>): Promise<ProcessedIdea> {
+  async updateIdea(id: number, updates: Partial<Idea>, user?: { id: number; name: string }): Promise<ProcessedIdea> {
     try {
+      // Get current idea before update for trail logging
+      const currentIdea = await this.getIdeaById(id);
+      if (!currentIdea) {
+        throw new Error(`Idea ${id} not found`);
+      }
+
       const endpoint = `/_api/web/lists/getbytitle('${LISTS.ideas}')/items(${id})`;
 
       const data: any = {
@@ -198,7 +204,84 @@ export class IdeaApiService {
       await sharePointApi.put<any>(endpoint, data);
 
       // Fetch updated item
-      return (await this.getIdeaById(id)) as ProcessedIdea;
+      const updatedIdea = await this.getIdeaById(id);
+
+      // Create trail event for idea update
+      try {
+        const hasTitleChange = updates.title && updates.title !== currentIdea.title;
+        const hasDescriptionChange = updates.description && updates.description !== currentIdea.description;
+        const hasCategoryChange = updates.category && updates.category !== currentIdea.category;
+        const hasPriorityChange = updates.priority && updates.priority !== currentIdea.priority;
+        const hasStatusChange = updates.status && updates.status !== currentIdea.status;
+
+        const changes = [];
+        if (hasTitleChange) changes.push('title');
+        if (hasDescriptionChange) changes.push('description');
+        if (hasCategoryChange) changes.push('category');
+        if (hasPriorityChange) changes.push('priority');
+        if (hasStatusChange) changes.push('status');
+
+        if (changes.length > 0) {
+          // Special handling for approval/rejection
+          let eventType: string;
+          let eventTitle: string;
+          let eventDescription: string;
+
+          if (hasStatusChange && updates.status === 'Approved') {
+            eventType = 'approved';
+            eventTitle = 'Idea Approved';
+            eventDescription = `Idea "${currentIdea.title}" status changed to Approved`;
+          } else if (hasStatusChange && updates.status === 'Rejected') {
+            eventType = 'rejected';
+            eventTitle = 'Idea Rejected';
+            eventDescription = `Idea "${currentIdea.title}" status changed to Rejected`;
+          } else {
+            // Generic update event
+            eventType = 'status_changed';
+            eventTitle = 'Idea Updated';
+            let desc = `Idea "${currentIdea.title}" was updated`;
+            if (changes.length === 1) {
+              desc = `Idea "${currentIdea.title}" ${changes[0]} was updated`;
+            } else {
+              desc = `Idea "${currentIdea.title}" was updated (${changes.join(', ')})`;
+            }
+            eventDescription = desc;
+          }
+
+          await this.createIdeaTrailEvent({
+            ideaId: id,
+            eventType,
+            title: eventTitle,
+            description: eventDescription,
+            actor: user?.name || 'Unknown User',
+            actorId: user?.id || 0,
+            previousStatus: hasStatusChange ? currentIdea.status : undefined,
+            newStatus: hasStatusChange ? updates.status : undefined,
+            metadata: {
+              changes,
+              previousValues: {
+                title: hasTitleChange ? currentIdea.title : undefined,
+                description: hasDescriptionChange ? currentIdea.description : undefined,
+                category: hasCategoryChange ? currentIdea.category : undefined,
+                priority: hasPriorityChange ? currentIdea.priority : undefined,
+                status: hasStatusChange ? currentIdea.status : undefined,
+              },
+              newValues: {
+                title: updates.title,
+                description: updates.description,
+                category: updates.category,
+                priority: updates.priority,
+                status: updates.status,
+              },
+            },
+          });
+        }
+      } catch (trailError) {
+        logError("Failed to create trail event for idea update", trailError);
+        // Don't fail the idea update if trail event fails
+      }
+
+      return updatedIdea as ProcessedIdea;
     } catch (error) {
       logError(`Failed to update idea ${id}`, error);
       throw error;
@@ -208,7 +291,7 @@ export class IdeaApiService {
   // Get tasks for an idea
   async getTasksForIdea(ideaId: number): Promise<ProcessedTask[]> {
     try {
-      const endpoint = `/_api/web/lists/getbytitle('${LISTS.tasks}')/items?$select=${TASK_SELECT}&$expand=AssignedTo&$filter=IdeaId eq ${ideaId}&$orderby=Created desc&$top=100`;
+      const endpoint = `/_api/web/lists/getbytitle('${LISTS.tasks}')/items?$select=${TASK_SELECT}&$expand=AssignedTo,IdeaId&$filter=IdeaId eq ${ideaId}&$orderby=Created desc&$top=100`;
 
       const response = await sharePointApi.get<any>(endpoint);
 
@@ -274,7 +357,7 @@ export class IdeaApiService {
         PercentComplete: (task.percentComplete || 0) / 100, // Convert percentage to decimal for SharePoint
         DueDate: task.dueDate,
         StartDate: task.startDate,
-        AssignedToId: task.assignedTo?.length ? { results: task.assignedTo.map((userId) => parseInt(userId)) } : null,
+        AssignedToId: { results: task.assignedTo?.map((userId) => parseInt(userId)) || [] },
         IdeaIdId: ideaId,
       };
 
@@ -376,8 +459,14 @@ export class IdeaApiService {
   }
 
   // Update task status and progress
-  async updateTask(taskId: number, updates: Partial<Pick<Task, 'status' | 'percentComplete'>>): Promise<ProcessedTask> {
+  async updateTask(taskId: number, updates: Partial<Pick<Task, 'status' | 'percentComplete'>>, user?: { id: number; name: string }): Promise<ProcessedTask> {
     try {
+      // Get current task before update for trail logging
+      const currentTask = await this.getTaskById(taskId);
+      if (!currentTask) {
+        throw new Error(`Task ${taskId} not found`);
+      }
+
       const endpoint = `/_api/web/lists/getbytitle('${LISTS.tasks}')/items(${taskId})`;
 
       const data: any = {
@@ -406,6 +495,52 @@ export class IdeaApiService {
       const updatedTask = await this.getTaskById(taskId);
       logInfo(`Fetched updated task ${taskId}`, updatedTask);
 
+      // Create trail event for task update
+      try {
+        const hasStatusChange = updates.status !== undefined && updates.status !== currentTask.status;
+        const hasProgressChange = updates.percentComplete !== undefined && updates.percentComplete !== currentTask.percentComplete;
+
+        if (hasStatusChange || hasProgressChange) {
+          let eventType: IdeaTrailEvent['eventType'] = 'status_changed';
+          let eventTitle = 'Task Updated';
+          let eventDescription = `Task "${currentTask.title}" was updated`;
+
+          // Determine specific event type based on changes
+          if (hasStatusChange && hasProgressChange) {
+            eventDescription = `Task "${currentTask.title}" status changed from ${currentTask.status} to ${updates.status} and progress updated to ${updates.percentComplete}%`;
+          } else if (hasStatusChange) {
+            eventDescription = `Task "${currentTask.title}" status changed from ${currentTask.status} to ${updates.status}`;
+          } else if (hasProgressChange) {
+            eventType = 'status_changed'; // Keep as status_changed for progress updates too
+            eventDescription = `Task "${currentTask.title}" progress updated from ${Math.round(currentTask.percentComplete)}% to ${updates.percentComplete}%`;
+          }
+
+          await this.createIdeaTrailEvent({
+            ideaId: currentTask.ideaId,
+            taskId: taskId,
+            eventType,
+            title: eventTitle,
+            description: eventDescription,
+            actor: user?.name || 'Unknown User',
+            actorId: user?.id || 0,
+            previousStatus: hasStatusChange ? currentTask.status : undefined,
+            newStatus: hasStatusChange ? updates.status : undefined,
+            metadata: {
+              taskTitle: currentTask.title,
+              previousProgress: hasProgressChange ? Math.round(currentTask.percentComplete) : undefined,
+              newProgress: hasProgressChange ? updates.percentComplete : undefined,
+              changes: {
+                statusChanged: hasStatusChange,
+                progressChanged: hasProgressChange,
+              },
+            },
+          });
+        }
+      } catch (trailError) {
+        logError("Failed to create trail event for task update", trailError);
+        // Don't fail the task update if trail event fails
+      }
+
       return updatedTask as ProcessedTask;
     } catch (error) {
       logError(`Failed to update task ${taskId}`, { error, updates, taskId });
@@ -431,8 +566,15 @@ export class IdeaApiService {
   async createDiscussionForTask(
     taskId: number,
     discussion: Omit<Discussion, "id" | "taskId">,
+    user?: { id: number; name: string },
   ): Promise<ProcessedDiscussion> {
     try {
+      // Get the task to find the associated idea
+      const task = await this.getTaskById(taskId);
+      if (!task) {
+        throw new Error(`Task ${taskId} not found`);
+      }
+
       const endpoint = `/_api/web/lists/getbytitle('${LISTS.discussions}')/items`;
 
       const data = {
@@ -447,6 +589,29 @@ export class IdeaApiService {
       const response = await sharePointApi.post<any>(endpoint, data);
 
       logInfo("Discussion created successfully", { id: response.d.ID, taskId });
+
+      // Create trail event for discussion creation
+      try {
+        await this.createIdeaTrailEvent({
+          ideaId: task.ideaId,
+          taskId: taskId,
+          discussionId: response.d.ID,
+          eventType: 'commented',
+          title: 'Discussion Added',
+          description: `Discussion "${discussion.title || 'Untitled'}" was added to task "${task.title}"`,
+          actor: user?.name || 'Unknown User',
+          actorId: user?.id || 0,
+          metadata: {
+            discussionTitle: discussion.title,
+            discussionBody: discussion.body,
+            taskTitle: task.title,
+          },
+        });
+      } catch (trailError) {
+        logError("Failed to create trail event for discussion creation", trailError);
+        // Don't fail the discussion creation if trail event fails
+      }
+
       return this.processDiscussion(response.d);
     } catch (error) {
       logError("Failed to create discussion", error);

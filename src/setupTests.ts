@@ -12,6 +12,20 @@ declare global {
 
 export {};
 
+// Mock import.meta
+(global as any).import = {
+  meta: {
+    env: {
+      VITE_LIST_IDEAS: 'innovative_ideas',
+      VITE_LIST_TASKS: 'innovative_idea_tasks',
+      VITE_LIST_DISCUSSIONS: 'innovative_idea_discussions',
+      VITE_LIST_APPROVERS: 'innovative_idea_approvers',
+      VITE_LIST_TRAIL: 'innovative_idea_trail',
+      VITE_SHAREPOINT_BASE_URL: 'http://test.sharepoint.com',
+    }
+  }
+};
+
 // Mock window.matchMedia
 Object.defineProperty(window, "matchMedia", {
   writable: true,
@@ -36,10 +50,10 @@ global.ResizeObserver = jest.fn().mockImplementation(() => ({
 
 // Mock window.IntersectionObserver
 global.IntersectionObserver = jest.fn().mockImplementation(() => ({
-  observe: jest.fn(),
-  unobserve: jest.fn(),
-  disconnect: jest.fn(),
-}));
+    observe: jest.fn(),
+    unobserve: jest.fn(),
+    disconnect: jest.fn(),
+  }));
 
 // Mock SharePoint context
 global.SP = {
@@ -47,9 +61,7 @@ global.SP = {
   Web: jest.fn(),
   List: jest.fn(),
   ListItem: jest.fn(),
-};
-
-// Mock jQuery
+};// Mock jQuery
 (global as any).$ = {
   ajax: jest.fn(),
   getJSON: jest.fn(),

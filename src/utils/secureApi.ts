@@ -34,7 +34,17 @@ const getBaseUrl = (): string => {
     return spContext.webAbsoluteUrl;
   }
   // Fallback to environment variable or default
-  return import.meta.env?.VITE_SHAREPOINT_BASE_URL || DEFAULT_CONFIG.baseUrl;
+  // For testing environments, use a test URL
+  if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'test') {
+    return 'http://test.sharepoint.com';
+  }
+  // Use import.meta.env for Vite builds
+  try {
+    // @ts-ignore - import.meta is available in Vite
+    return import.meta.env?.VITE_SHAREPOINT_BASE_URL || DEFAULT_CONFIG.baseUrl;
+  } catch {
+    return DEFAULT_CONFIG.baseUrl;
+  }
 };
 
 // API Response types

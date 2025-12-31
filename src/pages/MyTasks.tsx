@@ -121,7 +121,7 @@ const MyTasks: React.FC = () => {
       // Only update if there are changes
       if (Object.keys(updates).length > 0) {
         logInfo(`Updating task ${selectedTask.id} with changes`, updates);
-        await ideaApi.updateTask(selectedTask.id, updates);
+        await ideaApi.updateTask(selectedTask.id, updates, { id: user?.user?.Id || 0, name: user?.user?.Title || 'Unknown User' });
         logInfo(`Task ${selectedTask.id} updated successfully`);
 
         // Update local state
@@ -195,7 +195,7 @@ const MyTasks: React.FC = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className={styles.splitContainer}
+      className={styles.pageContainer}
     >
       {/* Header */}
       <div className={styles.header}>
