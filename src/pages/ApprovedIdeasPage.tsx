@@ -15,7 +15,7 @@ import { ValidatedSelect } from "../components/common/ValidatedSelect.tsx";
 import PeoplePicker from "../components/common/PeoplePicker";
 import { logInfo, logError } from "../utils/logger";
 import formStyles from "../components/incident/IncidentTaskForm.module.css";
-import styles from "../components/common/MyIdeas.module.css";
+import styles from "./ApprovedIdeasPage.module.css";
 
 interface SelectedUser {
   id: number;
