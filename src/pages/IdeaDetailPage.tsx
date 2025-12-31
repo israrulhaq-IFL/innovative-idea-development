@@ -106,177 +106,188 @@ const IdeaDetailPage: React.FC = () => {
       <div className={styles.header}>
         <button
           onClick={() => navigate('/dashboard')}
-          className={styles.backButton}
+          style={{
+            background: '#f3f4f6',
+            border: '1px solid #d1d5db',
+            borderRadius: '6px',
+            padding: '8px 16px',
+            fontSize: '14px',
+            color: '#374151',
+            cursor: 'pointer',
+            marginBottom: '16px'
+          }}
         >
           ← Back to Dashboard
         </button>
-        <h1 className={styles.title}>{idea.title}</h1>
-        <div className={styles.headerMeta}>
-          <span className={styles.category}>{idea.category}</span>
-          <span
-            className={`${styles.status} ${idea.status === 'Approved'
-              ? styles.statusApproved
-              : idea.status === 'Pending Approval'
-                ? styles.statusPending
-                : idea.status === 'Rejected'
-                  ? styles.statusRejected
-                  : idea.status === 'In Progress'
-                    ? styles.statusInProgress
-                    : styles.statusDefault
-              }`}
-          >
+
+        <div className={styles.titleSection}>
+          <h1 className={styles.title}>{idea.title}</h1>
+          <span className={`${styles.statusBadge} ${
+            idea.status === 'Approved' ? styles.statusApproved :
+            idea.status === 'Pending Approval' ? styles.statusPending :
+            idea.status === 'Rejected' ? styles.statusRejected :
+            idea.status === 'In Progress' ? styles.statusInProgress :
+            styles.statusCompleted
+          }`}>
             {idea.status}
           </span>
-          <span
-            className={`${styles.priority} ${idea.priority === 'Critical'
-              ? styles.priorityCritical
-              : idea.priority === 'High'
-                ? styles.priorityHigh
-                : idea.priority === 'Medium'
-                  ? styles.priorityMedium
-                  : styles.priorityLow
-              }`}
-          >
-            {idea.priority}
-          </span>
+        </div>
+
+        <div className={styles.metaGrid}>
+          <div className={styles.metaItem}>
+            <span className={styles.metaLabel}>Category</span>
+            <span className={styles.categoryBadge}>{idea.category}</span>
+          </div>
+          <div className={styles.metaItem}>
+            <span className={styles.metaLabel}>Priority</span>
+            <span className={`${styles.priorityBadge} ${
+              idea.priority === 'Critical' ? styles.priorityCritical :
+              idea.priority === 'High' ? styles.priorityHigh :
+              idea.priority === 'Medium' ? styles.priorityMedium :
+              styles.priorityLow
+            }`}>
+              {idea.priority}
+            </span>
+          </div>
+          <div className={styles.metaItem}>
+            <span className={styles.metaLabel}>Submitted by</span>
+            <span className={styles.metaValue}>{idea.createdBy.name}</span>
+          </div>
+          <div className={styles.metaItem}>
+            <span className={styles.metaLabel}>Date submitted</span>
+            <span className={styles.metaValue}>
+              {idea.created && !isNaN(idea.created.getTime())
+                ? idea.created.toLocaleDateString()
+                : "Date unavailable"}
+            </span>
+          </div>
         </div>
       </div>
 
-      <div className={styles.content}>
-        <div className={styles.mainSection}>
-          <div className={styles.section}>
-            <h2 className={styles.sectionTitle}>Description</h2>
-            <p className={styles.description}>{idea.description}</p>
-          </div>
-
-          <div className={styles.section}>
-            <h2 className={styles.sectionTitle}>Details</h2>
-            <div className={styles.detailsGrid}>
-              <div className={styles.detailItem}>
-                <span className={styles.detailLabel}>Submitted by:</span>
-                <span className={styles.detailValue}>
-                  {idea.createdBy.name}
-                </span>
-              </div>
-              <div className={styles.detailItem}>
-                <span className={styles.detailLabel}>Date submitted:</span>
-                <span className={styles.detailValue}>
-                  {idea.created && !isNaN(idea.created.getTime())
-                    ? idea.created.toLocaleDateString()
-                    : "Date unavailable"}
-                </span>
-              </div>
-              <div className={styles.detailItem}>
-                <span className={styles.detailLabel}>Category:</span>
-                <span className={styles.detailValue}>{idea.category}</span>
-              </div>
-              <div className={styles.detailItem}>
-                <span className={styles.detailLabel}>Priority:</span>
-                <span className={styles.detailValue}>{idea.priority}</span>
-              </div>
-            </div>
-          </div>
+      <div className={styles.description}>
+        <h2 className={styles.descriptionTitle}>Description</h2>
+        <p className={styles.descriptionContent}>{idea.description}</p>
+      </div>
+      <div className={styles.timelineSection}>
+        <div className={styles.timelineTitle}>
+          <span className={styles.timelineIcon}>📋</span>
+          Idea Trail
+          <button
+            onClick={() => setIsTrailModalOpen(true)}
+            style={{
+              marginLeft: 'auto',
+              padding: '0.5rem 1rem',
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '0.9rem',
+              fontWeight: '500',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+            onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+          >
+            <span>👁️</span>
+            View Full Trail
+          </button>
         </div>
 
-        <div className={styles.trailSection}>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "1rem",
-            }}
-          >
-            <h2 className={styles.sectionTitle}>Idea Trail</h2>
-            <button
-              onClick={() => setIsTrailModalOpen(true)}
-              style={{
-                padding: "0.5rem 1rem",
-                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                color: "white",
-                border: "none",
-                borderRadius: "8px",
-                cursor: "pointer",
-                fontSize: "0.9rem",
-                fontWeight: "500",
-                display: "flex",
-                alignItems: "center",
-                gap: "0.5rem",
-                transition: "all 0.3s ease",
-              }}
-              onMouseOver={(e) =>
-                (e.currentTarget.style.transform = "scale(1.05)")
-              }
-              onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
-            >
-              <span>👁️</span>
-              View Full Trail
-            </button>
-          </div>
-          <div className={styles.trailContainer}>
-            <div className={styles.trailItem}>
-              <div className={styles.trailIcon}>
-                <span className={styles.iconSubmitted}>📝</span>
-              </div>
-              <div className={styles.trailContent}>
-                <h3 className={styles.trailTitle}>Idea Submitted</h3>
-                <p className={styles.trailDescription}>
-                  Idea was submitted by {idea.createdBy.name} on{" "}
+        <div className={styles.timeline}>
+          <div className={`${styles.timelineItem} ${styles.completed}`}>
+            <div className={styles.timelineDot}></div>
+            <div className={styles.timelineContent}>
+              <div className={styles.timelineHeader}>
+                <h3 className={styles.timelineEvent}>Idea Submitted</h3>
+                <span className={styles.timelineDate}>
                   {idea.created && !isNaN(idea.created.getTime())
                     ? idea.created.toLocaleDateString()
-                    : "unknown date"}
-                </p>
-                <span className={styles.trailDate}>
-                  {idea.created && !isNaN(idea.created.getTime())
-                    ? idea.created.toLocaleString()
                     : "Date unavailable"}
                 </span>
               </div>
+              <p className={styles.timelineDetails}>
+                Idea was submitted by {idea.createdBy.name}
+              </p>
+              <div className={styles.timelineMeta}>
+                <div className={styles.timelineUser}>
+                  <div className={styles.timelineUserAvatar}>
+                    {idea.createdBy.name.charAt(0).toUpperCase()}
+                  </div>
+                  {idea.createdBy.name}
+                </div>
+              </div>
             </div>
-
-            {idea.status !== 'Pending Approval' && (
-              <div className={styles.trailItem}>
-                <div className={styles.trailIcon}>
-                  <span className={styles.iconReviewed}>👁️</span>
-                </div>
-                <div className={styles.trailContent}>
-                  <h3 className={styles.trailTitle}>
-                    {idea.status === 'Approved' ? 'Idea Approved' :
-                      idea.status === "Rejected"
-                        ? "Idea Rejected"
-                        : 'Status Updated'}
-                  </h3>
-                  <p className={styles.trailDescription}>
-                    Idea status changed to "{idea.status}"
-                  </p>
-                  <span className={styles.trailDate}>
-                    {idea.modified && !isNaN(idea.modified.getTime())
-                      ? idea.modified.toLocaleString()
-                      : "Date unavailable"}
-                  </span>
-                </div>
-              </div>
-            )}
-
-            {idea.status === 'In Progress' && (
-              <div className={styles.trailItem}>
-                <div className={styles.trailIcon}>
-                  <span className={styles.iconProgress}>⚡</span>
-                </div>
-                <div className={styles.trailContent}>
-                  <h3 className={styles.trailTitle}>Implementation Started</h3>
-                  <p className={styles.trailDescription}>
-                    Work has begun on implementing this idea
-                  </p>
-                  <span className={styles.trailDate}>
-                    {idea.modified && !isNaN(idea.modified.getTime())
-                      ? idea.modified.toLocaleString()
-                      : "Date unavailable"}
-                  </span>
-                </div>
-              </div>
-            )}
           </div>
+
+          {idea.status !== 'Pending Approval' && (
+            <div className={`${styles.timelineItem} ${
+              idea.status === 'Approved' ? styles.completed :
+              idea.status === 'Rejected' ? styles.rejected :
+              styles.current
+            }`}>
+              <div className={styles.timelineDot}></div>
+              <div className={styles.timelineContent}>
+                <div className={styles.timelineHeader}>
+                  <h3 className={styles.timelineEvent}>
+                    {idea.status === 'Approved' ? 'Idea Approved' :
+                     idea.status === 'Rejected' ? 'Idea Rejected' :
+                     'Status Updated'}
+                  </h3>
+                  <span className={styles.timelineDate}>
+                    {idea.modified && !isNaN(idea.modified.getTime())
+                      ? idea.modified.toLocaleDateString()
+                      : "Date unavailable"}
+                  </span>
+                </div>
+                <p className={styles.timelineDetails}>
+                  Idea status changed to "{idea.status}"
+                </p>
+              </div>
+            </div>
+          )}
+
+          {idea.status === 'In Progress' && (
+            <div className={`${styles.timelineItem} ${styles.current}`}>
+              <div className={styles.timelineDot}></div>
+              <div className={styles.timelineContent}>
+                <div className={styles.timelineHeader}>
+                  <h3 className={styles.timelineEvent}>Implementation Started</h3>
+                  <span className={styles.timelineDate}>
+                    {idea.modified && !isNaN(idea.modified.getTime())
+                      ? idea.modified.toLocaleDateString()
+                      : "Date unavailable"}
+                  </span>
+                </div>
+                <p className={styles.timelineDetails}>
+                  Work has begun on implementing this idea
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className={styles.actionsSection}>
+        <h2 className={styles.actionsTitle}>Actions</h2>
+        <div className={styles.actionsGrid}>
+          <button
+            onClick={() => setIsTrailModalOpen(true)}
+            className={`${styles.actionButton} ${styles.actionPrimary}`}
+          >
+            <span>👁️</span>
+            View Full Trail
+          </button>
+          <button
+            onClick={() => navigate('/dashboard')}
+            className={`${styles.actionButton} ${styles.actionSecondary}`}
+          >
+            <span>←</span>
+            Back to Dashboard
+          </button>
         </div>
       </div>
 
