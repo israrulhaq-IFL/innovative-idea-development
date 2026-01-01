@@ -298,19 +298,19 @@ class DiscussionApi {
       </div>`;
       
       if (ideaCreator && ideaDescription) {
-        body += `<div style="background: #f7fafc; border-left: 4px solid #667eea; padding: 15px; margin-bottom: 15px; border-radius: 4px;">
-          <h4 style="margin: 0 0 10px 0; color: #667eea;">💡 Original Idea</h4>
-          <p style="margin: 5px 0; color: #2d3748;"><strong style="color: #2d3748;">Created by:</strong> ${ideaCreator}</p>
-          <p style="margin: 5px 0; color: #2d3748;"><strong style="color: #2d3748;">Description:</strong> ${ideaDescription}</p>
+        body += `<div style="background:#f7fafc;border-left:4px solid #667eea;padding:15px;margin-bottom:15px;border-radius:4px;">
+          <h4 style="margin:0 0 10px 0;color:#667eea !important;">💡 Original Idea</h4>
+          <p style="margin:5px 0;color:#2d3748 !important;"><strong style="color:#2d3748 !important;">Created by:</strong> <span style="color:#2d3748 !important;">${ideaCreator}</span></p>
+          <p style="margin:5px 0;color:#2d3748 !important;"><strong style="color:#2d3748 !important;">Description:</strong> <span style="color:#2d3748 !important;">${ideaDescription}</span></p>
         </div>`;
       }
       
-      body += `<div style="background: #fff; padding: 15px; border-radius: 4px; border: 1px solid #e2e8f0;">
-        <h4 style="margin: 0 0 10px 0; color: #2d3748;">📝 Task Details</h4>
-        <p style="margin: 5px 0; color: #2d3748;">${taskDescription}</p>
+      body += `<div style="background:#fff;padding:15px;border-radius:4px;border:1px solid #e2e8f0;">
+        <h4 style="margin:0 0 10px 0;color:#2d3748 !important;">📝 Task Details</h4>
+        <p style="margin:5px 0;color:#2d3748 !important;"><span style="color:#2d3748 !important;">${taskDescription}</span></p>
       </div>
-      <div style="margin-top: 15px; padding: 10px; background: #edf2f7; border-radius: 4px;">
-        <p style="margin: 0; font-size: 14px; color: #4a5568;">💬 This discussion thread is for collaborating on this task. Feel free to ask questions, share updates, and upload relevant files.</p>
+      <div style="margin-top:15px;padding:10px;background:#edf2f7;border-radius:4px;">
+        <p style="margin:0;font-size:14px;color:#4a5568 !important;">💬 This discussion thread is for collaborating on this task. Feel free to ask questions, share updates, and upload relevant files.</p>
       </div>`;
 
       logInfo('[DiscussionApi] Calling createDiscussion', { taskId, ideaId, subject });
