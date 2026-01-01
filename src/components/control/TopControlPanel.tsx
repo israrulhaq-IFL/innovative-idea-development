@@ -11,6 +11,7 @@ import {
   Settings,
   User,
   ClipboardList,
+  CheckCheck,
 } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 import styles from './TopControlPanel.module.css';
@@ -161,6 +162,18 @@ export const TopControlPanel: React.FC<TopControlPanelProps> = ({
     }
 
     if (isAdmin) {
+      controls.push(
+        <button
+          key="idea-completion"
+          onClick={() => navigate('/idea-completion')}
+          className={`${styles.actionButton} ${styles.primary}`}
+          title="Manage idea completion and mark as completed"
+        >
+          <CheckCheck size={16} />
+          <span>Idea Completion</span>
+        </button>,
+      );
+      
       controls.push(
         <button
           key="export"

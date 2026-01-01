@@ -3,6 +3,8 @@ import React, {
   useContext,
   useReducer,
   useCallback,
+  useRef,
+  useEffect,
   ReactNode,
 } from "react";
 import { ideaApi } from "../services/ideaApi";
@@ -316,6 +318,10 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
 }) => {
   const [state, dispatch] = useReducer(dataReducer, initialState);
   const { user } = useUser();
+  
+  // Create refs to store the latest function references
+  const loadIdeasRef = useRef<(() => Promise<void>) | null>(null);
+  const loadIdeaTrailEventsRef = useRef<(() => Promise<void>) | null>(null);
 
   const loadIdeas = useCallback(async () => {
     dispatch({ type: "SET_LOADING", payload: { key: "ideas", value: true } });
@@ -355,6 +361,11 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
       });
     }
   }, []);
+  
+  // Update the refs whenever functions change
+  useEffect(() => {
+    loadIdeasRef.current = loadIdeas;
+  }, [loadIdeas]);
 
   const loadTasks = useCallback(async () => {
     dispatch({ type: "SET_LOADING", payload: { key: "tasks", value: true } });
@@ -579,8 +590,14 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
         dispatch({ type: 'UPDATE_LAST_UPDATED' });
 
         // Refresh data from server to ensure consistency (skip for undo operations)
-        if (!skipRefresh) {
-          setTimeout(() => loadIdeas(), 1000);
+        if (!skipRefresh && loadIdeasRef.current) {
+          setTimeout(async () => {
+            try {
+              await loadIdeasRef.current?.();
+            } catch (error) {
+              console.error('Failed to refresh ideas after status update:', error);
+            }
+          }, 1000);
         }
 
         return updatedIdea;
@@ -592,7 +609,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
         throw error;
       }
     },
-    [state.data.ideas, user?.user?.Id, user?.user?.Title, loadIdeas],
+    [state.data.ideas, user?.user?.Id, user?.user?.Title],
   );
 
   const loadIdeaTrailEvents = useCallback(async () => {
@@ -606,6 +623,11 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
       dispatch({ type: "SET_IDEA_TRAIL_EVENTS", payload: [] });
     }
   }, []);
+  
+  // Update the ref for loadIdeaTrailEvents
+  useEffect(() => {
+    loadIdeaTrailEventsRef.current = loadIdeaTrailEvents;
+  }, [loadIdeaTrailEvents]);
 
   const createInitialTrailEvents = useCallback(async () => {
     try {
@@ -690,11 +712,13 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
 
       console.log("Initial trail events creation completed");
       // Reload trail events
-      await loadIdeaTrailEvents();
+      if (loadIdeaTrailEventsRef.current) {
+        await loadIdeaTrailEventsRef.current();
+      }
     } catch (error) {
       console.error("Failed to create initial trail events", error);
     }
-  }, [state.data.ideas, loadIdeaTrailEvents]);
+  }, [state.data.ideas]);
 
   return (
     <DataContext.Provider

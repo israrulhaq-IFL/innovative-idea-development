@@ -29,6 +29,7 @@ const TaskDiscussionPage = React.lazy(
 const IdeaTaskFormPage = React.lazy(() => import("./pages/IdeaTaskFormPage"));
 const ApprovedIdeasPage = React.lazy(() => import("./pages/ApprovedIdeasPage"));
 const MyTasks = React.lazy(() => import("./pages/MyTasks"));
+const IdeaCompletionPage = React.lazy(() => import("./pages/IdeaCompletionPage"));
 
 // Role-based routing component
 const RoleBasedRouter: React.FC = () => {
@@ -72,6 +73,7 @@ const RoleBasedRouter: React.FC = () => {
       <Route path="/task/:id" element={<TaskDiscussionPage />} />
       <Route path="/idea/:id/task/new" element={<IdeaTaskFormPage />} />
       <Route path="/approved-ideas" element={<ApprovedIdeasPage />} />
+      <Route path="/idea-completion" element={<IdeaCompletionPage />} />
 
       {/* General dashboard accessible to all users */}
       <Route path="/" element={<MainDashboard />} />
@@ -104,7 +106,9 @@ const AppWithRouter: React.FC<AppWithRouterProps> = ({ data }) => {
     "/approver",
     "/contributor",
     "/my-ideas",
+    "/my-tasks",
     "/approved-ideas",
+    "/idea-completion",
   ];
 
   const showControlPanel = routesWithControlPanel.some((route) =>
