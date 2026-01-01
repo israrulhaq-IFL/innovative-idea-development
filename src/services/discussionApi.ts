@@ -72,7 +72,7 @@ class DiscussionApi {
       // First, get all tasks where user is assigned (using AssignedToId for multi-value field)
       // Note: We need to get ALL tasks and filter client-side because SharePoint 2016
       // doesn't properly expand multi-value user fields when filtered
-      const tasksEndpoint = `/_api/web/lists/getbytitle('${LISTS.tasks}')/items?$select=ID,Title,IdeaIdId,AssignedToId,IdeaId/Title,IdeaId/Status,AssignedTo/Id,AssignedTo/Title,AssignedTo/EMail&$expand=IdeaId,AssignedTo&$top=500`;
+      const tasksEndpoint = `/_api/web/lists/getbytitle('${LISTS.tasks}')/items?$select=ID,Title,IdeaIdId,AssignedToId,IdeaId/Title,AssignedTo/Id,AssignedTo/Title,AssignedTo/EMail&$expand=IdeaId,AssignedTo&$top=500`;
       
       const tasksResponse = await sharePointApi.get<any>(tasksEndpoint);
       const allTasks = tasksResponse.d.results;
@@ -104,9 +104,20 @@ class DiscussionApi {
               }))
             : [];
 
-          // Check if idea is completed to set isLocked
-          const ideaStatus = task.IdeaId?.Status;
-          const isLocked = ideaStatus === 'Completed';
+          // Fetch idea status separately if ideaId exists
+          let ideaStatus: string | undefined;
+          let isLocked = false;
+          
+          if (task.IdeaIdId) {
+            try {
+              const ideaEndpoint = `/_api/web/lists/getbytitle('${LISTS.ideas}')/items(${task.IdeaIdId})?$select=Status`;
+              const ideaResponse = await sharePointApi.get<any>(ideaEndpoint);
+              ideaStatus = ideaResponse.d.Status;
+              isLocked = ideaStatus === 'Completed';
+            } catch (error) {
+              console.warn(`Failed to fetch idea status for task ${task.ID}`, error);
+            }
+          }
 
           discussions.push({
             id: task.ID,
