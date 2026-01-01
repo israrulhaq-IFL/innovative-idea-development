@@ -23,12 +23,8 @@ const DiscussionPanel: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Check if the idea is completed - compute directly without memo to always get latest status
-  const isIdeaCompleted = (() => {
-    if (!selectedDiscussion?.ideaId) return false;
-    const idea = data.ideas.find(i => i.id === selectedDiscussion.ideaId);
-    return idea?.status === 'Completed';
-  })();
+  // Check if the discussion is locked - use the field from discussion data
+  const isDiscussionLocked = selectedDiscussion?.isLocked ?? false;
 
   // Define loadDiscussions before using it
   const loadDiscussions = async () => {
@@ -406,7 +402,7 @@ const DiscussionPanel: React.FC = () => {
               </div>
 
               <div className={styles.replyBox}>
-                {isIdeaCompleted ? (
+                {isDiscussionLocked ? (
                   <div className={styles.completedNotice}>
                     <CheckCheck size={20} />
                     <div>

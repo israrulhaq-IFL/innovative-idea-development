@@ -30,6 +30,8 @@ export interface Discussion {
   taskTitle: string;
   ideaId?: number;
   ideaTitle?: string;
+  ideaStatus?: string;
+  isLocked?: boolean;
   participants: Array<{
     id: number;
     name: string;
@@ -70,7 +72,7 @@ class DiscussionApi {
       // First, get all tasks where user is assigned (using AssignedToId for multi-value field)
       // Note: We need to get ALL tasks and filter client-side because SharePoint 2016
       // doesn't properly expand multi-value user fields when filtered
-      const tasksEndpoint = `/_api/web/lists/getbytitle('${LISTS.tasks}')/items?$select=ID,Title,IdeaIdId,AssignedToId,IdeaId/Title,AssignedTo/Id,AssignedTo/Title,AssignedTo/EMail&$expand=IdeaId,AssignedTo&$top=500`;
+      const tasksEndpoint = `/_api/web/lists/getbytitle('${LISTS.tasks}')/items?$select=ID,Title,IdeaIdId,AssignedToId,IdeaId/Title,IdeaId/Status,AssignedTo/Id,AssignedTo/Title,AssignedTo/EMail&$expand=IdeaId,AssignedTo&$top=500`;
       
       const tasksResponse = await sharePointApi.get<any>(tasksEndpoint);
       const allTasks = tasksResponse.d.results;
@@ -102,12 +104,18 @@ class DiscussionApi {
               }))
             : [];
 
+          // Check if idea is completed to set isLocked
+          const ideaStatus = task.IdeaId?.Status;
+          const isLocked = ideaStatus === 'Completed';
+
           discussions.push({
             id: task.ID,
             taskId: task.ID,
             taskTitle: task.Title,
             ideaId: task.IdeaId?.Id || task.IdeaIdId,
             ideaTitle: task.IdeaId?.Title,
+            ideaStatus: ideaStatus,
+            isLocked: isLocked,
             participants,
             messages,
             lastActivity,
@@ -347,6 +355,36 @@ class DiscussionApi {
       })) || [],
       parentItemId: item.ParentItemID || null,
     };
+  }
+
+  /**
+   * Update IsLocked field for all discussions related to an idea
+   */
+  async updateDiscussionLockStatus(ideaId: number, isLocked: boolean): Promise<void> {
+    try {
+      logInfo('[DiscussionApi] Updating discussion lock status', { ideaId, isLocked });
+
+      // Get all discussions for this idea
+      const endpoint = `/_api/web/lists/getbytitle('${this.listName}')/items?$filter=IdeaIdId eq ${ideaId}&$select=ID`;
+      const response = await sharePointApi.get<any>(endpoint);
+      const discussions = response.d.results;
+
+      // Update each discussion
+      for (const discussion of discussions) {
+        const updateEndpoint = `/_api/web/lists/getbytitle('${this.listName}')/items(${discussion.ID})`;
+        const data = {
+          __metadata: { type: 'SP.Data.Innovative_x005f_idea_x005f_discussionsListItem' },
+          IsLocked: isLocked,
+        };
+
+        await sharePointApi.update(updateEndpoint, data);
+      }
+
+      logInfo('[DiscussionApi] Discussion lock status updated successfully', { ideaId, isLocked, count: discussions.length });
+    } catch (error) {
+      logError('[DiscussionApi] Failed to update discussion lock status', error);
+      throw error;
+    }
   }
 }
 

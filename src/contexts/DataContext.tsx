@@ -619,6 +619,17 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
         dispatch({ type: 'SET_IDEAS', payload: updatedIdeas });
         dispatch({ type: 'UPDATE_LAST_UPDATED' });
 
+        // If status changed to Completed, lock all related discussions
+        if (newStatus === 'Completed') {
+          try {
+            await discussionApi.updateDiscussionLockStatus(ideaId, true);
+            console.log('Discussion locked for completed idea:', ideaId);
+          } catch (lockError) {
+            console.error('Failed to lock discussions for completed idea:', lockError);
+            // Don't fail the status update if lock fails
+          }
+        }
+
         // Refresh data from server to ensure consistency (skip for undo operations)
         if (!skipRefresh && loadIdeasRef.current) {
           setTimeout(async () => {
