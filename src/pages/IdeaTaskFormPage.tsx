@@ -253,15 +253,18 @@ const IdeaTaskFormPage: React.FC = () => {
       if (result) {
         // Auto-create discussion thread for the task with idea context
         try {
+          logInfo('[IdeaTaskForm] Starting discussion creation for task', result.id);
           const assignees = formData.assignees.map(a => ({
             id: a.id,
             name: a.name
           }));
+          logInfo('[IdeaTaskForm] Assignees prepared', assignees);
           
           // Get the full idea details for context
           const idea = data.ideas.find(i => i.id.toString() === formData.ideaId);
+          logInfo('[IdeaTaskForm] Idea found for discussion context', { ideaId: formData.ideaId, found: !!idea });
           
-          await discussionApi.createTaskDiscussion(
+          const discussion = await discussionApi.createTaskDiscussion(
             result.id,
             taskData.title,
             taskData.description || '',
@@ -270,7 +273,7 @@ const IdeaTaskFormPage: React.FC = () => {
             idea?.createdBy,
             idea?.description
           );
-          logInfo('[IdeaTaskForm] Discussion thread created for task', result.id);
+          logInfo('[IdeaTaskForm] Discussion thread created successfully', { discussionId: discussion.id, taskId: result.id });
           
           // Create trail entry for discussion creation
           try {
@@ -285,7 +288,12 @@ const IdeaTaskFormPage: React.FC = () => {
             logError('[IdeaTaskForm] Failed to create trail entry:', trailError);
           }
         } catch (discussionError) {
-          logError('[IdeaTaskForm] Failed to create discussion thread:', discussionError);
+          logError('[IdeaTaskForm] Failed to create discussion thread - FULL ERROR:', discussionError);
+          console.error('[IdeaTaskForm] Discussion creation error details:', {
+            error: discussionError,
+            message: discussionError instanceof Error ? discussionError.message : 'Unknown error',
+            stack: discussionError instanceof Error ? discussionError.stack : undefined
+          });
           // Don't fail the task creation if discussion creation fails
         }
 
