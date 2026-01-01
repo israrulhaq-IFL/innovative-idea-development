@@ -21,6 +21,13 @@ const DiscussionPanel: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  // Check if the idea is completed
+  const isIdeaCompleted = useMemo(() => {
+    if (!selectedDiscussion?.ideaId) return false;
+    const idea = data.ideas.find(i => i.id === selectedDiscussion.ideaId);
+    return idea?.status === 'Completed';
+  }, [selectedDiscussion?.ideaId, data.ideas]);
+
   // Define loadDiscussions before using it
   const loadDiscussions = async () => {
     if (!user?.user?.Id) return;
@@ -381,50 +388,62 @@ const DiscussionPanel: React.FC = () => {
               </div>
 
               <div className={styles.replyBox}>
-                {selectedFile && (
-                  <div className={styles.selectedFile}>
-                    <Paperclip size={14} />
-                    <span>{selectedFile.name}</span>
-                    <button onClick={() => setSelectedFile(null)}>
-                      <X size={14} />
-                    </button>
+                {isIdeaCompleted ? (
+                  <div className={styles.completedNotice}>
+                    <CheckCheck size={20} />
+                    <div>
+                      <strong>This idea has been completed</strong>
+                      <p>Discussion is closed. No new messages can be sent.</p>
+                    </div>
                   </div>
-                )}
-                <div className={styles.replyInput}>
-                  <textarea
-                    ref={textareaRef}
-                    placeholder="Type your message..."
-                    value={replyText}
-                    onChange={(e) => setReplyText(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        if (replyText.trim() && !sending) {
-                          handleSendReply();
-                        }
-                      }
-                    }}
-                    disabled={sending}
-                  />
-                  <div className={styles.replyActions}>
-                    <label className={styles.attachButton}>
-                      <Paperclip size={18} />
-                      <input
-                        type="file"
-                        onChange={handleFileSelect}
-                        style={{ display: 'none' }}
+                ) : (
+                  <>
+                    {selectedFile && (
+                      <div className={styles.selectedFile}>
+                        <Paperclip size={14} />
+                        <span>{selectedFile.name}</span>
+                        <button onClick={() => setSelectedFile(null)}>
+                          <X size={14} />
+                        </button>
+                      </div>
+                    )}
+                    <div className={styles.replyInput}>
+                      <textarea
+                        ref={textareaRef}
+                        placeholder="Type your message..."
+                        value={replyText}
+                        onChange={(e) => setReplyText(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            if (replyText.trim() && !sending) {
+                              handleSendReply();
+                            }
+                          }
+                        }}
+                        disabled={sending}
                       />
-                    </label>
-                    <button
-                      className={styles.sendButton}
-                      onClick={handleSendReply}
-                      disabled={!replyText.trim() || sending}
-                    >
-                      <Send size={18} />
-                      {sending ? 'Sending...' : 'Send'}
-                    </button>
-                  </div>
-                </div>
+                      <div className={styles.replyActions}>
+                        <label className={styles.attachButton}>
+                          <Paperclip size={18} />
+                          <input
+                            type="file"
+                            onChange={handleFileSelect}
+                            style={{ display: 'none' }}
+                          />
+                        </label>
+                        <button
+                          className={styles.sendButton}
+                          onClick={handleSendReply}
+                          disabled={!replyText.trim() || sending}
+                        >
+                          <Send size={18} />
+                          {sending ? 'Sending...' : 'Send'}
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </>
           )}

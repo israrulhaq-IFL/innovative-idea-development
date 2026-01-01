@@ -666,6 +666,36 @@
   transform: none;
 }
 
+/* Completed Notice */
+.completedNotice {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.completedNotice svg {
+  flex-shrink: 0;
+  color: white;
+}
+
+.completedNotice strong {
+  display: block;
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+  color: white;
+}
+
+.completedNotice p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
 /* Empty State */
 .emptyState {
   display: flex;
