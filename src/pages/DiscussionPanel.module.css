@@ -703,25 +703,13 @@
 }
 
 /* Message Body Content Styling - Force colors for auto-generated content */
-.messageBody p,
-.messageBody strong,
-.messageBody span,
-.messageBody h4,
-.messageBody h3,
-.messageBody div {
-  color: #2d3748 !important;
+/* Keep white text in gradient header */
+.messageBody div[style*="linear-gradient"] *,
+.messageBody div[style*="color:white"] * {
+  color: white !important;
 }
 
-.messageBody h4[style*="color:#667eea"],
-.messageBody h3 {
-  color: #667eea !important;
-}
-
-.messageBody p[style*="color:#4a5568"] {
-  color: #4a5568 !important;
-}
-
-/* Ensure light background sections have dark text */
+/* Dark text for light backgrounds only */
 .messageBody div[style*="background:#f7fafc"] p,
 .messageBody div[style*="background:#f7fafc"] strong,
 .messageBody div[style*="background:#f7fafc"] span,
@@ -732,6 +720,21 @@
 .messageBody div[style*="background:#edf2f7"] strong,
 .messageBody div[style*="background:#edf2f7"] span {
   color: #2d3748 !important;
+}
+
+.messageBody div[style*="background:#f7fafc"] h4,
+.messageBody div[style*="background:#fff"] h4,
+.messageBody div[style*="background:#edf2f7"] h4 {
+  color: #2d3748 !important;
+}
+
+/* Keep specific header colors */
+.messageBody h4[style*="color:#667eea"] {
+  color: #667eea !important;
+}
+
+.messageBody p[style*="color:#4a5568"] {
+  color: #4a5568 !important;
 }
 
 /* Responsive */
