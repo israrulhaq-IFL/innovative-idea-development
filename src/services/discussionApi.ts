@@ -1,0 +1,262 @@
+import { sharePointApi, DEFAULT_CONFIG } from '../utils/secureApi';
+import { logError, logInfo } from '../utils/logger';
+
+const LISTS = DEFAULT_CONFIG.lists;
+
+export interface DiscussionMessage {
+  id: number;
+  subject: string;
+  body: string;
+  taskId: number;
+  ideaId?: number;
+  isQuestion: boolean;
+  author: {
+    id: number;
+    name: string;
+    email?: string;
+  };
+  created: Date;
+  modified: Date;
+  attachments?: Array<{
+    fileName: string;
+    serverRelativeUrl: string;
+  }>;
+}
+
+export interface Discussion {
+  id: number;
+  taskId: number;
+  taskTitle: string;
+  ideaId?: number;
+  ideaTitle?: string;
+  participants: Array<{
+    id: number;
+    name: string;
+    email?: string;
+  }>;
+  messages: DiscussionMessage[];
+  lastActivity: Date;
+  unreadCount: number;
+}
+
+class DiscussionApi {
+  private listName = 'innovative_idea_discussions';
+
+  /**
+   * Get all discussions for a specific task
+   */
+  async getDiscussionsByTask(taskId: number): Promise<DiscussionMessage[]> {
+    try {
+      const endpoint = `/_api/web/lists/getbytitle('${this.listName}')/items?$select=ID,Title,Body,IsQuestion,TaskId/Id,IdeaId/Id,Author/Id,Author/Title,Author/EMail,Created,Modified,Attachments&$expand=TaskId,IdeaId,Author,AttachmentFiles&$filter=TaskId/Id eq ${taskId}&$orderby=Created asc&$top=500`;
+      
+      const response = await sharePointApi.get<any>(endpoint);
+      return response.d.results.map((item: any) => this.mapToDiscussionMessage(item));
+    } catch (error) {
+      logError('Failed to get discussions by task', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get all discussions where the current user is a participant (based on task assignments)
+   */
+  async getMyDiscussions(userId: number): Promise<Discussion[]> {
+    try {
+      // First, get all tasks assigned to the user
+      const tasksEndpoint = `/_api/web/lists/getbytitle('${LISTS.tasks}')/items?$select=ID,Title,IdeaId/Id,IdeaId/Title,AssignedTo/Id,AssignedTo/Title,AssignedTo/EMail&$expand=IdeaId,AssignedTo&$filter=AssignedTo/Id eq ${userId}&$top=500`;
+      
+      const tasksResponse = await sharePointApi.get<any>(tasksEndpoint);
+      const myTasks = tasksResponse.d.results;
+
+      // Get discussions for each task
+      const discussions: Discussion[] = [];
+      
+      for (const task of myTasks) {
+        const messages = await this.getDiscussionsByTask(task.ID);
+        
+        if (messages.length > 0) {
+          const lastActivity = messages.reduce((latest, msg) => {
+            const msgDate = new Date(msg.modified);
+            return msgDate > latest ? msgDate : latest;
+          }, new Date(0));
+
+          discussions.push({
+            id: task.ID,
+            taskId: task.ID,
+            taskTitle: task.Title,
+            ideaId: task.IdeaId?.Id,
+            ideaTitle: task.IdeaId?.Title,
+            participants: Array.isArray(task.AssignedTo) 
+              ? task.AssignedTo.map((assignee: any) => ({
+                  id: assignee.Id,
+                  name: assignee.Title,
+                  email: assignee.EMail,
+                }))
+              : task.AssignedTo 
+                ? [{
+                    id: task.AssignedTo.Id,
+                    name: task.AssignedTo.Title,
+                    email: task.AssignedTo.EMail,
+                  }]
+                : [],
+            messages,
+            lastActivity,
+            unreadCount: 0, // TODO: Implement read tracking
+          });
+        }
+      }
+
+      // Sort by last activity
+      return discussions.sort(
+        (a, b) => b.lastActivity.getTime() - a.lastActivity.getTime()
+      );
+    } catch (error) {
+      logError('Failed to get my discussions', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Create a new discussion thread for a task
+   */
+  async createDiscussion(
+    taskId: number,
+    ideaId: number,
+    subject: string,
+    body: string,
+    isQuestion = false
+  ): Promise<DiscussionMessage> {
+    try {
+      const endpoint = `/_api/web/lists/getbytitle('${this.listName}')/items`;
+      const data = {
+        __metadata: { type: 'SP.Data.Innovative_x005f_idea_x005f_discussionsListItem' },
+        Title: subject,
+        Body: body,
+        TaskIdId: taskId,
+        IdeaIdId: ideaId,
+        IsQuestion: isQuestion,
+      };
+
+      const response = await sharePointApi.post<any>(endpoint, data);
+      const itemId = response.d.ID;
+
+      // Get the created item with all details
+      const getEndpoint = `/_api/web/lists/getbytitle('${this.listName}')/items(${itemId})?$select=ID,Title,Body,IsQuestion,TaskId/Id,IdeaId/Id,Author/Id,Author/Title,Author/EMail,Created,Modified,Attachments&$expand=TaskId,IdeaId,Author`;
+      const createdItem = await sharePointApi.get<any>(getEndpoint);
+
+      return this.mapToDiscussionMessage(createdItem.d);
+    } catch (error) {
+      logError('Failed to create discussion', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Add a reply to an existing discussion
+   */
+  async addReply(
+    taskId: number,
+    ideaId: number,
+    subject: string,
+    body: string,
+    isQuestion = false
+  ): Promise<DiscussionMessage> {
+    // SharePoint discussion replies are just new items linked to the same task
+    return this.createDiscussion(taskId, ideaId, subject, body, isQuestion);
+  }
+
+  /**
+   * Upload attachment to a discussion message
+   */
+  async uploadAttachment(
+    messageId: number,
+    fileName: string,
+    file: File
+  ): Promise<void> {
+    try {
+      const endpoint = `/_api/web/lists/getbytitle('${this.listName}')/items(${messageId})/AttachmentFiles/add(FileName='${fileName}')`;
+      
+      await sharePointApi.postFile(endpoint, file);
+      logInfo('Attachment uploaded successfully');
+    } catch (error) {
+      logError('Failed to upload attachment', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get attachments for a discussion message
+   */
+  async getAttachments(messageId: number) {
+    try {
+      const endpoint = `/_api/web/lists/getbytitle('${this.listName}')/items(${messageId})/AttachmentFiles`;
+      const response = await sharePointApi.get<any>(endpoint);
+
+      return response.d.results.map((att: any) => ({
+        fileName: att.FileName,
+        serverRelativeUrl: att.ServerRelativeUrl,
+      }));
+    } catch (error) {
+      logError('Failed to get attachments', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete a discussion message
+   */
+  async deleteMessage(messageId: number): Promise<void> {
+    try {
+      const endpoint = `/_api/web/lists/getbytitle('${this.listName}')/items(${messageId})`;
+      await sharePointApi.delete(endpoint);
+      logInfo('Discussion message deleted successfully');
+    } catch (error) {
+      logError('Failed to delete message', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Auto-create discussion when task is created
+   */
+  async createTaskDiscussion(
+    taskId: number,
+    taskTitle: string,
+    taskDescription: string,
+    ideaId: number,
+    assignees: Array<{ id: number; name: string }>
+  ): Promise<DiscussionMessage> {
+    const assigneeNames = assignees.map((a) => a.name).join(', ');
+    const subject = `Discussion: ${taskTitle}`;
+    const body = `<p><strong>Task Created:</strong> ${taskTitle}</p><p><strong>Description:</strong> ${taskDescription}</p><p><strong>Assigned To:</strong> ${assigneeNames}</p><p>This discussion thread is for collaborating on this task. Feel free to ask questions, share updates, and upload relevant files.</p>`;
+
+    return this.createDiscussion(taskId, ideaId, subject, body, false);
+  }
+
+  /**
+   * Map SharePoint item to DiscussionMessage
+   */
+  private mapToDiscussionMessage(item: any): DiscussionMessage {
+    return {
+      id: item.ID,
+      subject: item.Title,
+      body: item.Body || '',
+      taskId: item.TaskId?.Id || item.TaskIdId || 0,
+      ideaId: item.IdeaId?.Id || item.IdeaIdId,
+      isQuestion: item.IsQuestion || false,
+      author: {
+        id: item.Author?.Id || 0,
+        name: item.Author?.Title || 'Unknown',
+        email: item.Author?.EMail,
+      },
+      created: new Date(item.Created),
+      modified: new Date(item.Modified),
+      attachments: item.AttachmentFiles?.results?.map((att: any) => ({
+        fileName: att.FileName,
+        serverRelativeUrl: att.ServerRelativeUrl,
+      })) || [],
+    };
+  }
+}
+
+export const discussionApi = new DiscussionApi();

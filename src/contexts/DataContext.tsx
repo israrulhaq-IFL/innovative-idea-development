@@ -8,6 +8,7 @@ import React, {
   ReactNode,
 } from "react";
 import { ideaApi } from "../services/ideaApi";
+import { discussionApi, Discussion as DiscussionType } from "../services/discussionApi";
 import { useUser } from "./UserContext";
 
 // Data types for Innovative Ideas
@@ -427,9 +428,23 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
     });
 
     try {
-      // TODO: Implement SharePoint API call
-      const discussions: Discussion[] = [];
-      dispatch({ type: "SET_DISCUSSIONS", payload: discussions });
+      // Load discussions for the current user
+      if (user?.user?.Id) {
+        const myDiscussions = await discussionApi.getMyDiscussions(user.user.Id);
+        // Map to our Discussion format
+        const discussions: Discussion[] = myDiscussions.map((d: DiscussionType) => ({
+          id: d.id,
+          taskId: d.taskId,
+          title: d.taskTitle,
+          body: d.messages[0]?.body || '',
+          author: d.messages[0]?.author.name || 'Unknown',
+          timestamp: d.lastActivity,
+          attachments: d.messages.flatMap(m => m.attachments || []).map(a => a.fileName),
+        }));
+        dispatch({ type: "SET_DISCUSSIONS", payload: discussions });
+      } else {
+        dispatch({ type: "SET_DISCUSSIONS", payload: [] });
+      }
     } catch (error) {
       dispatch({
         type: "SET_ERROR",
@@ -447,7 +462,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
         payload: { key: "discussions", value: false },
       });
     }
-  }, []);
+  }, [user?.user?.Id]);
 
   const loadApprovers = useCallback(async () => {
     dispatch({

@@ -8,6 +8,7 @@ import GenericFormPage from "./GenericFormPage";
 import { ValidatedInput } from "../components/common/ValidatedInput.tsx";
 import { ValidatedSelect } from "../components/common/ValidatedSelect.tsx";
 import SearchableIdeaSelect from "../components/common/SearchableIdeaSelect";
+import { discussionApi } from "../services/discussionApi";
 import PeoplePicker from "../components/common/PeoplePicker";
 import { useToast } from "../components/common/Toast";
 import { ideaApi } from "../services/ideaApi";
@@ -250,6 +251,26 @@ const IdeaTaskFormPage: React.FC = () => {
       );
 
       if (result) {
+        // Auto-create discussion thread for the task
+        try {
+          const assignees = formData.assignees.map(a => ({
+            id: a.id,
+            name: a.name
+          }));
+          
+          await discussionApi.createTaskDiscussion(
+            result.id,
+            taskData.title,
+            taskData.description || '',
+            parseInt(formData.ideaId),
+            assignees
+          );
+          logInfo('[IdeaTaskForm] Discussion thread created for task', result.id);
+        } catch (discussionError) {
+          logError('[IdeaTaskForm] Failed to create discussion thread:', discussionError);
+          // Don't fail the task creation if discussion creation fails
+        }
+
         addToast({
           type: "success",
           title: "Task created successfully!",

@@ -12,8 +12,10 @@ import {
   User,
   ClipboardList,
   CheckCheck,
+  MessageCircle,
 } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
+import { useIdeaData } from '../../contexts/DataContext';
 import styles from './TopControlPanel.module.css';
 
 interface TopControlPanelProps {
@@ -34,6 +36,7 @@ export const TopControlPanel: React.FC<TopControlPanelProps> = ({
   const location = useLocation();
   const navigate = useNavigate();
   const { isAdmin, isApprover, isContributor } = useUser();
+  const { data } = useIdeaData();
   const [isUtilityBarScrolled, setIsUtilityBarScrolled] = useState(false);
 
   // Listen to scroll events to adjust position based on utility bar state
@@ -118,6 +121,23 @@ export const TopControlPanel: React.FC<TopControlPanelProps> = ({
   // Role-based action controls
   const getActionControls = () => {
     const controls = [];
+
+    // Discussion button for all users
+    const discussionCount = data.discussions?.length || 0;
+    controls.push(
+      <button
+        key="discussions"
+        onClick={() => navigate('/discussions')}
+        className={`${styles.actionButton} ${styles.secondary} ${styles.withBadge}`}
+        title="View your task discussions"
+      >
+        <MessageCircle size={16} />
+        <span>Discussions</span>
+        {discussionCount > 0 && (
+          <span className={styles.badge}>{discussionCount}</span>
+        )}
+      </button>,
+    );
 
     // Common actions for all users
     controls.push(
