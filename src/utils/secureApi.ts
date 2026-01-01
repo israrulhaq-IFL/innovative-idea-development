@@ -255,6 +255,52 @@ export class SecureApiClient {
       headers: { 'X-HTTP-Method': 'DELETE' },
     });
   }
+
+  // POST File request for uploading attachments
+  async postFile(endpoint: string, file: File): Promise<SharePointApiResponse<any>> {
+    try {
+      const url = endpoint.startsWith('http')
+        ? endpoint
+        : `${this.config.baseUrl}${endpoint}`;
+
+      // Get form digest
+      const digest = await this.getFormDigest();
+
+      // Read file as ArrayBuffer
+      const arrayBuffer = await file.arrayBuffer();
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'X-RequestDigest': digest,
+          'Accept': 'application/json;odata=verbose',
+        },
+        body: arrayBuffer,
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const responseText = await response.text();
+        logError('File upload error:', {
+          status: response.status,
+          statusText: response.statusText,
+          url,
+          responseText: responseText.substring(0, 500),
+        });
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      if (response.status === 204) {
+        return { d: {} } as SharePointApiResponse<any>;
+      }
+
+      const data = await response.json();
+      return data as SharePointApiResponse<any>;
+    } catch (error) {
+      logError('Failed to upload file', error);
+      throw error;
+    }
+  }
 }
 
 // Singleton instance - lazy loaded to use correct base URL

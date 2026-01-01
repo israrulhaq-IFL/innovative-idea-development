@@ -44,11 +44,13 @@ class DiscussionApi {
 
   /**
    * Get all discussions for a specific task
+   * This includes the main discussion (folder) and all replies (items inside folder)
    */
   async getDiscussionsByTask(taskId: number): Promise<DiscussionMessage[]> {
     try {
       // Use TaskIdId instead of TaskId/Id for filtering - SharePoint 2016 Discussion Board compatibility
-      const endpoint = `/_api/web/lists/getbytitle('${this.listName}')/items?$select=ID,Title,Body,IsQuestion,TaskIdId,IdeaIdId,Author/Id,Author/Title,Author/EMail,Created,Modified,Attachments&$expand=Author,AttachmentFiles&$filter=TaskIdId eq ${taskId}&$orderby=Created asc&$top=500`;
+      // Get all items (both folder and replies) for this task
+      const endpoint = `/_api/web/lists/getbytitle('${this.listName}')/items?$select=ID,Title,Body,IsQuestion,TaskIdId,IdeaIdId,Author/Id,Author/Title,Author/EMail,Created,Modified,Attachments,FileSystemObjectType,ParentItemID&$expand=Author,AttachmentFiles&$filter=TaskIdId eq ${taskId}&$orderby=Created asc&$top=500`;
       
       const response = await sharePointApi.get<any>(endpoint);
       return response.d.results.map((item: any) => this.mapToDiscussionMessage(item));
@@ -159,6 +161,7 @@ class DiscussionApi {
 
   /**
    * Add a reply to an existing discussion
+   * In SharePoint Discussion Boards, replies should be created inside the parent discussion folder
    */
   async addReply(
     taskId: number,
@@ -167,8 +170,60 @@ class DiscussionApi {
     body: string,
     isQuestion = false
   ): Promise<DiscussionMessage> {
-    // SharePoint discussion replies are just new items linked to the same task
-    return this.createDiscussion(taskId, ideaId, subject, body, isQuestion);
+    try {
+      // First, find the parent discussion folder for this task
+      const discussionsEndpoint = `/_api/web/lists/getbytitle('${this.listName}')/items?$select=ID,FileSystemObjectType,Folder/ServerRelativeUrl&$expand=Folder&$filter=TaskIdId eq ${taskId} and FileSystemObjectType eq 1&$top=1`;
+      const discussionsResponse = await sharePointApi.get<any>(discussionsEndpoint);
+      
+      if (!discussionsResponse.d.results || discussionsResponse.d.results.length === 0) {
+        throw new Error('Parent discussion not found for this task');
+      }
+      
+      const parentDiscussion = discussionsResponse.d.results[0];
+      const folderUrl = parentDiscussion.Folder.ServerRelativeUrl;
+      
+      // Create reply item inside the parent discussion folder using AddValidateUpdateItemUsingPath
+      // This is the proper way to add items to a discussion board in SharePoint 2016
+      const endpoint = `/_api/web/lists/getbytitle('${this.listName}')/AddValidateUpdateItemUsingPath`;
+      const formValues = [
+        { FieldName: 'Title', FieldValue: subject },
+        { FieldName: 'Body', FieldValue: body },
+        { FieldName: 'ParentItemID', FieldValue: parentDiscussion.ID.toString() },
+      ];
+      
+      const postData = {
+        listItemCreateInfo: {
+          __metadata: { type: 'SP.ListItemCreationInformationUsingPath' },
+          FolderPath: {
+            __metadata: { type: 'SP.ResourcePath' },
+            DecodedUrl: folderUrl,
+          },
+          UnderlyingObjectType: 0, // 0 = file/item
+        },
+        formValues: formValues,
+        bNewDocumentUpdate: false,
+      };
+
+      const response = await sharePointApi.post<any>(endpoint, postData);
+      
+      // Extract item ID from response
+      const itemId = response.d.AddValidateUpdateItemUsingPath.results.find(
+        (r: any) => r.FieldName === 'Id'
+      )?.FieldValue;
+
+      if (!itemId) {
+        throw new Error('Failed to get created item ID');
+      }
+
+      // Get the created item with all details
+      const getEndpoint = `/_api/web/lists/getbytitle('${this.listName}')/items(${itemId})?$select=ID,Title,Body,IsQuestion,TaskIdId,IdeaIdId,Author/Id,Author/Title,Author/EMail,Created,Modified,Attachments&$expand=Author`;
+      const createdItem = await sharePointApi.get<any>(getEndpoint);
+
+      return this.mapToDiscussionMessage(createdItem.d);
+    } catch (error) {
+      logError('Failed to add reply to discussion', error);
+      throw error;
+    }
   }
 
   /**
