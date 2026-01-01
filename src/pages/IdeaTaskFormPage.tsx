@@ -251,21 +251,39 @@ const IdeaTaskFormPage: React.FC = () => {
       );
 
       if (result) {
-        // Auto-create discussion thread for the task
+        // Auto-create discussion thread for the task with idea context
         try {
           const assignees = formData.assignees.map(a => ({
             id: a.id,
             name: a.name
           }));
           
+          // Get the full idea details for context
+          const idea = data.ideas.find(i => i.id.toString() === formData.ideaId);
+          
           await discussionApi.createTaskDiscussion(
             result.id,
             taskData.title,
             taskData.description || '',
             parseInt(formData.ideaId),
-            assignees
+            assignees,
+            idea?.createdBy,
+            idea?.description
           );
           logInfo('[IdeaTaskForm] Discussion thread created for task', result.id);
+          
+          // Create trail entry for discussion creation
+          try {
+            await ideaApi.createIdeaTrailEvent(
+              parseInt(formData.ideaId),
+              'commented',
+              currentUser,
+              `Discussion thread created for task: ${taskData.title}`
+            );
+            logInfo('[IdeaTaskForm] Trail entry created for discussion');
+          } catch (trailError) {
+            logError('[IdeaTaskForm] Failed to create trail entry:', trailError);
+          }
         } catch (discussionError) {
           logError('[IdeaTaskForm] Failed to create discussion thread:', discussionError);
           // Don't fail the task creation if discussion creation fails

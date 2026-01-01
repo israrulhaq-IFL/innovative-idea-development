@@ -224,11 +224,34 @@ class DiscussionApi {
     taskTitle: string,
     taskDescription: string,
     ideaId: number,
-    assignees: Array<{ id: number; name: string }>
+    assignees: Array<{ id: number; name: string }>,
+    ideaCreator?: string,
+    ideaDescription?: string
   ): Promise<DiscussionMessage> {
     const assigneeNames = assignees.map((a) => a.name).join(', ');
     const subject = `Discussion: ${taskTitle}`;
-    const body = `<p><strong>Task Created:</strong> ${taskTitle}</p><p><strong>Description:</strong> ${taskDescription}</p><p><strong>Assigned To:</strong> ${assigneeNames}</p><p>This discussion thread is for collaborating on this task. Feel free to ask questions, share updates, and upload relevant files.</p>`;
+    
+    let body = `<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 15px; border-radius: 8px; color: white; margin-bottom: 15px;">
+      <h3 style="margin: 0 0 10px 0;">📋 Task Created</h3>
+      <p style="margin: 5px 0;"><strong>Title:</strong> ${taskTitle}</p>
+      <p style="margin: 5px 0;"><strong>Assigned To:</strong> ${assigneeNames}</p>
+    </div>`;
+    
+    if (ideaCreator && ideaDescription) {
+      body += `<div style="background: #f7fafc; border-left: 4px solid #667eea; padding: 15px; margin-bottom: 15px; border-radius: 4px;">
+        <h4 style="margin: 0 0 10px 0; color: #667eea;">💡 Original Idea</h4>
+        <p style="margin: 5px 0;"><strong>Created by:</strong> ${ideaCreator}</p>
+        <p style="margin: 5px 0;"><strong>Description:</strong> ${ideaDescription}</p>
+      </div>`;
+    }
+    
+    body += `<div style="background: #fff; padding: 15px; border-radius: 4px; border: 1px solid #e2e8f0;">
+      <h4 style="margin: 0 0 10px 0;">📝 Task Details</h4>
+      <p style="margin: 5px 0;">${taskDescription}</p>
+    </div>
+    <div style="margin-top: 15px; padding: 10px; background: #edf2f7; border-radius: 4px;">
+      <p style="margin: 0; font-size: 14px; color: #4a5568;">💬 This discussion thread is for collaborating on this task. Feel free to ask questions, share updates, and upload relevant files.</p>
+    </div>`;
 
     return this.createDiscussion(taskId, ideaId, subject, body, false);
   }

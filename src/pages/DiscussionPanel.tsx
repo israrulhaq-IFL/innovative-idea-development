@@ -222,9 +222,20 @@ const DiscussionPanel: React.FC = () => {
                     </p>
                   )}
                 </div>
-                <div className={styles.participants}>
-                  <Users size={16} />
-                  <span>{selectedDiscussion.participants.map(p => p.name).join(', ')}</span>
+                <div className={styles.headerActions}>
+                  {selectedDiscussion.ideaId && (
+                    <button
+                      className={styles.trailButton}
+                      onClick={() => navigate(`/idea/${selectedDiscussion.ideaId}`)}
+                      title="View idea trail and details"
+                    >
+                      📊 View Idea Trail
+                    </button>
+                  )}
+                  <div className={styles.participants}>
+                    <Users size={16} />
+                    <span>{selectedDiscussion.participants.map(p => p.name).join(', ')}</span>
+                  </div>
                 </div>
               </div>
 
