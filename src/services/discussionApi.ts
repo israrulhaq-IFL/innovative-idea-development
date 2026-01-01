@@ -191,20 +191,49 @@ class DiscussionApi {
       
       const folderUrl = parentDiscussion.Folder.ServerRelativeUrl;
       
-      // For SharePoint 2016 Discussion Boards, create reply as a Message content type
-      // Message items must have ContentTypeId set to 0x0107 (Message) and ParentItemID set
-      const endpoint = `/_api/web/lists/getbytitle('${this.listName}')/items`;
-      const replyData = {
-        __metadata: { type: 'SP.Data.Innovative_x005f_idea_x005f_discussionsListItem' },
-        ContentTypeId: '0x0107', // Message content type for replies
-        Title: subject,
-        Body: body,
-        ParentItemID: parentDiscussion.ID,
+      // For SharePoint 2016 Discussion Boards, replies must be created using GetFolderByServerRelativeUrl
+      // This ensures they are physically placed inside the discussion folder
+      const endpoint = `/_api/web/GetFolderByServerRelativeUrl('${folderUrl}')/ListItemAllFields`;
+      
+      // First, get the folder's list item to update it as a reply
+      const folderItemEndpoint = `/_api/web/GetFolderByServerRelativeUrl('${folderUrl}')/ListItemAllFields`;
+      
+      // Create the reply by adding to the list with the folder as the location
+      const addEndpoint = `/_api/web/lists/getbytitle('${this.listName}')/AddValidateUpdateItemUsingPath`;
+      
+      const formValues = [
+        { FieldName: 'Title', FieldValue: subject },
+        { FieldName: 'Body', FieldValue: body },
+        { FieldName: 'ParentItemID', FieldValue: parentDiscussion.ID.toString() },
+        { FieldName: 'ContentTypeId', FieldValue: '0x0107' }, // Message content type
+      ];
+      
+      const postData = {
+        listItemCreateInfo: {
+          FolderPath: {
+            DecodedUrl: folderUrl,
+          },
+        },
+        formValues: formValues,
+        bNewDocumentUpdate: false,
       };
 
-      logInfo('[DiscussionApi] Creating reply with data:', replyData);
-      const response = await sharePointApi.post<any>(endpoint, replyData);
-      const itemId = response.d.ID;
+      logInfo('[DiscussionApi] Creating reply with AddValidateUpdateItemUsingPath:', { folderUrl, parentId: parentDiscussion.ID });
+      const response = await sharePointApi.post<any>(addEndpoint, postData);
+      
+      // Extract item ID from response
+      const results = response.d.AddValidateUpdateItemUsingPath?.results;
+      if (!results) {
+        throw new Error('Invalid response from AddValidateUpdateItemUsingPath');
+      }
+      
+      const itemIdField = results.find((r: any) => r.FieldName === 'Id');
+      if (!itemIdField) {
+        throw new Error('Failed to get created item ID from response');
+      }
+      
+      const itemId = parseInt(itemIdField.FieldValue);
+      logInfo('[DiscussionApi] Reply created with ID:', itemId);
 
       // Get the created item with all details
       const getEndpoint = `/_api/web/lists/getbytitle('${this.listName}')/items(${itemId})?$select=ID,Title,Body,IsQuestion,TaskIdId,IdeaIdId,Author/Id,Author/Title,Author/EMail,Created,Modified,Attachments&$expand=Author`;
