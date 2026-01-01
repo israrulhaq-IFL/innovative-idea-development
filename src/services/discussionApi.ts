@@ -47,7 +47,8 @@ class DiscussionApi {
    */
   async getDiscussionsByTask(taskId: number): Promise<DiscussionMessage[]> {
     try {
-      const endpoint = `/_api/web/lists/getbytitle('${this.listName}')/items?$select=ID,Title,Body,IsQuestion,TaskId/Id,IdeaId/Id,Author/Id,Author/Title,Author/EMail,Created,Modified,Attachments&$expand=TaskId,IdeaId,Author,AttachmentFiles&$filter=TaskId/Id eq ${taskId}&$orderby=Created asc&$top=500`;
+      // Use TaskIdId instead of TaskId/Id for filtering - SharePoint 2016 Discussion Board compatibility
+      const endpoint = `/_api/web/lists/getbytitle('${this.listName}')/items?$select=ID,Title,Body,IsQuestion,TaskIdId,IdeaIdId,Author/Id,Author/Title,Author/EMail,Created,Modified,Attachments&$expand=Author,AttachmentFiles&$filter=TaskIdId eq ${taskId}&$orderby=Created asc&$top=500`;
       
       const response = await sharePointApi.get<any>(endpoint);
       return response.d.results.map((item: any) => this.mapToDiscussionMessage(item));
@@ -140,8 +141,8 @@ class DiscussionApi {
       const response = await sharePointApi.post<any>(endpoint, data);
       const itemId = response.d.ID;
 
-      // Get the created item with all details
-      const getEndpoint = `/_api/web/lists/getbytitle('${this.listName}')/items(${itemId})?$select=ID,Title,Body,IsQuestion,TaskId/Id,IdeaId/Id,Author/Id,Author/Title,Author/EMail,Created,Modified,Attachments&$expand=TaskId,IdeaId,Author`;
+      // Get the created item with all details - use TaskIdId/IdeaIdId instead of expanding lookup fields
+      const getEndpoint = `/_api/web/lists/getbytitle('${this.listName}')/items(${itemId})?$select=ID,Title,Body,IsQuestion,TaskIdId,IdeaIdId,Author/Id,Author/Title,Author/EMail,Created,Modified,Attachments&$expand=Author`;
       const createdItem = await sharePointApi.get<any>(getEndpoint);
 
       return this.mapToDiscussionMessage(createdItem.d);
