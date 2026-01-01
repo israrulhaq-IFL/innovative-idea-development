@@ -8,6 +8,7 @@ import { useUser } from "../contexts/UserContext";
 import { useIdeaData, ProcessedIdea, ProcessedTask } from "../contexts/DataContext";
 import { useNotification } from "../contexts/NotificationContext";
 import { ideaApi } from "../services/ideaApi";
+import { discussionApi } from "../services/discussionApi";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import StatusBar from "../components/common/StatusBar";
 import { ValidatedInput } from "../components/common/ValidatedInput.tsx";
@@ -38,7 +39,7 @@ interface TaskFormData {
 
 const ApprovedIdeasPage: React.FC = () => {
   const { isAdmin, user } = useUser();
-  const { data, loading, error, loadTasks } = useIdeaData();
+  const { data, loading, error, loadTasks, loadDiscussions } = useIdeaData();
   const { addNotification } = useNotification();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedIdea, setSelectedIdea] = useState<ProcessedIdea | null>(null);
@@ -242,6 +243,35 @@ const ApprovedIdeasPage: React.FC = () => {
       );
 
       logInfo("[ApprovedIdeasPage] Task created successfully:", result);
+
+      // Auto-create discussion for the task
+      try {
+        logInfo("[ApprovedIdeasPage] Creating discussion for task:", result.id);
+        
+        await discussionApi.createTaskDiscussion(
+          result.id,
+          taskFormData.title,
+          taskFormData.description || 'No description provided',
+          parseInt(taskFormData.ideaId),
+          taskFormData.assignees.map(u => ({ id: u.id, name: u.name })),
+          selectedIdea?.createdBy || 'Unknown',
+          selectedIdea?.description || ''
+        );
+        
+        logInfo("[ApprovedIdeasPage] Discussion created successfully for task:", result.id);
+      } catch (discussionError) {
+        logError("[ApprovedIdeasPage] Failed to create discussion for task:", discussionError);
+        // Don't fail the task creation if discussion creation fails
+        addNotification({ 
+          message: "Task created but discussion creation failed. You can manually create a discussion later.", 
+          type: "warning" 
+        });
+      }
+
+      // Reload tasks and discussions to show the new data
+      await loadTasks();
+      await loadDiscussions();
+
       addNotification({ message: "Task created successfully!", type: "success" });
 
       // Reset form and exit creation mode
@@ -265,7 +295,7 @@ const ApprovedIdeasPage: React.FC = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [taskFormData, validateForm, addNotification]);
+  }, [taskFormData, validateForm, addNotification, user, selectedIdea, loadTasks, loadDiscussions]);
 
   // Handle cancel task creation
   const handleCancelTask = useCallback(() => {
