@@ -50,7 +50,8 @@ class DiscussionApi {
     try {
       // Use TaskIdId instead of TaskId/Id for filtering - SharePoint 2016 Discussion Board compatibility
       // Get all items (both folder and replies) for this task
-      const endpoint = `/_api/web/lists/getbytitle('${this.listName}')/items?$select=ID,Title,Body,IsQuestion,TaskIdId,IdeaIdId,Author/Id,Author/Title,Author/EMail,Created,Modified,Attachments,FileSystemObjectType,ParentItemID&$expand=Author,AttachmentFiles&$filter=TaskIdId eq ${taskId}&$orderby=Created asc&$top=500`;
+      // Note: FileSystemObjectType is not available in $select for SharePoint 2016 Discussion Boards
+      const endpoint = `/_api/web/lists/getbytitle('${this.listName}')/items?$select=ID,Title,Body,IsQuestion,TaskIdId,IdeaIdId,Author/Id,Author/Title,Author/EMail,Created,Modified,Attachments,ParentItemID&$expand=Author,AttachmentFiles&$filter=TaskIdId eq ${taskId}&$orderby=Created asc&$top=500`;
       
       const response = await sharePointApi.get<any>(endpoint);
       return response.d.results.map((item: any) => this.mapToDiscussionMessage(item));
@@ -172,48 +173,35 @@ class DiscussionApi {
   ): Promise<DiscussionMessage> {
     try {
       // First, find the parent discussion folder for this task
-      const discussionsEndpoint = `/_api/web/lists/getbytitle('${this.listName}')/items?$select=ID,FileSystemObjectType,Folder/ServerRelativeUrl&$expand=Folder&$filter=TaskIdId eq ${taskId} and FileSystemObjectType eq 1&$top=1`;
+      // In SharePoint 2016, we get all items and filter client-side since FileSystemObjectType is not queryable
+      const discussionsEndpoint = `/_api/web/lists/getbytitle('${this.listName}')/items?$select=ID,Title,ContentTypeId,Folder/ServerRelativeUrl&$expand=Folder&$filter=TaskIdId eq ${taskId}&$top=50`;
       const discussionsResponse = await sharePointApi.get<any>(discussionsEndpoint);
       
       if (!discussionsResponse.d.results || discussionsResponse.d.results.length === 0) {
         throw new Error('Parent discussion not found for this task');
       }
       
+      // Find the discussion folder (ContentType starts with 0x012002 for Discussion)
+      // Or simply take the first item which should be the main discussion thread
       const parentDiscussion = discussionsResponse.d.results[0];
+      
+      if (!parentDiscussion.Folder || !parentDiscussion.Folder.ServerRelativeUrl) {
+        throw new Error('Parent discussion folder not found');
+      }
+      
       const folderUrl = parentDiscussion.Folder.ServerRelativeUrl;
       
-      // Create reply item inside the parent discussion folder using AddValidateUpdateItemUsingPath
-      // This is the proper way to add items to a discussion board in SharePoint 2016
-      const endpoint = `/_api/web/lists/getbytitle('${this.listName}')/AddValidateUpdateItemUsingPath`;
-      const formValues = [
-        { FieldName: 'Title', FieldValue: subject },
-        { FieldName: 'Body', FieldValue: body },
-        { FieldName: 'ParentItemID', FieldValue: parentDiscussion.ID.toString() },
-      ];
-      
-      const postData = {
-        listItemCreateInfo: {
-          __metadata: { type: 'SP.ListItemCreationInformationUsingPath' },
-          FolderPath: {
-            __metadata: { type: 'SP.ResourcePath' },
-            DecodedUrl: folderUrl,
-          },
-          UnderlyingObjectType: 0, // 0 = file/item
-        },
-        formValues: formValues,
-        bNewDocumentUpdate: false,
+      // For SharePoint 2016 Discussion Boards, create reply as a simple list item with ParentItemID
+      const endpoint = `/_api/web/lists/getbytitle('${this.listName}')/items`;
+      const replyData = {
+        __metadata: { type: 'SP.Data.Innovative_x005f_idea_x005f_discussionsListItem' },
+        Title: subject,
+        Body: body,
+        ParentItemID: parentDiscussion.ID,
       };
 
-      const response = await sharePointApi.post<any>(endpoint, postData);
-      
-      // Extract item ID from response
-      const itemId = response.d.AddValidateUpdateItemUsingPath.results.find(
-        (r: any) => r.FieldName === 'Id'
-      )?.FieldValue;
-
-      if (!itemId) {
-        throw new Error('Failed to get created item ID');
-      }
+      const response = await sharePointApi.post<any>(endpoint, replyData);
+      const itemId = response.d.ID;
 
       // Get the created item with all details
       const getEndpoint = `/_api/web/lists/getbytitle('${this.listName}')/items(${itemId})?$select=ID,Title,Body,IsQuestion,TaskIdId,IdeaIdId,Author/Id,Author/Title,Author/EMail,Created,Modified,Attachments&$expand=Author`;
