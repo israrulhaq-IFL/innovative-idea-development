@@ -21,6 +21,7 @@ export interface DiscussionMessage {
     fileName: string;
     serverRelativeUrl: string;
   }>;
+  parentItemId?: number | null;
 }
 
 export interface Discussion {
@@ -45,13 +46,13 @@ class DiscussionApi {
   /**
    * Get all discussions for a specific task
    * This includes the main discussion (folder) and all replies (items inside folder)
+   * Using Microsoft's recommended approach: filter by ContentType
    */
   async getDiscussionsByTask(taskId: number): Promise<DiscussionMessage[]> {
     try {
-      // Use TaskIdId instead of TaskId/Id for filtering - SharePoint 2016 Discussion Board compatibility
-      // Get all items (both folder and replies) for this task
-      // Note: FileSystemObjectType is not available in $select for SharePoint 2016 Discussion Boards
-      const endpoint = `/_api/web/lists/getbytitle('${this.listName}')/items?$select=ID,Title,Body,IsQuestion,TaskIdId,IdeaIdId,Author/Id,Author/Title,Author/EMail,Created,Modified,Attachments,ParentItemID&$expand=Author,AttachmentFiles&$filter=TaskIdId eq ${taskId}&$orderby=Created asc&$top=500`;
+      // Get both Discussion (threads) and Message (replies) content types for this task
+      // Filter by ContentTypeId: 0x0120 prefix = Discussion, 0x0107 prefix = Message
+      const endpoint = `/_api/web/lists/getbytitle('${this.listName}')/items?$select=ID,Title,Body,IsQuestion,TaskIdId,IdeaIdId,Author/Id,Author/Title,Author/EMail,Created,Modified,Attachments,ParentItemID,ContentTypeId&$expand=Author,AttachmentFiles&$filter=(TaskIdId eq ${taskId}) and (startswith(ContentTypeId,'0x0120') or startswith(ContentTypeId,'0x0107'))&$orderby=Created asc&$top=500`;
       
       const response = await sharePointApi.get<any>(endpoint);
       return response.d.results.map((item: any) => this.mapToDiscussionMessage(item));
@@ -162,7 +163,8 @@ class DiscussionApi {
 
   /**
    * Add a reply to an existing discussion
-   * In SharePoint Discussion Boards, replies should be created inside the parent discussion folder
+   * For SharePoint 2016 Discussion Boards, we use the standard List API with Message content type.
+   * The message is linked to the discussion via TaskIdId field.
    */
   async addReply(
     taskId: number,
@@ -172,71 +174,45 @@ class DiscussionApi {
     isQuestion = false
   ): Promise<DiscussionMessage> {
     try {
-      // First, find the parent discussion folder for this task
-      // In SharePoint 2016, we get all items and filter client-side since FileSystemObjectType is not queryable
-      const discussionsEndpoint = `/_api/web/lists/getbytitle('${this.listName}')/items?$select=ID,Title,ContentTypeId,Folder/ServerRelativeUrl&$expand=Folder&$filter=TaskIdId eq ${taskId}&$top=50`;
+      // Verify that a parent discussion exists for this task
+      const discussionsEndpoint = `/_api/web/lists/getbytitle('${this.listName}')/items?$select=ID,Title,ContentTypeId&$filter=(TaskIdId eq ${taskId}) and startswith(ContentTypeId,'0x0120')&$top=1`;
       const discussionsResponse = await sharePointApi.get<any>(discussionsEndpoint);
       
       if (!discussionsResponse.d.results || discussionsResponse.d.results.length === 0) {
         throw new Error('Parent discussion not found for this task');
       }
       
-      // Find the discussion folder (ContentType starts with 0x012002 for Discussion)
-      // Or simply take the first item which should be the main discussion thread
       const parentDiscussion = discussionsResponse.d.results[0];
       
-      if (!parentDiscussion.Folder || !parentDiscussion.Folder.ServerRelativeUrl) {
-        throw new Error('Parent discussion folder not found');
-      }
+      logInfo('[DiscussionApi] Creating message reply for discussion:', { 
+        taskId, 
+        ideaId,
+        parentDiscussionId: parentDiscussion.ID,
+        subject
+      });
       
-      const folderUrl = parentDiscussion.Folder.ServerRelativeUrl;
-      
-      // For SharePoint 2016 Discussion Boards, replies must be created using GetFolderByServerRelativeUrl
-      // This ensures they are physically placed inside the discussion folder
-      const endpoint = `/_api/web/GetFolderByServerRelativeUrl('${folderUrl}')/ListItemAllFields`;
-      
-      // First, get the folder's list item to update it as a reply
-      const folderItemEndpoint = `/_api/web/GetFolderByServerRelativeUrl('${folderUrl}')/ListItemAllFields`;
-      
-      // Create the reply by adding to the list with the folder as the location
-      const addEndpoint = `/_api/web/lists/getbytitle('${this.listName}')/AddValidateUpdateItemUsingPath`;
-      
-      const formValues = [
-        { FieldName: 'Title', FieldValue: subject },
-        { FieldName: 'Body', FieldValue: body },
-        { FieldName: 'ParentItemID', FieldValue: parentDiscussion.ID.toString() },
-        { FieldName: 'ContentTypeId', FieldValue: '0x0107' }, // Message content type
-      ];
-      
-      const postData = {
-        listItemCreateInfo: {
-          FolderPath: {
-            DecodedUrl: folderUrl,
-          },
-        },
-        formValues: formValues,
-        bNewDocumentUpdate: false,
+      // Create the message using standard List API with Message content type
+      // This is the correct approach for SharePoint 2016 Discussion Boards
+      const endpoint = `/_api/web/lists/getbytitle('${this.listName}')/items`;
+      const data = {
+        __metadata: { type: 'SP.Data.Innovative_x005f_idea_x005f_discussionsListItem' },
+        ContentTypeId: '0x0107000184D056442E7742904D37B7FE5AFF4C', // Message content type (full ID from list)
+        Title: subject,
+        Body: body,
+        TaskIdId: taskId,
+        IdeaIdId: ideaId,
+        IsQuestion: isQuestion,
       };
+      
+      logInfo('[DiscussionApi] Posting message with data:', data);
 
-      logInfo('[DiscussionApi] Creating reply with AddValidateUpdateItemUsingPath:', { folderUrl, parentId: parentDiscussion.ID });
-      const response = await sharePointApi.post<any>(addEndpoint, postData);
+      const response = await sharePointApi.post<any>(endpoint, data);
+      const itemId = response.d.ID;
       
-      // Extract item ID from response
-      const results = response.d.AddValidateUpdateItemUsingPath?.results;
-      if (!results) {
-        throw new Error('Invalid response from AddValidateUpdateItemUsingPath');
-      }
-      
-      const itemIdField = results.find((r: any) => r.FieldName === 'Id');
-      if (!itemIdField) {
-        throw new Error('Failed to get created item ID from response');
-      }
-      
-      const itemId = parseInt(itemIdField.FieldValue);
-      logInfo('[DiscussionApi] Reply created with ID:', itemId);
+      logInfo('[DiscussionApi] Message created successfully with ID:', itemId);
 
       // Get the created item with all details
-      const getEndpoint = `/_api/web/lists/getbytitle('${this.listName}')/items(${itemId})?$select=ID,Title,Body,IsQuestion,TaskIdId,IdeaIdId,Author/Id,Author/Title,Author/EMail,Created,Modified,Attachments&$expand=Author`;
+      const getEndpoint = `/_api/web/lists/getbytitle('${this.listName}')/items(${itemId})?$select=ID,Title,Body,IsQuestion,TaskIdId,IdeaIdId,Author/Id,Author/Title,Author/EMail,Created,Modified,Attachments,ParentItemID,ContentTypeId&$expand=Author`;
       const createdItem = await sharePointApi.get<any>(getEndpoint);
 
       return this.mapToDiscussionMessage(createdItem.d);
@@ -356,7 +332,7 @@ class DiscussionApi {
       subject: item.Title,
       body: item.Body || '',
       taskId: item.TaskId?.Id || item.TaskIdId || 0,
-      ideaId: item.IdeaId?.Id || item.IdeaIdId,
+      ideaId: item.IdeaId?.Id || item.IdeaIdId || 0,
       isQuestion: item.IsQuestion || false,
       author: {
         id: item.Author?.Id || 0,
@@ -369,6 +345,7 @@ class DiscussionApi {
         fileName: att.FileName,
         serverRelativeUrl: att.ServerRelativeUrl,
       })) || [],
+      parentItemId: item.ParentItemID || null,
     };
   }
 }

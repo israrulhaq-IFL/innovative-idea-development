@@ -107,10 +107,63 @@ The application expects the following SharePoint lists to exist:
    - AssignedTo (Person/Group multi-select)
    - IdeaId (Lookup to Ideas list)
 
-3. **innovative_idea_discussions** (Discussions List)
-   - Title (Text)
-   - Body (Multi-line text)
-   - TaskId (Lookup to Tasks list)
+3. **innovative_idea_discussions** (Discussion Board List)
+   - Title (Text) - Subject of the discussion/message
+   - Body (Multi-line text) - Content of the discussion/message
+   - TaskId (Lookup to Tasks list) - Links discussion to a task
+   - IdeaId (Lookup to Ideas list) - Links discussion to an idea
+   - IsQuestion (Yes/No) - Marks if the post is a question
+
+## SharePoint 2016 Discussion Board API
+
+### Content Types
+SharePoint Discussion Boards use two content types:
+- **Discussion** (0x0120...): The parent thread/topic - `FileSystemObjectType: 1` (folder)
+- **Message** (0x0107...): Replies within a discussion - `FileSystemObjectType: 0` (item)
+
+### Creating Discussion Threads
+```javascript
+// POST to /_api/web/lists/getbytitle('innovative_idea_discussions')/items
+{
+  "__metadata": { "type": "SP.Data.Innovative_x005f_idea_x005f_discussionsListItem" },
+  "Title": "Discussion Subject",
+  "Body": "Discussion content",
+  "TaskIdId": 13,  // Lookup field ID
+  "IdeaIdId": 23,  // Lookup field ID
+  "IsQuestion": false
+}
+```
+
+### Creating Message Replies
+For SharePoint 2016, use the standard List API with the Message content type ID:
+```javascript
+// POST to /_api/web/lists/getbytitle('innovative_idea_discussions')/items
+{
+  "__metadata": { "type": "SP.Data.Innovative_x005f_idea_x005f_discussionsListItem" },
+  "ContentTypeId": "0x0107000184D056442E7742904D37B7FE5AFF4C",  // Message content type (full ID)
+  "Title": "Re: Discussion Subject",
+  "Body": "Reply message content",
+  "TaskIdId": 13,
+  "IdeaIdId": 23,
+  "IsQuestion": false
+}
+```
+
+### Querying Discussions and Messages
+```javascript
+// Get all discussions and messages for a task
+/_api/web/lists/getbytitle('innovative_idea_discussions')/items
+  ?$select=ID,Title,Body,IsQuestion,TaskIdId,IdeaIdId,Author/Id,Author/Title,Created,Modified,ContentTypeId
+  &$expand=Author
+  &$filter=(TaskIdId eq 13) and (startswith(ContentTypeId,'0x0120') or startswith(ContentTypeId,'0x0107'))
+  &$orderby=Created asc
+```
+
+### Important Notes
+1. **Do NOT use file-based approach**: Creating files in discussion folders and using `ListItemAllFields` does not work reliably in SharePoint 2016
+2. **Use full Content Type ID**: The Message content type requires the complete ID (e.g., `0x0107000184D056442E7742904D37B7FE5AFF4C`), not just the prefix
+3. **Link via TaskIdId**: Messages are linked to their parent discussion via the `TaskIdId` lookup field
+4. **ParentItemID is read-only**: SharePoint manages this field internally; do not try to set it manually
 
 ## Development Setup
 

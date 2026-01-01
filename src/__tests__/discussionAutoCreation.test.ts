@@ -399,7 +399,7 @@ describe('Discussion Auto-Creation Workflow', () => {
       // Arrange
       const userId = 18;
 
-      // Mock tasks response
+      // Mock tasks response - need AssignedToId.results array for multi-value lookup
       mockSharePointApi.get
         .mockResolvedValueOnce({
           d: {
@@ -407,10 +407,12 @@ describe('Discussion Auto-Creation Workflow', () => {
               {
                 ID: 13,
                 Title: 'Task 1',
+                IdeaIdId: 23,
                 IdeaId: { Id: 23, Title: 'Idea 1' },
-                AssignedTo: [
+                AssignedToId: { results: [18] }, // Multi-value lookup field
+                AssignedTo: { results: [
                   { Id: 18, Title: 'User 1', EMail: 'user1@test.com' }
-                ]
+                ]}
               }
             ]
           }
@@ -423,8 +425,9 @@ describe('Discussion Auto-Creation Workflow', () => {
                 ID: 1,
                 Title: 'Discussion: Task 1',
                 Body: 'Discussion body',
-                TaskId: { Id: 13 },
-                IdeaId: { Id: 23 },
+                TaskIdId: 13,
+                IdeaIdId: 23,
+                ContentTypeId: '0x01200200F236C400FCD389448B1050736C1D65AC',
                 IsQuestion: false,
                 Author: { Id: 1, Title: 'Admin', EMail: 'admin@test.com' },
                 Created: new Date().toISOString(),
