@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useIdeaData } from '../contexts/DataContext';
 import { useUser } from '../contexts/UserContext';
-import { useNotification } from '../contexts/NotificationContext';
+import { useToast } from '../components/common/Toast';
 import { discussionApi, Discussion } from '../services/discussionApi';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { MessageCircle, Search, Clock, Users, AlertCircle, Send, Paperclip, X, CheckCheck, Smile } from 'lucide-react';
@@ -12,7 +12,7 @@ const DiscussionPanel: React.FC = () => {
   const navigate = useNavigate();
   const { data, loading: dataLoading } = useIdeaData();
   const { user } = useUser();
-  const { showNotification } = useNotification();
+  const { addToast } = useToast();
   const [discussions, setDiscussions] = useState<Discussion[]>([]);
   const [selectedDiscussion, setSelectedDiscussion] = useState<Discussion | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -23,12 +23,12 @@ const DiscussionPanel: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Check if the idea is completed
-  const isIdeaCompleted = useMemo(() => {
+  // Check if the idea is completed - compute directly without memo to always get latest status
+  const isIdeaCompleted = (() => {
     if (!selectedDiscussion?.ideaId) return false;
     const idea = data.ideas.find(i => i.id === selectedDiscussion.ideaId);
     return idea?.status === 'Completed';
-  }, [selectedDiscussion?.ideaId, data.ideas]);
+  })();
 
   // Define loadDiscussions before using it
   const loadDiscussions = async () => {
@@ -125,7 +125,12 @@ const DiscussionPanel: React.FC = () => {
       
       if (file.size >= maxSize) {
         const fileSizeMB = (file.size / 1048576).toFixed(2);
-        showNotification(`File size (${fileSizeMB} MB) exceeds the maximum allowed size of 1 MB. Please select a smaller file.`, 'error');
+        addToast({
+          type: 'error',
+          title: 'File Too Large',
+          message: `File size (${fileSizeMB} MB) exceeds the maximum allowed size of 1 MB. Please select a smaller file.`,
+          duration: 5000
+        });
         // Reset the file input
         e.target.value = '';
         return;
