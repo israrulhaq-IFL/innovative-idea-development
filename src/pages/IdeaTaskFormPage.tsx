@@ -277,12 +277,14 @@ const IdeaTaskFormPage: React.FC = () => {
           
           // Create trail entry for discussion creation
           try {
-            await ideaApi.createIdeaTrailEvent(
-              parseInt(formData.ideaId),
-              'commented',
-              currentUser,
-              `Discussion thread created for task: ${taskData.title}`
-            );
+            await ideaApi.createIdeaTrailEvent({
+              ideaId: parseInt(formData.ideaId),
+              eventType: 'commented',
+              title: 'Discussion thread created',
+              description: `Discussion thread created for task: ${taskData.title}`,
+              actor: currentUser.name,
+              actorId: currentUser.id
+            });
             logInfo('[IdeaTaskForm] Trail entry created for discussion');
           } catch (trailError) {
             logError('[IdeaTaskForm] Failed to create trail entry:', trailError);
