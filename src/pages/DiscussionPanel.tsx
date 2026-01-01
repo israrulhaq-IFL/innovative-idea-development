@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useIdeaData } from '../contexts/DataContext';
 import { useUser } from '../contexts/UserContext';
+import { useNotification } from '../contexts/NotificationContext';
 import { discussionApi, Discussion } from '../services/discussionApi';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { MessageCircle, Search, Clock, Users, AlertCircle, Send, Paperclip, X, CheckCheck, Smile } from 'lucide-react';
@@ -11,6 +12,7 @@ const DiscussionPanel: React.FC = () => {
   const navigate = useNavigate();
   const { data, loading: dataLoading } = useIdeaData();
   const { user } = useUser();
+  const { showNotification } = useNotification();
   const [discussions, setDiscussions] = useState<Discussion[]>([]);
   const [selectedDiscussion, setSelectedDiscussion] = useState<Discussion | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -118,7 +120,18 @@ const DiscussionPanel: React.FC = () => {
   // Handle file selection
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setSelectedFile(e.target.files[0]);
+      const file = e.target.files[0];
+      const maxSize = 1048576; // 1 MB in bytes
+      
+      if (file.size >= maxSize) {
+        const fileSizeMB = (file.size / 1048576).toFixed(2);
+        showNotification(`File size (${fileSizeMB} MB) exceeds the maximum allowed size of 1 MB. Please select a smaller file.`, 'error');
+        // Reset the file input
+        e.target.value = '';
+        return;
+      }
+      
+      setSelectedFile(file);
     }
   };
 
