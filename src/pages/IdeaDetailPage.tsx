@@ -55,7 +55,8 @@ const IdeaDetailPage: React.FC = () => {
           approvedBy: foundIdea.approvedBy ? {
             id: 0,
             name: foundIdea.approvedBy
-          } : undefined
+          } : undefined,
+          attachments: foundIdea.attachments || []
         };
         setIdea(processedIdea);
       } else {
@@ -184,6 +185,82 @@ const IdeaDetailPage: React.FC = () => {
         <h2 className={styles.descriptionTitle}>Description</h2>
         <p className={styles.descriptionContent}>{idea.description}</p>
       </div>
+
+      {idea.attachments && idea.attachments.length > 0 && (
+        <div className={styles.description}>
+          <h2 className={styles.descriptionTitle}>
+            📎 Attachments ({idea.attachments.length})
+          </h2>
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.75rem',
+            marginTop: '1rem'
+          }}>
+            {idea.attachments.map((attachment, index) => (
+              <div
+                key={index}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.75rem',
+                  padding: '0.75rem',
+                  background: 'rgba(102, 126, 234, 0.05)',
+                  border: '1px solid rgba(102, 126, 234, 0.1)',
+                  borderRadius: '8px',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.background = 'rgba(102, 126, 234, 0.08)';
+                  e.currentTarget.style.borderColor = 'rgba(102, 126, 234, 0.2)';
+                  e.currentTarget.style.transform = 'translateX(2px)';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.background = 'rgba(102, 126, 234, 0.05)';
+                  e.currentTarget.style.borderColor = 'rgba(102, 126, 234, 0.1)';
+                  e.currentTarget.style.transform = 'translateX(0)';
+                }}
+              >
+                <span style={{ fontSize: '1.25rem' }}>📎</span>
+                <span style={{
+                  flex: 1,
+                  fontSize: '0.9rem',
+                  color: '#374151',
+                  fontWeight: '500',
+                  wordBreak: 'break-word'
+                }}>
+                  {attachment.fileName}
+                </span>
+                <button
+                  onClick={() => window.open(attachment.serverRelativeUrl, '_blank')}
+                  style={{
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    color: 'white',
+                    border: 'none',
+                    padding: '0.5rem 1rem',
+                    borderRadius: '6px',
+                    fontSize: '0.875rem',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease'
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 4px 8px rgba(102, 126, 234, 0.3)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                >
+                  📥 Download
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      
       <div className={styles.timelineSection}>
         <div className={styles.timelineTitle}>
           <span className={styles.timelineIcon}>📋</span>

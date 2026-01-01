@@ -280,6 +280,11 @@ const MainDashboard: React.FC = () => {
                       <span className={styles.ideaMetaItem}>
                         <span>🏷️</span> {idea.category || 'General'}
                       </span>
+                      {idea.attachments && idea.attachments.length > 0 && (
+                        <span className={styles.ideaMetaItem}>
+                          <span>📎</span> {idea.attachments.length}
+                        </span>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -455,6 +460,11 @@ const MainDashboard: React.FC = () => {
                         <span className={styles.ideaMetaItem}>
                           <span>⏰</span> {daysAgo(idea.createdDate)}
                         </span>
+                        {idea.attachments && idea.attachments.length > 0 && (
+                          <span className={styles.ideaMetaItem}>
+                            <span>📎</span> {idea.attachments.length}
+                          </span>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -496,6 +506,11 @@ const MainDashboard: React.FC = () => {
                         <span className={styles.ideaMetaItem}>
                           <span>⏰</span> {daysAgo(idea.createdDate)}
                         </span>
+                        {idea.attachments && idea.attachments.length > 0 && (
+                          <span className={styles.ideaMetaItem}>
+                            <span>📎</span> {idea.attachments.length}
+                          </span>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -537,13 +552,18 @@ const MainDashboard: React.FC = () => {
                         <span className={styles.ideaMetaItem}>
                           <span>⏰</span> {daysAgo(idea.createdDate)}
                         </span>
+                        {idea.attachments && idea.attachments.length > 0 && (
+                          <span className={styles.ideaMetaItem}>
+                            <span>📎</span> {idea.attachments.length}
+                          </span>
+                        )}
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
                 <div className={styles.emptyState}>
-                  <div className={styles.emptyIcon}>🚀</div>
+                  <div className={styles.emptyIcon}>📋</div>
                   <p className={styles.emptyText}>No ideas in progress</p>
                 </div>
               )}

@@ -436,6 +436,11 @@ const ApprovedIdeasPage: React.FC = () => {
                         📋 {getTaskCountForIdea(idea.id)} task{getTaskCountForIdea(idea.id) !== 1 ? 's' : ''}
                       </span>
                     )}
+                    {idea.attachments && idea.attachments.length > 0 && (
+                      <span className={styles.attachmentCount}>
+                        📎 {idea.attachments.length}
+                      </span>
+                    )}
                   </div>
 
                   {idea.approvedBy && (
@@ -775,6 +780,28 @@ const ApprovedIdeasPage: React.FC = () => {
                     )}
                   </div>
                 </div>
+
+                {/* Attachments Section */}
+                {selectedIdea.attachments && selectedIdea.attachments.length > 0 && (
+                  <div className={styles.detailSection}>
+                    <h3 className={styles.detailSectionTitle}>Attachments ({selectedIdea.attachments.length})</h3>
+                    <div className={styles.attachmentsList}>
+                      {selectedIdea.attachments.map((attachment, index) => (
+                        <div key={index} className={styles.attachmentItem}>
+                          <span className={styles.attachmentIcon}>📎</span>
+                          <span className={styles.attachmentName}>{attachment.fileName || attachment}</span>
+                          <button
+                            onClick={() => window.open(attachment.serverRelativeUrl || attachment, '_blank')}
+                            className={styles.downloadButton}
+                            title="Download attachment"
+                          >
+                            📥 Download
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Tasks Section */}
                 {getTaskCountForIdea(selectedIdea.id) > 0 && (
