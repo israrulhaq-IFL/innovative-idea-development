@@ -19,11 +19,7 @@ const DiscussionPanel: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [sending, setSending] = useState(false);
 
-  // Load discussions
-  useEffect(() => {
-    loadDiscussions();
-  }, [user]);
-
+  // Define loadDiscussions before using it
   const loadDiscussions = async () => {
     if (!user?.user?.Id) return;
     
@@ -37,6 +33,11 @@ const DiscussionPanel: React.FC = () => {
       setLoading(false);
     }
   };
+
+  // Load discussions when user changes
+  useEffect(() => {
+    loadDiscussions();
+  }, [user?.user?.Id]);
 
   // Filter discussions
   const filteredDiscussions = useMemo(() => {

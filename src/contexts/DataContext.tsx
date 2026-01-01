@@ -323,6 +323,12 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
   // Create refs to store the latest function references
   const loadIdeasRef = useRef<(() => Promise<void>) | null>(null);
   const loadIdeaTrailEventsRef = useRef<(() => Promise<void>) | null>(null);
+  const stateRef = useRef(state);
+  
+  // Keep state ref updated
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
 
   const loadIdeas = useCallback(async () => {
     dispatch({ type: "SET_LOADING", payload: { key: "ideas", value: true } });
@@ -438,6 +444,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
           title: d.taskTitle,
           body: d.messages[0]?.body || '',
           author: d.messages[0]?.author.name || 'Unknown',
+          message: d.messages[0]?.body || '',
           timestamp: d.lastActivity,
           attachments: d.messages.flatMap(m => m.attachments || []).map(a => a.fileName),
         }));
@@ -462,7 +469,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
         payload: { key: "discussions", value: false },
       });
     }
-  }, [user?.user?.Id]);
+  }, []);
 
   const loadApprovers = useCallback(async () => {
     dispatch({
@@ -531,7 +538,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
 
         // Create trail event for status change
         try {
-          const currentIdea = state.data.ideas.find(
+          const currentIdea = stateRef.current.data.ideas.find(
             (idea) => idea.id === ideaId,
           );
           if (currentIdea) {
@@ -584,7 +591,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
         }
 
         // Update local state
-        const updatedIdeas = state.data.ideas.map((idea) =>
+        const updatedIdeas = stateRef.current.data.ideas.map((idea) =>
           idea.id === ideaId
             ? {
                 ...idea,
@@ -624,7 +631,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
         throw error;
       }
     },
-    [state.data.ideas, user?.user?.Id, user?.user?.Title],
+    [user?.user?.Id, user?.user?.Title],
   );
 
   const loadIdeaTrailEvents = useCallback(async () => {
@@ -654,7 +661,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
       }
 
       console.log("Creating initial trail events for existing ideas...");
-      const ideas = state.data.ideas;
+      const ideas = stateRef.current.data.ideas;
 
       for (const idea of ideas) {
         try {
@@ -733,7 +740,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
     } catch (error) {
       console.error("Failed to create initial trail events", error);
     }
-  }, [state.data.ideas]);
+  }, []);
 
   return (
     <DataContext.Provider
