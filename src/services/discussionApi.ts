@@ -63,11 +63,19 @@ class DiscussionApi {
    */
   async getMyDiscussions(userId: number): Promise<Discussion[]> {
     try {
-      // First, get all tasks assigned to the user
-      const tasksEndpoint = `/_api/web/lists/getbytitle('${LISTS.tasks}')/items?$select=ID,Title,IdeaId/Id,IdeaId/Title,AssignedTo/Id,AssignedTo/Title,AssignedTo/EMail&$expand=IdeaId,AssignedTo&$filter=AssignedTo/Id eq ${userId}&$top=500`;
+      // First, get all tasks where user is assigned (using AssignedToId for multi-value field)
+      // Note: We need to get ALL tasks and filter client-side because SharePoint 2016
+      // doesn't properly expand multi-value user fields when filtered
+      const tasksEndpoint = `/_api/web/lists/getbytitle('${LISTS.tasks}')/items?$select=ID,Title,IdeaIdId,AssignedToId,IdeaId/Title,AssignedTo/Id,AssignedTo/Title,AssignedTo/EMail&$expand=IdeaId,AssignedTo&$top=500`;
       
       const tasksResponse = await sharePointApi.get<any>(tasksEndpoint);
-      const myTasks = tasksResponse.d.results;
+      const allTasks = tasksResponse.d.results;
+      
+      // Filter tasks where current user is in AssignedToId array
+      const myTasks = allTasks.filter((task: any) => {
+        const assignedIds = task.AssignedToId?.results || [];
+        return assignedIds.includes(userId);
+      });
 
       // Get discussions for each task
       const discussions: Discussion[] = [];
@@ -81,25 +89,22 @@ class DiscussionApi {
             return msgDate > latest ? msgDate : latest;
           }, new Date(0));
 
+          // Get all assignees from the expanded AssignedTo field
+          const participants = task.AssignedTo?.results 
+            ? task.AssignedTo.results.map((assignee: any) => ({
+                id: assignee.Id,
+                name: assignee.Title,
+                email: assignee.EMail,
+              }))
+            : [];
+
           discussions.push({
             id: task.ID,
             taskId: task.ID,
             taskTitle: task.Title,
-            ideaId: task.IdeaId?.Id,
+            ideaId: task.IdeaId?.Id || task.IdeaIdId,
             ideaTitle: task.IdeaId?.Title,
-            participants: Array.isArray(task.AssignedTo) 
-              ? task.AssignedTo.map((assignee: any) => ({
-                  id: assignee.Id,
-                  name: assignee.Title,
-                  email: assignee.EMail,
-                }))
-              : task.AssignedTo 
-                ? [{
-                    id: task.AssignedTo.Id,
-                    name: task.AssignedTo.Title,
-                    email: task.AssignedTo.EMail,
-                  }]
-                : [],
+            participants,
             messages,
             lastActivity,
             unreadCount: 0, // TODO: Implement read tracking
