@@ -11,16 +11,28 @@ import styles from '../components/common/IdeaDetail.module.css';
 const IdeaDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { data, loading, error, loadIdeaTrailEvents } = useIdeaData();
+  const { data, loading, error, loadIdeas, loadIdeaTrailEvents } = useIdeaData();
   const { user } = useUser();
   const [idea, setIdea] = useState<ProcessedIdea | null>(null);
   const [isTrailModalOpen, setIsTrailModalOpen] = useState(false);
   const trailLoadedRef = useRef(false);
+  const ideasLoadedRef = useRef(false);
 
   // Get ideas from data safely
   const ideas = data?.ideas || [];
 
+  // Load ideas if not already loaded
   useEffect(() => {
+    if (!ideasLoadedRef.current && ideas.length === 0 && !loading.ideas) {
+      ideasLoadedRef.current = true;
+      loadIdeas();
+    }
+  }, [ideas.length, loading.ideas, loadIdeas]);
+
+  useEffect(() => {
+    // Only process after loading is complete
+    if (loading.ideas) return;
+    
     if (ideas.length > 0 && id) {
       const foundIdea = ideas.find((i) => i.id.toString() === id);
       if (foundIdea) {
@@ -47,10 +59,14 @@ const IdeaDetailPage: React.FC = () => {
         };
         setIdea(processedIdea);
       } else {
-        navigate('/');
+        // Only navigate away if loading is complete and idea still not found
+        setIdea(null);
       }
+    } else if (!loading.ideas && id) {
+      // Loading complete but no ideas or idea not found
+      setIdea(null);
     }
-  }, [ideas, id, navigate]);
+  }, [ideas, id, loading.ideas]);
 
   useEffect(() => {
     // Load trail events when component mounts - only once

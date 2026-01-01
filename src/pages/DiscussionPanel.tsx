@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useIdeaData } from '../contexts/DataContext';
 import { useUser } from '../contexts/UserContext';
 import { discussionApi, Discussion } from '../services/discussionApi';
 import LoadingSpinner from '../components/common/LoadingSpinner';
-import { MessageCircle, Search, Clock, Users, AlertCircle, Send, Paperclip, X } from 'lucide-react';
+import { MessageCircle, Search, Clock, Users, AlertCircle, Send, Paperclip, X, CheckCheck, Smile } from 'lucide-react';
 import styles from './DiscussionPanel.module.css';
 
 const DiscussionPanel: React.FC = () => {
@@ -18,6 +18,8 @@ const DiscussionPanel: React.FC = () => {
   const [replyText, setReplyText] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [sending, setSending] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Define loadDiscussions before using it
   const loadDiscussions = async () => {
@@ -38,6 +40,20 @@ const DiscussionPanel: React.FC = () => {
   useEffect(() => {
     loadDiscussions();
   }, [user?.user?.Id]);
+
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [selectedDiscussion?.messages]);
+
+  // Focus textarea when discussion is selected
+  useEffect(() => {
+    if (selectedDiscussion && textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  }, [selectedDiscussion]);
 
   // Filter discussions
   const filteredDiscussions = useMemo(() => {
@@ -99,7 +115,7 @@ const DiscussionPanel: React.FC = () => {
     }
   };
 
-  // Format date
+  // Format date with more context
   const formatDate = (date: Date) => {
     const now = new Date();
     const diff = now.getTime() - date.getTime();
@@ -108,11 +124,50 @@ const DiscussionPanel: React.FC = () => {
     const days = Math.floor(diff / 86400000);
 
     if (minutes < 1) return 'Just now';
-    if (minutes < 60) return `${minutes}m ago`;
-    if (hours < 24) return `${hours}h ago`;
-    if (days < 7) return `${days}d ago`;
+    if (minutes < 60) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+    if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+    if (days === 1) return 'Yesterday';
+    if (days < 7) return `${days} days ago`;
     
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
+  // Format message time for display
+  const formatMessageTime = (date: Date) => {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    const isToday = date.toDateString() === today.toDateString();
+    const isYesterday = date.toDateString() === yesterday.toDateString();
+    
+    const timeStr = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+    
+    if (isToday) return `Today at ${timeStr}`;
+    if (isYesterday) return `Yesterday at ${timeStr}`;
+    
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ` at ${timeStr}`;
+  };
+
+  // Get initials for avatar
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+  };
+
+  // Get color for avatar based on name
+  const getAvatarColor = (name: string) => {
+    const colors = [
+      '#667eea', '#764ba2', '#f093fb', '#4facfe',
+      '#43e97b', '#fa709a', '#fee140', '#30cfd0',
+      '#a8edea', '#fed6e3', '#c471f5', '#ff9a9e'
+    ];
+    const index = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    return colors[index % colors.length];
   };
 
   if (loading) {
@@ -241,41 +296,88 @@ const DiscussionPanel: React.FC = () => {
               </div>
 
               <div className={styles.messagesContainer}>
-                {selectedDiscussion.messages.map((message) => (
-                  <div key={message.id} className={styles.message}>
-                    <div className={styles.messageHeader}>
-                      <div className={styles.messageAuthor}>
-                        <strong>{message.author.name}</strong>
-                        <span className={styles.messageTime}>
-                          {formatDate(message.created)}
-                        </span>
-                      </div>
-                      {message.isQuestion && (
-                        <span className={styles.questionBadge}>Question</span>
+                {selectedDiscussion.messages.map((message, index) => {
+                  const isCurrentUser = message.author.id === user?.user?.Id;
+                  const showDateSeparator = index === 0 || 
+                    new Date(message.created).toDateString() !== 
+                    new Date(selectedDiscussion.messages[index - 1].created).toDateString();
+                  
+                  return (
+                    <React.Fragment key={message.id}>
+                      {showDateSeparator && (
+                        <div className={styles.dateSeparator}>
+                          <span>
+                            {new Date(message.created).toDateString() === new Date().toDateString()
+                              ? 'Today'
+                              : new Date(message.created).toLocaleDateString('en-US', { 
+                                  weekday: 'long', 
+                                  month: 'long', 
+                                  day: 'numeric' 
+                                })}
+                          </span>
+                        </div>
                       )}
-                    </div>
-                    <div 
-                      className={styles.messageBody}
-                      dangerouslySetInnerHTML={{ __html: message.body }}
-                    />
-                    {message.attachments && message.attachments.length > 0 && (
-                      <div className={styles.attachments}>
-                        {message.attachments.map((att, idx) => (
-                          <a
-                            key={idx}
-                            href={att.serverRelativeUrl}
-                            className={styles.attachment}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                      <div className={`${styles.message} ${isCurrentUser ? styles.messageOwn : ''}`}>
+                        {!isCurrentUser && (
+                          <div 
+                            className={styles.messageAvatar}
+                            style={{ backgroundColor: getAvatarColor(message.author.name) }}
                           >
-                            <Paperclip size={14} />
-                            {att.fileName}
-                          </a>
-                        ))}
+                            {getInitials(message.author.name)}
+                          </div>
+                        )}
+                        <div className={styles.messageContent}>
+                          <div className={styles.messageHeader}>
+                            <div className={styles.messageAuthor}>
+                              <strong>{message.author.name}</strong>
+                              <span className={styles.messageTime}>
+                                {formatMessageTime(message.created)}
+                              </span>
+                            </div>
+                            {message.isQuestion && (
+                              <span className={styles.questionBadge}>❓ Question</span>
+                            )}
+                          </div>
+                          <div 
+                            className={styles.messageBody}
+                            dangerouslySetInnerHTML={{ __html: message.body }}
+                          />
+                          {message.attachments && message.attachments.length > 0 && (
+                            <div className={styles.attachments}>
+                              {message.attachments.map((att, idx) => (
+                                <a
+                                  key={idx}
+                                  href={att.serverRelativeUrl}
+                                  className={styles.attachment}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  <Paperclip size={14} />
+                                  {att.fileName}
+                                </a>
+                              ))}
+                            </div>
+                          )}
+                          {isCurrentUser && (
+                            <div className={styles.messageStatus}>
+                              <CheckCheck size={14} />
+                              <span>Sent</span>
+                            </div>
+                          )}
+                        </div>
+                        {isCurrentUser && (
+                          <div 
+                            className={styles.messageAvatar}
+                            style={{ backgroundColor: getAvatarColor(message.author.name) }}
+                          >
+                            {getInitials(message.author.name)}
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                ))}
+                    </React.Fragment>
+                  );
+                })}
+                <div ref={messagesEndRef} />
               </div>
 
               <div className={styles.replyBox}>
@@ -290,9 +392,18 @@ const DiscussionPanel: React.FC = () => {
                 )}
                 <div className={styles.replyInput}>
                   <textarea
-                    placeholder="Type your reply..."
+                    ref={textareaRef}
+                    placeholder="Type your message..."
                     value={replyText}
                     onChange={(e) => setReplyText(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        if (replyText.trim() && !sending) {
+                          handleSendReply();
+                        }
+                      }
+                    }}
                     disabled={sending}
                   />
                   <div className={styles.replyActions}>
