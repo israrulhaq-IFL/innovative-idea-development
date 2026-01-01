@@ -178,7 +178,7 @@ export class IdeaApiService {
   }
 
   // Update idea
-  async updateIdea(id: number, updates: Partial<Idea>, user?: { id: number; name: string }): Promise<ProcessedIdea> {
+  async updateIdea(id: number, updates: Partial<Idea>, user?: { id: number; name: string }, skipTrailEvent = false): Promise<ProcessedIdea> {
     try {
       // Get current idea before update for trail logging
       const currentIdea = await this.getIdeaById(id);
@@ -206,7 +206,8 @@ export class IdeaApiService {
       // Fetch updated item
       const updatedIdea = await this.getIdeaById(id);
 
-      // Create trail event for idea update
+      // Create trail event for idea update (skip if requested to avoid duplicates)
+      if (!skipTrailEvent) {
       try {
         const hasTitleChange = updates.title && updates.title !== currentIdea.title;
         const hasDescriptionChange = updates.description && updates.description !== currentIdea.description;
@@ -279,6 +280,7 @@ export class IdeaApiService {
       } catch (trailError) {
         logError("Failed to create trail event for idea update", trailError);
         // Don't fail the idea update if trail event fails
+      }
       }
 
       return updatedIdea as ProcessedIdea;

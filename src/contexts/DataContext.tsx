@@ -533,8 +533,16 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
           updateData.approvedBy = user.user.Id.toString();
         }
 
-        // Update the idea status via API
-        const updatedIdea = await ideaApi.updateIdea(ideaId, updateData);
+        // Update the idea status via API (skip trail event since we create specific event below)
+        const updatedIdea = await ideaApi.updateIdea(
+          ideaId, 
+          updateData,
+          {
+            id: user?.user?.Id || 0,
+            name: user?.user?.Title || 'System',
+          },
+          true // Skip trail event to avoid duplicates
+        );
 
         // Create trail event for status change
         try {
