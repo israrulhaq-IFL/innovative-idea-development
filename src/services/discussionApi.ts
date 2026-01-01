@@ -191,15 +191,18 @@ class DiscussionApi {
       
       const folderUrl = parentDiscussion.Folder.ServerRelativeUrl;
       
-      // For SharePoint 2016 Discussion Boards, create reply as a simple list item with ParentItemID
+      // For SharePoint 2016 Discussion Boards, create reply as a Message content type
+      // Message items must have ContentTypeId set to 0x0107 (Message) and ParentItemID set
       const endpoint = `/_api/web/lists/getbytitle('${this.listName}')/items`;
       const replyData = {
         __metadata: { type: 'SP.Data.Innovative_x005f_idea_x005f_discussionsListItem' },
+        ContentTypeId: '0x0107', // Message content type for replies
         Title: subject,
         Body: body,
         ParentItemID: parentDiscussion.ID,
       };
 
+      logInfo('[DiscussionApi] Creating reply with data:', replyData);
       const response = await sharePointApi.post<any>(endpoint, replyData);
       const itemId = response.d.ID;
 
