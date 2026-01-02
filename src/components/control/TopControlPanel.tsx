@@ -167,7 +167,7 @@ export const TopControlPanel: React.FC<TopControlPanelProps> = ({
       );
     }
 
-    if (isAdmin || isApprover) {
+    if (isAdmin) {
       controls.push(
         <button
           key="approved-ideas"
