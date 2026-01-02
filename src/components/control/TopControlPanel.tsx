@@ -106,15 +106,6 @@ export const TopControlPanel: React.FC<TopControlPanelProps> = ({
       });
     }
 
-    if (isAdmin) {
-      items.push({
-        path: '/admin',
-        label: 'Admin',
-        icon: Settings,
-        description: 'Administrative Controls',
-      });
-    }
-
     return items;
   };
 
