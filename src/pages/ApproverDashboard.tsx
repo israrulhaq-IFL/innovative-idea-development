@@ -376,7 +376,11 @@ const ApproverDashboard: React.FC = () => {
                       <div className={styles.date}>
                         <Calendar size={14} />
                         <span>
-                          {new Date(idea.created).toLocaleDateString()}
+                          {new Date(idea.created).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                          })}
                         </span>
                       </div>
                     </div>
@@ -470,7 +474,11 @@ const ApproverDashboard: React.FC = () => {
                 <div className={styles.metaItem}>
                   <Calendar size={16} />
                   <span>
-                    {new Date(selectedIdea.created).toLocaleDateString()}
+                    {new Date(selectedIdea.created).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric'
+                    })}
                   </span>
                 </div>
                 <div className={styles.metaItem}>
