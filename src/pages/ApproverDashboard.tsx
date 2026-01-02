@@ -92,8 +92,8 @@ const ApproverDashboard: React.FC = () => {
         )
         .sort(
           (a: any, b: any) =>
-            new Date(a.created || a.Created).getTime() -
-            new Date(b.created || b.Created).getTime(),
+            new Date(a.createdDate || a.created || a.Created).getTime() -
+            new Date(b.createdDate || b.created || b.Created).getTime(),
         )
         .map((idea: any) => ({
           id: idea.id || idea.ID,
@@ -103,7 +103,7 @@ const ApproverDashboard: React.FC = () => {
           priority: idea.priority || idea.Priority,
           category: idea.category || idea.Category,
           createdBy: idea.createdBy || idea.Author?.Title || idea.CreatedBy,
-          created: idea.created || idea.Created,
+          created: idea.createdDate || idea.created || idea.Created,
           modified: idea.modified || idea.Modified,
           attachments: idea.attachments || [],
         }));
