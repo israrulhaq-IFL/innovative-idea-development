@@ -272,7 +272,8 @@
   color: var(--utility-text-primary);
   font-size: 0.875rem;
   border-radius: 6px;
-  border: none;
+  border: none !important;
+  outline: none !important;
   position: relative;
   overflow: hidden;
 }
@@ -305,17 +306,16 @@
   -webkit-backdrop-filter: blur(8px);
   transition: all 0.2s ease;
   border-radius: 6px;
-  border: none;
+  border: none !important;
+  outline: none !important;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .themeToggleBtn:hover,
 .alertsToggleBtn:hover {
   background: var(--utility-bg-hover);
   color: var(--utility-text-primary);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   transform: translateY(-1px);
 }
 
@@ -323,7 +323,6 @@
 .alertsToggleBtn:active {
   background: var(--utility-glass-bg);
   transform: translateY(0);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   transition-duration: 0.1s;
 }
 
@@ -369,11 +368,8 @@
 /* Accessibility & Focus States */
 .themeToggleBtn:focus-visible,
 .alertsToggleBtn:focus-visible {
-  outline: 2px solid var(--utility-accent);
-  outline-offset: 2px;
-  box-shadow:
-    0 0 0 4px rgba(255, 255, 255, 0.2),
-    var(--utility-shadow-light);
+  outline: none !important;
+  background: var(--utility-bg-hover);
 }
 
 .themeToggleBtn:focus,
