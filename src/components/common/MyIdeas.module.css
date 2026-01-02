@@ -155,10 +155,6 @@
   color: #1f2937;
   margin: 0;
 }
-  font-weight: 600;
-  color: var(--text-primary, #1f2937);
-  margin: 0;
-}
 
 .submitButton {
   background: var(--primary-color, #3b82f6);
