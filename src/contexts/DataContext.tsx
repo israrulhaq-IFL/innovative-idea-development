@@ -32,6 +32,10 @@ export interface Idea {
   approvedDate?: Date;
   category: string;
   priority: "Low" | "Medium" | "High" | "Critical";
+  attachments?: Array<{
+    fileName: string;
+    serverRelativeUrl: string;
+  }>;
 }
 
 export interface Task {
@@ -349,6 +353,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
         approvedDate: idea.modified,
         category: "General", // Default category
         priority: "Medium", // Default priority
+        attachments: idea.attachments || [],
       }));
 
       dispatch({ type: "SET_IDEAS", payload: ideas });
