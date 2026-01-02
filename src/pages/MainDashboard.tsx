@@ -63,7 +63,7 @@ const MainDashboard: React.FC = () => {
   const recentIdeas = useMemo(() => {
     return [...allIdeas]
       .sort((a, b) => new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime())
-      .slice(0, 5);
+      .slice(0, 10);
   }, [allIdeas]);
 
   // Get ideas by status for the grid
@@ -77,6 +77,10 @@ const MainDashboard: React.FC = () => {
 
   const inProgressIdeasList = useMemo(() =>
     allIdeas.filter(idea => idea.status === 'In Progress').slice(0, 3),
+    [allIdeas]);
+
+  const implementedIdeasList = useMemo(() =>
+    allIdeas.filter(idea => idea.status === 'Completed').slice(0, 3),
     [allIdeas]);
 
   // Get recent tasks
@@ -408,9 +412,9 @@ const MainDashboard: React.FC = () => {
                 <div className={styles.activityItem}>
                   <span className={styles.activityIcon}>🎯</span>
                   <div className={styles.activityContent}>
-                    <div className={styles.activityTitle}>Success Rate</div>
+                    <div className={styles.activityTitle}>In Implementation</div>
                     <div className={styles.activityMeta}>
-                      {stats.completedIdeas + stats.inProgressIdeas} ideas in implementation
+                      {stats.inProgressIdeas} ideas currently being implemented
                     </div>
                   </div>
                 </div>
@@ -565,6 +569,52 @@ const MainDashboard: React.FC = () => {
                 <div className={styles.emptyState}>
                   <div className={styles.emptyIcon}>📋</div>
                   <p className={styles.emptyText}>No ideas in progress</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Implemented Ideas */}
+          <div className={styles.card}>
+            <div className={styles.cardHeader}>
+              <h2 className={styles.cardTitle}>
+                <span className={styles.cardTitleIcon}>✅</span>
+                Implemented
+              </h2>
+              <span className={`${styles.ideaStatus} ${styles.statusCompleted}`}>
+                {stats.completedIdeas}
+              </span>
+            </div>
+            <div className={styles.cardBody}>
+              {implementedIdeasList.length > 0 ? (
+                <div className={styles.ideasList}>
+                  {implementedIdeasList.map((idea) => (
+                    <div
+                      key={idea.id}
+                      className={styles.ideaCard}
+                      onClick={() => navigate(`/idea/${idea.id}`)}
+                    >
+                      <h3 className={styles.ideaTitle}>{idea.title}</h3>
+                      <div className={styles.ideaMeta}>
+                        <span className={styles.ideaMetaItem}>
+                          <span>👤</span> {idea.createdBy}
+                        </span>
+                        <span className={styles.ideaMetaItem}>
+                          <span>⏰</span> {daysAgo(idea.createdDate)}
+                        </span>
+                        {idea.attachments && idea.attachments.length > 0 && (
+                          <span className={styles.ideaMetaItem}>
+                            <span>📎</span> {idea.attachments.length}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className={styles.emptyState}>
+                  <div className={styles.emptyIcon}>🎉</div>
+                  <p className={styles.emptyText}>No implemented ideas yet</p>
                 </div>
               )}
             </div>
