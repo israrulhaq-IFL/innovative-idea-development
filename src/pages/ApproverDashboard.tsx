@@ -40,6 +40,11 @@ const ApproverDashboard: React.FC = () => {
   const [animatingCard, setAnimatingCard] = useState<string | null>(null);
   const [isProcessingAction, setIsProcessingAction] = useState(false);
   const [pendingIdeas, setPendingIdeas] = useState<Idea[]>([]);
+  const [previewAttachment, setPreviewAttachment] = useState<{
+    fileName: string;
+    url: string;
+    type: 'image' | 'pdf' | 'other';
+  } | null>(null);
   const [lastAction, setLastAction] = useState<{
     ideaId: string;
     action: 'approve' | 'reject';
@@ -262,9 +267,41 @@ const ApproverDashboard: React.FC = () => {
     handleClose();
   };
 
-  const downloadAttachment = (attachment: any) => {
-    // Implement download logic
-    window.open(attachment.serverRelativeUrl, '_blank');
+  const handleAttachmentClick = (attachment: any) => {
+    const fileName = attachment.fileName.toLowerCase();
+    const fileExtension = fileName.split('.').pop();
+    
+    // Determine file type
+    const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
+    const pdfExtensions = ['pdf'];
+    
+    if (imageExtensions.includes(fileExtension || '')) {
+      // Preview image
+      setPreviewAttachment({
+        fileName: attachment.fileName,
+        url: attachment.serverRelativeUrl,
+        type: 'image'
+      });
+    } else if (pdfExtensions.includes(fileExtension || '')) {
+      // Preview PDF
+      setPreviewAttachment({
+        fileName: attachment.fileName,
+        url: attachment.serverRelativeUrl,
+        type: 'pdf'
+      });
+    } else {
+      // Download other file types
+      const link = document.createElement('a');
+      link.href = attachment.serverRelativeUrl;
+      link.download = attachment.fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
+  const closePreview = () => {
+    setPreviewAttachment(null);
   };
 
   return (
@@ -506,18 +543,25 @@ const ApproverDashboard: React.FC = () => {
                     <div className={styles.attachments}>
                       <h3>Attachments</h3>
                       <div className={styles.attachmentList}>
-                        {selectedIdea.attachments.map((attachment, index) => (
-                          <div key={index} className={styles.attachmentItem}>
-                            <FileText size={16} />
-                            <span>{attachment.fileName}</span>
-                            <button
-                              className={styles.downloadButton}
-                              onClick={() => downloadAttachment(attachment)}
-                            >
-                              <Download size={14} />
-                            </button>
-                          </div>
-                        ))}
+                        {selectedIdea.attachments.map((attachment, index) => {
+                          const fileName = attachment.fileName.toLowerCase();
+                          const fileExtension = fileName.split('.').pop();
+                          const isPreviewable = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'pdf'].includes(fileExtension || '');
+                          
+                          return (
+                            <div key={index} className={styles.attachmentItem}>
+                              <FileText size={16} />
+                              <span>{attachment.fileName}</span>
+                              <button
+                                className={styles.downloadButton}
+                                onClick={() => handleAttachmentClick(attachment)}
+                                title={isPreviewable ? 'Preview' : 'Download'}
+                              >
+                                {isPreviewable ? <Eye size={14} /> : <Download size={14} />}
+                              </button>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
@@ -547,6 +591,95 @@ const ApproverDashboard: React.FC = () => {
                   <CheckCircle size={18} />
                   {isProcessingAction ? 'Processing...' : 'Approve'}
                 </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Attachment Preview Modal */}
+      <AnimatePresence>
+        {previewAttachment && (
+          <motion.div
+            className={styles.modalOverlay}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={closePreview}
+            style={{ zIndex: 10000 }}
+          >
+            <motion.div
+              className={styles.previewModal}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                width: '90vw',
+                height: '90vh',
+                maxWidth: '1200px',
+                background: 'white',
+                borderRadius: '12px',
+                overflow: 'hidden',
+                display: 'flex',
+                flexDirection: 'column'
+              }}
+            >
+              <div style={{
+                padding: '16px 24px',
+                borderBottom: '1px solid #e5e7eb',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}>
+                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 600 }}>
+                  {previewAttachment.fileName}
+                </h3>
+                <button
+                  onClick={closePreview}
+                  style={{
+                    border: 'none',
+                    background: 'none',
+                    fontSize: '28px',
+                    cursor: 'pointer',
+                    color: '#6b7280',
+                    padding: '0 8px',
+                    lineHeight: 1
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+              <div style={{
+                flex: 1,
+                overflow: 'auto',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                padding: '20px',
+                background: '#f9fafb'
+              }}>
+                {previewAttachment.type === 'image' ? (
+                  <img
+                    src={previewAttachment.url}
+                    alt={previewAttachment.fileName}
+                    style={{
+                      maxWidth: '100%',
+                      maxHeight: '100%',
+                      objectFit: 'contain'
+                    }}
+                  />
+                ) : previewAttachment.type === 'pdf' ? (
+                  <iframe
+                    src={previewAttachment.url}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      border: 'none'
+                    }}
+                    title={previewAttachment.fileName}
+                  />
+                ) : null}
               </div>
             </motion.div>
           </motion.div>
