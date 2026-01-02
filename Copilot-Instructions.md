@@ -1,311 +1,341 @@
-# Copilot Instructions for Modern ITG SharePoint Task Dashboard
+# Copilot Instructions for Innovative Ideas Management System
 
 ## Project Overview
 
-This is a modern React-based executive dashboard for ITG (Information Technology Group) with SharePoint integration. The application provides real-time task management and analytics across four departments (Infrastructure, ERP, Operations, Networks & Security) with role-based access control and advanced split-screen drill-down functionality.
+This is a modern React-based Innovation Management System with SharePoint 2016 REST API integration. The application provides comprehensive idea submission, approval workflow, task management, discussion forums, and analytics with role-based access control (Admin, Approver, Contributor).
 
 **Current Architecture Focus:**
-- Single-screen executive dashboard with 4 department columns
-- **Split-screen drill-down system**: Click any KPI, chart segment, or delayed tasks to open detailed task views
-- **Expandable split screen**: Full-screen task details with overlay and proper positioning
-- Compact 60px icon-based sidebar for maximized content space
-- Utility bar positioned immediately after sidebar (no gaps)
-- Each column shows KPI metrics, status distribution, priority breakdown, and delayed tasks
-- Interactive drill-down panels with smooth animations and state transitions
-- SharePoint group-based permissions (HOD, ITG Managers, Team Members, Limited access)
-- GUID-based SharePoint list access with explicit field selection
-- Comprehensive error handling with mock data fallbacks
-
-## Executive Dashboard UX (Current Implementation)
-
-- **Single-screen dashboard** with 4 department columns (DCI/ERP/Operations/Networks)
-- **Split-screen drill-down system**:
-  - Click any KPI card, chart segment, or "View Details" link to open split-screen panel
-  - Split panel shows 60% width with department-specific task details
-  - Smooth opening/closing animations with proper state transitions
-  - Navigation controls for multi-department pagination when >2 departments visible
-- **Expandable split screen**: Click expand button for full-screen task details with backdrop overlay
-- **Compact sidebar navigation**: 60px wide icon-based sidebar (Dashboard/Analytics/Settings) with tooltips
-- **Top utility bar**: Positioned immediately after sidebar (no gap) with user info and theme toggle
-- **Maximized content area**: Main dashboard spans full available width after 60px sidebar
-- **DepartmentColumn component** for each department with consistent structure:
-  1) **KPI strip**: Total tasks, completed, in-progress, overdue counts (clickable for drill-down)
-  2) **Status donut chart**: Visual breakdown of task statuses (clickable segments for drill-down)
-  3) **Priority horizontal bar chart**: Priority distribution (clickable bars for drill-down)
-  4) **Delayed tasks summary**: Clickable section showing overdue tasks with "View Details" link
-- **Global controls**: Status/priority filters, time range filters (7d/30d/90d/all), search functionality
-- **Drill-down system**:
-  - **Split Panel**: 60% width panel showing filtered task lists with expandable rows
-  - **Expanded View**: Full-screen overlay with detailed task cards and editing capabilities
-  - **State Management**: Proper drill state handling (open/closing/expanded) with smooth transitions
-- **Permission enforcement**: Edit buttons/controls only visible when `canEditDepartments` includes the department
-- **Responsive design**: Adapts to different screen sizes while maintaining column layout
+- **Innovation Hub Dashboard**: Main dashboard with KPI cards, recent ideas, status distribution, and quick actions
+- **Idea Submission**: Multi-step form with category selection, priority levels, and file attachments (1MB limit)
+- **Approval Workflow**: Approver dashboard with attachment preview (images in modal, PDFs in new tab)
+- **My Ideas**: Split-panel view showing user's submitted ideas with detailed information
+- **Task Management**: Task creation, assignment, progress tracking with percentage completion
+- **Discussion System**: Threaded discussions with auto-locking based on idea status, file attachments
+- **Theme Support**: Complete light/dark theme toggle for all pages and components
+- **Idea Trail**: Event tracking system showing idea lifecycle and status changes
+- **SharePoint 2016 Integration**: REST API with MCP server for direct list operations
+- **Toast Notifications**: User feedback system for actions and validations
 
 ## Key Technologies & Architecture
 
-- **Frontend**: React 18 with functional components and hooks
-- **Build Tool**: Vite for fast development and building
-- **Styling**: CSS Modules for component-scoped styling
-- **Charts**: Chart.js with React Chart.js 2 for data visualization
-- **Routing**: React Router DOM for navigation
-- **Backend**: SharePoint REST API with fallback mock data
-- **Testing**: Vitest with React Testing Library
-- **State Management**: React Context for SharePoint and theme management
+- **Frontend**: React 19 with TypeScript and functional components
+- **Build Tool**: Vite for fast development and production builds
+- **Styling**: CSS Modules for component-scoped styling with theme support
+- **Routing**: React Router DOM with HashRouter for SharePoint compatibility
+- **Charts**: Recharts for analytics visualization
+- **Animations**: Framer Motion for smooth transitions
+- **Backend**: SharePoint 2016 REST API
+- **MCP Integration**: Model Context Protocol server for SharePoint operations
+- **Testing**: Jest with React Testing Library and Vitest
+- **State Management**: React Context for data, user, and theme management
+
+## SharePoint Integration
+
+### Lists Structure
+1. **innovative_ideas**: Main ideas list with Category, Priority, Status fields
+2. **innovative_idea_discussions**: Discussion threads with IsLocked field
+3. **innovative_idea_tasks**: Task assignments with progress tracking
+4. **innovative_idea_trail**: Event tracking for idea lifecycle
+
+### Key Features
+- **File Attachments**: 1MB size limit with validation and Toast notifications
+- **Discussion Locking**: Auto-locks when idea status changes from "Pending Approval"
+- **Date Handling**: ISO 8601 from SharePoint → Date objects → Proper formatting
+- **Category & Priority**: Properly mapped from SharePoint to UI (fixed hardcoding issue)
+- **Attachment Preview**: Images shown in modal, PDFs open in new tab with ?Web=1
 
 ## Code Structure & Conventions
 
 ### Component Architecture
 - Use functional components with hooks
+- TypeScript interfaces for type safety
 - CSS Modules for styling (`.module.css` files)
-- Component files named `ComponentName.jsx`
+- Component files named `ComponentName.tsx` or `ComponentName.jsx`
 - Style files named `ComponentName.module.css`
 
 ### File Organization
 ```
 src/
 ├── components/          # Reusable UI components
-│   ├── DepartmentColumn.jsx           # Main dashboard column with KPI, charts, delayed tasks
-│   ├── DepartmentColumnContent.jsx    # Content wrapper for split-screen layout
-│   ├── TaskDrilldownPanel.jsx         # Split panel for task details and editing
-│   ├── TaskDrilldownModal.jsx         # Modal for task details and editing
-│   ├── ChartModal.jsx                 # Reusable modal component for charts
-│   ├── ExecutiveDashboardControls.jsx # Global filters and controls
-│   ├── AssigneeCharts.jsx             # Horizontal bar chart for assignee workload
-│   ├── StatusCharts.jsx               # Donut chart for status distribution
-│   ├── PriorityCharts.jsx             # Horizontal bar chart for priority breakdown
-│   ├── AssigneeAvatars.jsx            # User avatar display component
-│   ├── Layout/                        # Layout-related components
-│   │   ├── Header.jsx
-│   │   ├── Sidebar.jsx                # Compact 60px icon-based navigation
-│   │   └── UtilityBar.jsx             # Top bar positioned after sidebar (left: 60px)
-│   ├── [Feature]/                     # Feature-specific components
+│   ├── common/         # Shared components
+│   │   ├── LoadingSpinner.tsx
+│   │   ├── StatusBar.tsx
+│   │   ├── Toast.tsx
+│   │   ├── TopUtilityBar.tsx      # Theme toggle, user info
+│   │   └── ...
+│   ├── control/        # Control panel components
+│   │   └── TopControlPanel.tsx
+│   ├── AnalyticsComparison.jsx
+│   ├── AnalyticsTrends.jsx
+│   ├── AssigneeCharts.jsx
+│   ├── ChartModal.jsx
+│   ├── DashboardSkeleton.jsx
+│   ├── KPISection.jsx
+│   ├── PriorityCharts.jsx
+│   ├── StatusCharts.jsx
+│   ├── TaskDrilldownModal.jsx
+│   ├── TaskDrilldownPanel.jsx
 │   └── ...
-├── pages/                             # Route-based page components
-│   ├── Dashboard.jsx                  # Main executive dashboard with split-screen functionality
-│   ├── Analytics.jsx                  # Analytics page
-│   ├── Settings.jsx                   # Settings page
+├── pages/              # Route-based page components
+│   ├── MainDashboard.tsx          # Innovation Hub with light/dark theme
+│   ├── IdeaFormPage.tsx           # Idea submission form
+│   ├── ApproverDashboard.tsx      # Approval workflow page
+│   ├── MyIdeas.tsx                # User's ideas with split-panel
+│   ├── MyTasks.tsx                # Task management
+│   ├── ApprovedIdeasPage.tsx      # Approved ideas listing
+│   ├── IdeaCompletionPage.tsx     # Implementation tracking
+│   ├── IdeaTrailModal.tsx         # Idea lifecycle visualization
 │   └── ...
-├── context/                           # React context providers
-│   ├── SharePointContext.jsx          # SharePoint state management
-│   └── ThemeContext.jsx               # Theme management
-├── services/                          # API services and business logic
-│   ├── sharePointService.js           # SharePoint REST API service
-│   └── sharePointService.test.js      # Unit tests
-├── hooks/                             # Custom React hooks
-│   └── useUserPermissions.js          # Permission management hook
-├── utils/                             # Utility functions
-└── styles/                            # Global styles
+├── contexts/           # React context providers
+│   ├── DataContext.tsx            # Global data management
+│   │   # ProcessedIdea vs Idea interfaces
+│   │   # Idea: createdDate, approvedDate (from DataContext)
+│   │   # ProcessedIdea: created, modified (from ideaApi)
+│   ├── UserContext.tsx            # User and permissions
+│   └── ThemeContext.tsx           # Light/dark theme
+├── services/           # API services
+│   ├── ideaApi.ts                 # Ideas CRUD operations
+│   ├── discussionApi.ts           # Discussion operations
+│   └── ...
+├── hooks/              # Custom React hooks
+├── utils/              # Utility functions
+├── types/              # TypeScript type definitions
+└── styles/             # Global styles
+    └── shared-page-theme.module.css  # Shared theme styles
 ```
 
 ### Naming Conventions
-- **Components**: PascalCase (e.g., `TaskCard.jsx`)
-- **Functions**: camelCase (e.g., `fetchTasks()`)
-- **Constants**: UPPER_SNAKE_CASE (e.g., `API_BASE_URL`)
+- **Components**: PascalCase (e.g., `IdeaCard.tsx`)
+- **Functions**: camelCase (e.g., `fetchIdeas()`)
+- **Constants**: UPPER_SNAKE_CASE (e.g., `MAX_FILE_SIZE`)
 - **Files**: kebab-case for utilities, PascalCase for components
+- **CSS Modules**: camelCase for class names (e.g., `.ideaCard`)
 
 ## Development Guidelines
 
 ### State Management
-- Use React hooks (`useState`, `useEffect`) for local component state
-- Context providers for global state (SharePoint data, theme)
-- Split screen state managed in `Dashboard.jsx` with `drillState` object:
-  ```javascript
-  const [drillState, setDrillState] = useState({
-    isOpen: false,
-    type: null,        // 'kpi', 'assignee', 'status', 'priority'
-    data: null,        // Chart data or KPI info
-    department: null   // Department name
-  });
-  ```
+- Use React hooks (`useState`, `useEffect`, `useMemo`) for local component state
+- Context providers for global state (data, user, theme)
+- **DataContext**: Manages ideas, tasks, discussions, approvers, and trail events
+  - `ProcessedIdea` interface (from ideaApi): has `created`, `modified` as Date fields
+  - `Idea` interface (from DataContext): has `createdDate`, `approvedDate` as Date fields
+  - Status values: "Pending Approval" | "Approved" | "Rejected" | "In Progress" | "Completed"
+- **UserContext**: Manages user info and role-based permissions (isAdmin, isApprover, isContributor)
+- **ThemeContext**: Manages light/dark theme with localStorage persistence
 
-#### Split Screen Functionality
-- **Opening**: Click KPI cards or chart bars to open split panel
-- **Closing**: Click close button or outside panel area
-- **Animation**: Smooth CSS transitions with `cubic-bezier(0.4, 0, 0.2, 1)`
-- **Layout**: Panel takes full width, pushes content to left
-- **State**: Managed centrally in Dashboard component
+### Theme System
+- **Light Theme**: Light blue gradient background (#f0f4ff → #e6eeff → #dce6ff)
+  - White cards with purple accents
+  - Dark text (#1f2937)
+  - Better shadows and borders
+- **Dark Theme**: Dark gradient background (#0f0f23 → #1a1a3e → #0d1b2a)
+  - Dark cards with white overlays
+  - White/light text
+  - Subtle shadows
+- **Theme Toggle**: Available in TopUtilityBar component
+- **Implementation**: Apply theme classes dynamically: `${theme === 'dark' ? styles.darkTheme : styles.lightTheme}`
+- **CSS Structure**: Base styles + theme-specific overrides in same CSS module
+
+### Data Flow & Type Handling
+- **SharePoint → ideaApi**: ISO 8601 strings converted to Date objects
+- **ideaApi → DataContext**: ProcessedIdea with `created`, `modified` dates
+- **DataContext → Components**: Idea with `createdDate`, `approvedDate` dates
+- **Date Formatting**: Use `toLocaleDateString()` and `toLocaleString()` with 'en-US' locale
+- **Category & Priority**: Properly mapped from SharePoint (fixed hardcoding issue in DataContext)
 
 ### Adding New Components
-1. Create component file in appropriate directory under `src/components/`
-2. Create corresponding CSS module file
-3. Export component from index file if needed
-4. Add tests in `__tests__/` directory
+1. Create component file in appropriate directory under `src/components/` or `src/pages/`
+2. Create corresponding CSS module file with theme support
+3. Use TypeScript interfaces for props and state
+4. Add theme classes for light/dark mode support
+5. Add tests in `__tests__/` directory
 
-### Chart Interactions
-- Chart.js for data visualization
-- Click handlers on bars/pie slices trigger split screen
-- Hover effects for better UX
-- Consistent color schemes across charts
+### File Attachments
+- **Size Limit**: 1MB (1048576 bytes) enforced in validation
+- **Validation**: Check file size before upload, show Toast notification on error
+- **Discussion Attachments**: Validated and stored with discussion messages
+- **Attachment Preview**: 
+  - Images: Show in modal with proper sizing
+  - PDFs: Open in new tab with `?Web=1` parameter for SharePoint auth
+- **SharePoint Access**: Use `serverRelativeUrl` field from attachments array
+
+### Discussion System
+- **Auto-Locking**: Discussions locked when idea status changes from "Pending Approval"
+- **IsLocked Field**: Boolean field in discussion list
+- **Lock Trigger**: Status update in idea triggers discussion lock
+- **UI Behavior**: Show locked indicator, disable message input when locked
 
 ### SharePoint Integration
-- Use `SharePointService` class for all API calls
-- Handle authentication and permissions appropriately
-- Implement fallback mock data for development/testing
-- Department-specific lists with GUIDs:
-  - Infrastructure: `Datacenter and Cloude Infrastructure Ongoing Tasks` (GUID: e41bb365-20be-4724-8ff8-18438d9c2354)
-  - ERP: `ERP System/Software Development Ongoing Tasks` (GUID: 4693a94b-4a71-4821-b8c1-3a6fc8cdac69)
-  - Operations: `ITG Operations Ongoing Tasks` (GUID: 6eb2cec0-f94f-47ae-8745-5e48cd52ffd9)
-  - Networks: `Networks and Security Ongoing Tasks` (GUID: 1965d5a7-b9f0-4066-b2c5-8d9b8a442537)
-- API calls use GUID-based endpoints with explicit `$select` parameters (no `$expand`)
-- Task fields: Id, Title, Body, Status, Priority, PercentComplete, AssignedToId, StartDate, DueDate, Created, Modified, tonc (Remarks), Attachments
+- Use `ideaApi` service for ideas CRUD operations
+- Use `discussionApi` service for discussion operations
+- **Lists**: innovative_ideas, innovative_idea_discussions, innovative_idea_tasks, innovative_idea_trail
+- **Date Handling**: SharePoint returns ISO 8601, convert to Date objects in processIdea()
+- **Field Mapping**: Ensure Category and Priority are properly mapped (not hardcoded)
+- **Error Handling**: Handle SharePoint errors gracefully with user-friendly messages
 
-### Permissions model (group-based)
-- All permission logic is derived from SharePoint group titles in `SharePointService.getUserPermissions()`.
-- Group name normalization: converts underscores/hyphens to spaces, handles case-insensitive matching
-- Department-specific patterns:
-  - **Infrastructure**: member patterns ['dci', 'data center', 'datacenter', 'cloud infrastructure', 'infrastructure'], manager patterns ['dci manager', 'infra manager', 'data center manager', 'infrastructure manager']
-  - **ERP**: member patterns ['erp', 'software development', 'software'], manager patterns ['erp manager', 'software manager']
-  - **Operations**: member patterns ['operations', 'itg operations', 'ops'], manager patterns ['operations manager', 'ops manager']
-  - **Networks**: member patterns ['network', 'networks', 'security'], manager patterns ['network manager', 'networks manager', 'security manager']
-- User categories:
-  - **HOD** (Head of Department): group matches ['hod', 'head of department'] → can view all departments, edit none
-  - **ITG Manager**: group matches ['itg manager', 'itg managers', 'itg management', 'management'] → can view all departments, edit only departments where they have manager membership
-  - **Team Member**: belongs to department member/manager groups → can view/edit their department(s) only
-  - **Limited**: fallback access → can view infrastructure department only, no edit rights
-- Key fields used across UI and data loading:
-  - `allowedDepartments: string[]` → departments the user can view
-  - `canEditDepartments: string[]` → departments the user can edit
-  - `canViewAll: boolean` → used for executive/global visibility
-  - `userCategory: 'team_member' | 'manager' | 'hod' | 'limited'`
-- Always enforce edits in the data/action layer (not only via hidden buttons).
-
-### State Management
-- Use `SharePointContext` for SharePoint-related state with `useSharePoint` hook
-- Use `ThemeContext` for theme management
-- `SharePointProvider` manages: user, tasks, analytics, departments, siteGroups, userGroups, loading states
-- Custom hook `useUserPermissions` handles permission loading and caching
-- Prefer local state for component-specific data
-- Context includes `loadTasks()` and `updateTaskStatus()` methods with permission enforcement
+### Permissions Model
+- **Admin**: Full access to all features, can approve/reject ideas
+- **Approver**: Can review and approve/reject ideas
+- **Contributor**: Can submit ideas and manage their own submissions
+- **Role Checking**: Use `isAdmin`, `isApprover`, `isContributor` from UserContext
+- **Conditional Rendering**: Show/hide features based on user role
 
 ### Testing
 - Write unit tests for utilities and services
 - Write integration tests for components
 - Use descriptive test names and arrange-act-assert pattern
-- Mock external dependencies (SharePoint API, etc.)
+- Mock external dependencies (SharePoint API, Toast notifications, etc.)
+- Test files in `__tests__/` directories
 
 ## Common Tasks
 
+### Adding Theme Support to a New Page
+1. Import `useTheme` hook: `import { useTheme } from '../contexts/ThemeContext';`
+2. Get theme: `const { theme } = useTheme();`
+3. Apply theme class: `className={\`\${styles.container} \${theme === 'dark' ? styles.darkTheme : styles.lightTheme}\`}`
+4. Add theme-specific CSS:
+   ```css
+   .container { /* base styles */ }
+   .darkTheme .element { /* dark theme overrides */ }
+   .lightTheme .element { /* light theme overrides */ }
+   ```
+
 ### Adding a New Chart Component
-1. Create component in `src/components/` (e.g., `NewChart.jsx`)
-2. Use Chart.js with React Chart.js 2
-3. Follow existing chart patterns (AssigneeCharts, PriorityCharts, etc.)
+1. Create component in `src/components/` (e.g., `NewChart.tsx`)
+2. Use Recharts library for consistency
+3. Follow existing chart patterns (StatusCharts, PriorityCharts, etc.)
 4. Add responsive design and accessibility features
+5. Support both light and dark themes
 
-### Drill-down patterns
-- Charts should expose an `onSegmentClick` callback and pass semantic filter info (label/value).
-- Use `TaskDrilldownModal` for task details display with expandable task rows.
-- Dashboard uses `DepartmentColumn` components with KPI strip, status donut chart, priority bar chart, and delayed tasks summary.
-- **Split Screen System**: Click KPI cards or chart elements to open full-width drill-down panel
-- When updating tasks, call `updateTaskStatus(taskId, newStatus, departmentId)` with a **departmentId**; the context enforces permissions.
-- Modal filtering supports department + status/priority/delayed task combinations.
+### Implementing Idea Workflow
+1. **Idea Submission**: Use IdeaFormPage with validation and file upload
+2. **Approval Process**: ApproverDashboard for review and decision
+3. **Status Updates**: Trigger trail events and discussion locks
+4. **Task Creation**: Create tasks for approved ideas
+5. **Discussion Threads**: Enable team collaboration with auto-locking
 
-### Implementing Split Screen Drill-downs
-1. Add click handler to chart/component that calls `openDrill(type, data, department)`
-2. Update `drillState` in Dashboard component
-3. Render `TaskDrilldownPanel` when `drillState.isOpen` is true
-4. Handle close with `closeDrill()` function
-5. Use CSS transitions for smooth open/close animations
-6. Ensure panel takes full viewport width with proper z-index
+### Working with Attachments
+1. **Validate File Size**: Check against 1MB limit (1048576 bytes)
+2. **Show Toast**: Use Toast component for validation feedback
+3. **Upload to SharePoint**: Attach files to list items
+4. **Preview Logic**:
+   - Images: Display in modal
+   - PDFs: Open in new tab with `?Web=1` parameter
+5. **Error Handling**: Graceful fallbacks for attachment failures
 
 ### Adding a New Page
-1. Create page component in `src/pages/`
-2. Add route in main App component
+1. Create page component in `src/pages/` with TypeScript
+2. Add route in App.tsx with HashRouter
 3. Update navigation in Layout components
-4. Add page-specific styling
+4. Add page-specific styling with CSS module
+5. Implement theme support (light/dark)
+6. Add loading states and error handling
 
 ### Modifying SharePoint Integration
-1. Update `SharePointService` class methods
-2. Handle different department lists appropriately with GUID-based access
-3. Update mock data if needed
-4. Test with both real and mock data
-5. API calls use OData verbose format with explicit field selection
-6. Error handling includes fallback to mock data for development
+1. Update service methods in `src/services/` (ideaApi.ts, discussionApi.ts)
+2. Handle SharePoint 2016 REST API specifics
+3. Update ProcessedIdea or Idea interfaces if needed
+4. Test with real SharePoint data
+5. Implement error handling with user-friendly messages
+6. Update DataContext if data structure changes
 
 ### API Structure
-- Base URL: `{siteUrl}/_api/web/lists(guid'{guid}')/items`
-- Query parameters: `$orderby=Created desc&$select={fieldList}`
+- Base URL: `{siteUrl}/_api/web/lists/getbytitle('{listName}')/items`
+- Query parameters: `$orderby=Created desc&$select={fieldList}&$expand=AttachmentFiles`
 - Headers: `Accept: application/json;odata=verbose`, `Content-Type: application/json;odata=verbose`
 - Authentication: `credentials: 'same-origin'`
-- No `$expand` parameters (causes 400 errors) - use `AssignedToId` array instead
+- Date handling: Convert ISO 8601 strings to Date objects
+- Attachment access: Use `serverRelativeUrl` from AttachmentFiles array
 
 ### Styling Guidelines
-- Use CSS custom properties for theme variables
-- Follow BEM-like naming in CSS modules
+- Use CSS Modules for component-scoped styling
+- Implement theme support with `.darkTheme` and `.lightTheme` classes
+- Follow consistent naming: camelCase for CSS class names
 - Ensure responsive design with mobile-first approach
 - Maintain consistent spacing and typography
-- **Split Screen Animations**: Use `cubic-bezier(0.4, 0, 0.2, 1)` for smooth transitions
-- **Dynamic Grid Layout**: Use React-based responsive design instead of CSS media queries for grid layouts
-- **Layout positioning**: 
-  - Sidebar: `position: fixed; left: 0; width: 60px; z-index: 1000`
-  - Utility bar: `position: fixed; left: 60px; right: 0; z-index: 1001`
-  - Main content: `margin-left: 60px` (desktop), `margin-left: 50px` (mobile)
-  - Split panel: `position: fixed; right: 0; width: 100vw; z-index: 1002`
-  - No gaps between sidebar and utility bar - utility bar content has `padding-left: 0`
+- **Color Palette**:
+  - Purple gradient: `linear-gradient(135deg, #667eea 0%, #764ba2 100%)`
+  - Light theme bg: `linear-gradient(135deg, #f0f4ff 0%, #e6eeff 50%, #dce6ff 100%)`
+  - Dark theme bg: `linear-gradient(135deg, #0f0f23 0%, #1a1a3e 50%, #0d1b2a 100%)`
+- **Status Colors**: Consistent across light/dark themes
+- **Transitions**: Use `transition: all 0.3s ease` for smooth interactions
 
 ## Current Implementation Status
 
-### Split Screen Functionality ✅
-- **Full-width expandable panels** for KPI and chart drill-downs
-- **Smooth animations** with CSS transitions (`cubic-bezier(0.4, 0, 0.2, 1)`)
-- **State management** centralized in `Dashboard.jsx` with `drillState` object
-- **Interactive elements**: KPI cards and chart bars trigger split panels
-- **Responsive design** with proper z-index layering
+### Core Features ✅
+- **Idea Submission**: Multi-step form with validation and file upload (1MB limit)
+- **Approval Workflow**: Approver dashboard with attachment preview
+- **My Ideas**: Split-panel view with detailed idea information
+- **Task Management**: Task creation, assignment, progress tracking
+- **Discussion System**: Auto-locking based on idea status, file attachments
+- **Idea Trail**: Event tracking for idea lifecycle
+- **Theme System**: Complete light/dark theme support across all pages
 
 ### Recent Enhancements ✅
-- **Percentage displays** in KPI section with click interactions
-- **Assignee workload charts** with clickable bars
-- **Smooth closing animations** for split panels
-- **Full-width expansion** (fixed previous 2-column constraint)
-- **Proper scroll positioning** during panel transitions
-- **Dynamic responsive grid layout** for department headers and content:
-  - Pure React implementation using screen width detection (`useState` + `useEffect`)
-  - Dynamic `gridTemplateColumns` calculation based on department count and screen size
-  - No CSS media queries - all responsive behavior handled in JavaScript
-  - Consistent behavior between headers and content in both split-screen and normal view modes
+- **Date Display Fix**: Corrected field mapping (createdDate/approvedDate vs created/modified)
+- **Category/Priority Fix**: Proper mapping from SharePoint (removed hardcoding)
+- **Attachment Preview**: Images in modal, PDFs in new tab with SharePoint auth
+- **Theme Implementation**: Light/dark theme for MainDashboard with all components
+- **Discussion Locking**: Auto-lock when idea status changes from "Pending Approval"
+- **File Validation**: 1MB size limit with Toast notifications
+- **Idea Trail Styling**: Enhanced visibility with proper colors and spacing
+- **Card Date Display**: More prominent date in MyIdeas cards with calendar icon
 
 ### Component Architecture ✅
-- **DepartmentColumnContent.jsx**: Content wrapper for split-screen layout
-- **TaskDrilldownPanel.jsx**: Split panel component for task details
-- **ChartModal.jsx**: Reusable modal component
-- **AssigneeCharts.jsx**: Horizontal bar charts with click handlers
-- **StatusCharts.jsx**: Donut charts for status distribution
-- **PriorityCharts.jsx**: Horizontal bar charts for priority breakdown
+- **MainDashboard.tsx**: Innovation Hub with theme support and KPI cards
+- **IdeaFormPage.tsx**: Idea submission with validation
+- **ApproverDashboard.tsx**: Approval workflow with attachment preview
+- **MyIdeas.tsx**: User's ideas with split-panel layout and theme support
+- **MyTasks.tsx**: Task management with progress tracking
+- **IdeaTrailModal.tsx**: Idea lifecycle visualization
+- **TopUtilityBar.tsx**: Theme toggle and user information
+- **Toast.tsx**: Notification system for user feedback
 
-### Dynamic Grid Layout System ✅
-- **Pure React Implementation**: No CSS media queries - all responsive behavior handled in JavaScript
-- **Screen Width Detection**: Uses `useState(window.innerWidth)` and `useEffect` with resize listener
-- **Dynamic Grid Calculation**: `getGridTemplateColumns(departmentCount)` function:
-  - `screenWidth <= 900`: Single column (`1fr`)
-  - `screenWidth <= 1200`: Auto-fit with min 320px (`repeat(auto-fit, minmax(320px, 1fr))`)
-  - `screenWidth > 1200`: Dynamic columns based on department count (`repeat(${count}, 1fr)`)
-- **Inline Style Application**: Applied via `style={{ gridTemplateColumns: getGridTemplateColumns(count) }}`
-- **Consistent Behavior**: Same logic applied to both department headers and content containers
-- **Permission-Based Columns**: Grid adapts automatically based on user's allowed departments (1-4 columns)
+### Data Interfaces ✅
+- **ProcessedIdea**: From ideaApi with `created`, `modified` Date fields
+- **Idea**: From DataContext with `createdDate`, `approvedDate` Date fields
+- **Status Mapping**: "Pending Approval" | "Approved" | "Rejected" | "In Progress" | "Completed"
+- **Date Conversion**: ISO 8601 → Date objects → Locale formatted strings
 
-### Known Issues & TODOs
-- Test split screen functionality across different screen sizes
-- Optimize chart rendering performance for large datasets
+### Known Features & TODOs
+- Test theme consistency across all pages (only MainDashboard and MyIdeas completed)
+- Apply shared theme to ApprovedIdeasPage, IdeaCompletionPage
+- Optimize chart rendering performance for analytics
 - Add keyboard navigation support for accessibility
-- Consider adding loading states for split panel content
+- Consider adding real-time notifications for status changes
+
+## Deployment
 
 - Use provided deployment scripts (`deploy.ps1` or `deploy.bat`)
-- Deploy to SharePoint Site Assets
-- Configure site URL and target folder as needed
+- Deploy to SharePoint Site Assets at `/innovativeIdeas/dist/`
+- Application URL: `http://hospp16srv:36156/innovativeIdeas/dist/index.html`
+- Build command: `npm run build` or `npm run build:sharepoint`
+- Deploy command: `npm run deploy`
 - See `DEPLOYMENT_README.md` for detailed instructions
 
 ## Best Practices
 
 - Always run tests before committing
-- Use ESLint for code quality
+- Use TypeScript for type safety
 - Keep components small and focused
 - Document complex business logic
-- Handle errors gracefully with user-friendly messages
+- Handle errors gracefully with user-friendly messages and Toast notifications
 - Optimize bundle size and performance
+- Maintain theme consistency (light/dark) for all new components
+- Validate file sizes before upload (1MB limit)
+- Use proper date field names (createdDate/approvedDate for Idea interface)
+- Implement proper loading states and skeleton screens
 
 ## Troubleshooting
 
+- **Date Display Issues**: Check field mapping (ProcessedIdea vs Idea interfaces)
+- **Theme Not Working**: Ensure theme class is applied to root element
+- **Attachment Preview Fails**: Verify SharePoint permissions and use `?Web=1` for PDFs
+- **Category Shows "General"**: Check DataContext mapping (use `idea.category`, not hardcoded)
 - Check browser console for SharePoint API errors
 - Verify list permissions and site URLs
+- Test with SharePoint 2016 REST API specifics
+- Use MCP server for direct list operations and debugging
 - Test with mock data when SharePoint is unavailable
 - Use Vitest UI for debugging tests
 - Check deployment logs for build issues
