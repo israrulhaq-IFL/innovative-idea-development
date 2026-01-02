@@ -88,16 +88,15 @@
   flex-shrink: 0;
   background: var(--utility-glass-bg);
   border-radius: 8px;
+  border: none !important;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: all 0.2s ease;
 }
 
 .utilityBarLogoContainer:hover {
   background: var(--utility-glass-bg);
   transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
 .topUtilityBar.scrolled .utilityBarLogoContainer {
@@ -177,6 +176,7 @@
   padding: 4px 8px;
   background: var(--utility-glass-bg);
   border-radius: 12px;
+  border: none !important;
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
 }
@@ -244,19 +244,7 @@
 .utilityIconsSeparator,
 .themeSeparator,
 .profileSeparator {
-  width: 1px;
-  height: 24px;
-  background: var(--utility-border);
-  margin: 0 8px;
-  flex-shrink: 0;
-  opacity: 0.3;
-  transition: opacity 0.2s ease;
-}
-
-.utilityBarRight:hover .utilityIconsSeparator,
-.utilityBarRight:hover .themeSeparator,
-.utilityBarRight:hover .profileSeparator {
-  opacity: 0.5;
+  display: none !important;
 }
 
 /* Utility Icons - Minimalistic Glassy */
