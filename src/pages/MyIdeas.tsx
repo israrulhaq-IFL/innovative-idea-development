@@ -244,8 +244,8 @@ const MyIdeas: React.FC = () => {
                   </div>
 
                   <div className={styles.compactCardDate}>
-                    {idea.created && !isNaN(idea.created.getTime())
-                      ? idea.created.toLocaleDateString()
+                    {idea.created && idea.created instanceof Date && !isNaN(idea.created.getTime())
+                      ? idea.created.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
                       : "Date unavailable"}
                   </div>
                 </motion.div>
@@ -320,18 +320,16 @@ const MyIdeas: React.FC = () => {
                     <div className={styles.detailItem}>
                       <span className={styles.detailLabel}>Created:</span>
                       <span className={styles.detailValue}>
-                        {selectedIdea.created &&
-                        !isNaN(selectedIdea.created.getTime())
-                          ? selectedIdea.created.toLocaleString()
+                        {selectedIdea.created && selectedIdea.created instanceof Date && !isNaN(selectedIdea.created.getTime())
+                          ? selectedIdea.created.toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
                           : "Date unavailable"}
                       </span>
                     </div>
                     <div className={styles.detailItem}>
                       <span className={styles.detailLabel}>Last Modified:</span>
                       <span className={styles.detailValue}>
-                        {selectedIdea.modified &&
-                        !isNaN(selectedIdea.modified.getTime())
-                          ? selectedIdea.modified.toLocaleString()
+                        {selectedIdea.modified && selectedIdea.modified instanceof Date && !isNaN(selectedIdea.modified.getTime())
+                          ? selectedIdea.modified.toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
                           : "Date unavailable"}
                       </span>
                     </div>
