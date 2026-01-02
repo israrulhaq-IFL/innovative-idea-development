@@ -419,6 +419,15 @@ const MainDashboard: React.FC = () => {
                   </div>
                 </div>
                 <div className={styles.activityItem}>
+                  <span className={styles.activityIcon}>✅</span>
+                  <div className={styles.activityContent}>
+                    <div className={styles.activityTitle}>Implemented</div>
+                    <div className={styles.activityMeta}>
+                      {stats.completedIdeas} ideas successfully completed
+                    </div>
+                  </div>
+                </div>
+                <div className={styles.activityItem}>
                   <span className={styles.activityIcon}>📊</span>
                   <div className={styles.activityContent}>
                     <div className={styles.activityTitle}>Total Tasks</div>
