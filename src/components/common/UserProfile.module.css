@@ -12,10 +12,10 @@
   gap: 8px;
   padding: 6px 8px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.08);
+  background: transparent !important;
   border: none !important;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   user-select: none;
@@ -44,7 +44,6 @@
 }
 
 .userProfile:hover {
-  background: rgba(255, 255, 255, 0.1);
   transform: translateY(-1px);
 }
 
@@ -60,7 +59,7 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.15);
+  background: transparent !important;
   border: none !important;
   display: flex;
   align-items: center;
