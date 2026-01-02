@@ -283,12 +283,8 @@ const ApproverDashboard: React.FC = () => {
         type: 'image'
       });
     } else if (pdfExtensions.includes(fileExtension || '')) {
-      // Preview PDF
-      setPreviewAttachment({
-        fileName: attachment.fileName,
-        url: attachment.serverRelativeUrl,
-        type: 'pdf'
-      });
+      // Open PDF in new tab (SharePoint PDFs need authentication, iframe won't work)
+      window.open(attachment.serverRelativeUrl, '_blank');
     } else {
       // Download other file types
       const link = document.createElement('a');
@@ -659,7 +655,7 @@ const ApproverDashboard: React.FC = () => {
                 padding: '20px',
                 background: '#f9fafb'
               }}>
-                {previewAttachment.type === 'image' ? (
+                {previewAttachment.type === 'image' && (
                   <img
                     src={previewAttachment.url}
                     alt={previewAttachment.fileName}
@@ -669,17 +665,7 @@ const ApproverDashboard: React.FC = () => {
                       objectFit: 'contain'
                     }}
                   />
-                ) : previewAttachment.type === 'pdf' ? (
-                  <iframe
-                    src={previewAttachment.url}
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      border: 'none'
-                    }}
-                    title={previewAttachment.fileName}
-                  />
-                ) : null}
+                )}
               </div>
             </motion.div>
           </motion.div>
