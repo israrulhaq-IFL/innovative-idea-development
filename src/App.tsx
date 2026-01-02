@@ -39,12 +39,19 @@ const RoleBasedRouter: React.FC = () => {
   const { isAdmin, isApprover, isContributor, isLoading } = useUser();
 
   useEffect(() => {
+    // Redirect to dashboard if no hash route is present
+    if (!window.location.hash || window.location.hash === "#") {
+      window.location.hash = "#/";
+    }
+  }, []);
+
+  useEffect(() => {
     // Don't redirect if still loading
     if (isLoading) {
       return;
     }
 
-    // No automatic redirection - users can access the general dashboard at "/"
+    // Users can access the general dashboard at "/"
     // Role-specific dashboards are available at /admin, /approver, /contributor
     logInfo("User can access general dashboard at root path");
   }, [isLoading]);
