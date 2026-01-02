@@ -153,20 +153,6 @@ export const TopControlPanel: React.FC<TopControlPanelProps> = ({
     );
 
     // Role-specific actions
-    if (isApprover || isAdmin) {
-      controls.push(
-        <button
-          key="view-all"
-          onClick={onViewAll}
-          className={`${styles.actionButton} ${styles.secondary}`}
-          title="View all ideas"
-        >
-          <FileText size={16} />
-          <span>View All</span>
-        </button>,
-      );
-    }
-
     if (isAdmin) {
       controls.push(
         <button
@@ -193,32 +179,7 @@ export const TopControlPanel: React.FC<TopControlPanelProps> = ({
           <span>Idea Completion</span>
         </button>,
       );
-      
-      controls.push(
-        <button
-          key="export"
-          onClick={onExport}
-          className={`${styles.actionButton} ${styles.secondary}`}
-          title="Export reports"
-        >
-          <BarChart3 size={16} />
-          <span>Export</span>
-        </button>,
-      );
     }
-
-    // Filter for all users
-    controls.push(
-      <button
-        key="filter"
-        onClick={onFilter}
-        className={`${styles.actionButton} ${styles.secondary}`}
-        title="Filter ideas"
-      >
-        <Filter size={16} />
-        <span>Filter</span>
-      </button>,
-    );
 
     return controls;
   };
