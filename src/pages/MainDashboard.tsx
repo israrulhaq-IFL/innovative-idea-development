@@ -29,7 +29,7 @@ const MainDashboard: React.FC = () => {
   const stats = useMemo(() => {
     const totalIdeas = allIdeas.length;
     const pendingIdeas = allIdeas.filter(
-      (idea) => idea.status === 'Pending',
+      (idea) => idea.status === 'Pending Approval',
     ).length;
     const approvedIdeas = allIdeas.filter(
       (idea) => idea.status === 'Approved',
@@ -68,7 +68,7 @@ const MainDashboard: React.FC = () => {
 
   // Get ideas by status for the grid
   const pendingIdeasList = useMemo(() =>
-    allIdeas.filter(idea => idea.status === 'Pending').slice(0, 3),
+    allIdeas.filter(idea => idea.status === 'Pending Approval').slice(0, 3),
     [allIdeas]);
 
   const approvedIdeasList = useMemo(() =>
