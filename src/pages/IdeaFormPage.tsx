@@ -345,7 +345,7 @@ const IdeaFormPage: React.FC = () => {
             >
               <Lightbulb className="w-10 h-10 text-white" />
             </motion.div>
-            <h1 className={styles.heroTitle}>Share Your Innovation</h1>
+            <h1 className={styles.heroTitle}>Share Your Innovative Idea</h1>
             <p className={styles.heroSubtitle}>
               Transform your ideas into reality. Every great innovation starts
               with a single spark of creativity.
@@ -476,7 +476,7 @@ const IdeaFormPage: React.FC = () => {
               className={styles.formSection}
             >
               <label htmlFor="description" className={styles.formLabel}>
-                Detailed Description <span className={styles.required}>*</span>
+                Brief Description <span className={styles.required}>*</span>
               </label>
               <div className={styles.inputGroup}>
                 <textarea
@@ -633,7 +633,7 @@ const IdeaFormPage: React.FC = () => {
                 ) : (
                   <>
                     <Send size={24} />
-                    <span>Launch My Idea</span>
+                    <span>Share My Idea</span>
                   </>
                 )}
               </button>
