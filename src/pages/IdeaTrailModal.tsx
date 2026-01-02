@@ -18,36 +18,13 @@ import {
   Position,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { useIdeaData, IdeaTrailEvent } from "../contexts/DataContext";
+import { useIdeaData, IdeaTrailEvent, Idea } from "../contexts/DataContext";
 import styles from "./IdeaTrailModal.module.css";
 
 interface IdeaTrailModalProps {
   isOpen: boolean;
   onClose: () => void;
-  idea?: {
-    id: number;
-    title: string;
-    description: string;
-    status: string;
-    created: Date;
-    modified: Date;
-    createdBy: {
-      id: number;
-      name: string;
-      email?: string;
-    };
-    approvedBy?: {
-      id: number;
-      name: string;
-      email?: string;
-    };
-    category: string;
-    priority: string;
-    attachments?: Array<{
-      fileName: string;
-      serverRelativeUrl: string;
-    }>;
-  } | null;
+  idea?: Idea | null;
 }
 
 interface TrailCheckpoint {

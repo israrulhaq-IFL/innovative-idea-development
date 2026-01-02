@@ -32,12 +32,13 @@ interface Idea {
 }
 
 const ApproverDashboard: React.FC = () => {
-  const { data, loading, updateIdeaStatus } = useIdeaData();
+  const { data, loading, loadIdeas, updateIdeaStatus } = useIdeaData();
   const { user } = useUser();
   const { addToast } = useToast();
   const [selectedIdea, setSelectedIdea] = useState<Idea | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const [animatingCard, setAnimatingCard] = useState<string | null>(null);
+  const [isReloading, setIsReloading] = useState(false);
   const [isProcessingAction, setIsProcessingAction] = useState(false);
   const [pendingIdeas, setPendingIdeas] = useState<Idea[]>([]);
   const [previewAttachment, setPreviewAttachment] = useState<{
@@ -267,6 +268,31 @@ const ApproverDashboard: React.FC = () => {
     handleClose();
   };
 
+  const handleReload = async () => {
+    if (isReloading) return;
+    
+    setIsReloading(true);
+    try {
+      await loadIdeas();
+      addToast({
+        type: 'success',
+        title: 'Refreshed',
+        message: 'Approval cards reloaded successfully',
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error('Error reloading ideas:', error);
+      addToast({
+        type: 'error',
+        title: 'Reload Failed',
+        message: 'Failed to reload approval cards. Please try again.',
+        duration: 4000,
+      });
+    } finally {
+      setIsReloading(false);
+    }
+  };
+
   const handleAttachmentClick = (attachment: any) => {
     const fileName = attachment.fileName.toLowerCase();
     const fileExtension = fileName.split('.').pop();
@@ -308,6 +334,22 @@ const ApproverDashboard: React.FC = () => {
         <p className={styles.subtitle}>
           Review and approve innovative ideas from your team
         </p>
+        <button
+          className={styles.reloadButton}
+          onClick={handleReload}
+          disabled={isReloading || loading.ideas}
+          title="Reload approval cards"
+        >
+          <motion.div
+            animate={{ rotate: isReloading ? 360 : 0 }}
+            transition={{ duration: 1, repeat: isReloading ? Infinity : 0, ease: "linear" }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2" />
+            </svg>
+          </motion.div>
+          <span>{isReloading ? 'Reloading...' : 'Reload'}</span>
+        </button>
       </div>
 
       {/* Undo Status Indicator - Positioned as overlay */}
@@ -384,6 +426,7 @@ const ApproverDashboard: React.FC = () => {
                   style={{
                     zIndex: pendingIdeas.length - index,
                   }}
+                  initial={{ opacity: 0, y: 50, scale: 0.9 }}
                   animate={
                     animatingCard === idea.id && lastAction?.ideaId === idea.id
                       ? lastAction.action === 'approve'
@@ -392,12 +435,14 @@ const ApproverDashboard: React.FC = () => {
                       : {
                           opacity: 1,
                           x: 0,
+                          y: 0,
                           rotate: 0,
                           scale: 1,
                         }
                   }
                   transition={{
-                    duration: animatingCard === idea.id ? 0.8 : 0.3,
+                    duration: animatingCard === idea.id ? 0.8 : 0.4,
+                    delay: animatingCard === idea.id ? 0 : index * 0.1,
                   }}
                   layout={false}
                 >

@@ -25,7 +25,7 @@ export interface Idea {
   id: number;
   title: string;
   description: string;
-  status: "Pending" | "Approved" | "Rejected" | "In Progress" | "Completed";
+  status: "Pending Approval" | "Approved" | "Rejected" | "In Progress" | "Completed";
   createdBy: string;
   createdDate: Date;
   approvedBy?: string;
@@ -351,8 +351,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
         createdDate: idea.created,
         approvedBy: idea.approvedBy?.name,
         approvedDate: idea.modified,
-        category: "General", // Default category
-        priority: "Medium", // Default priority
+        category: idea.category,
+        priority: idea.priority,
         attachments: idea.attachments || [],
       }));
 

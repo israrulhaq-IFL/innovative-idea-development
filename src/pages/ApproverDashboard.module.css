@@ -46,6 +46,44 @@
   margin: 0 auto;
 }
 
+/* Reload Button */
+.reloadButton {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  padding: 0.75rem 1.25rem;
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  z-index: 10;
+}
+
+.reloadButton:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.reloadButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.reloadButton svg {
+  width: 20px;
+  height: 20px;
+}
+
 /* Undo Status Indicator */
 .undoIndicator {
   position: absolute;

@@ -2,19 +2,9 @@
 
 .dashboard {
     min-height: 100vh;
+    background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 50%, #0d1b2a 100%);
     padding: 2rem;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-/* ===== DARK THEME ===== */
-.darkTheme {
-    background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 50%, #0d1b2a 100%);
-}
-
-/* ===== LIGHT THEME ===== */
-.lightTheme {
-    background: linear-gradient(135deg, #f0f4ff 0%, #e6eeff 50%, #dce6ff 100%);
 }
 
 /* Header Section */
@@ -46,10 +36,6 @@
     font-weight: 400;
 }
 
-.lightTheme .subtitle {
-    color: rgba(31, 41, 55, 0.7);
-}
-
 .userGreeting {
     display: inline-flex;
     align-items: center;
@@ -61,12 +47,6 @@
     border: 1px solid rgba(255, 255, 255, 0.1);
     color: rgba(255, 255, 255, 0.8);
     font-size: 0.9rem;
-}
-
-.lightTheme .userGreeting {
-    background: rgba(102, 126, 234, 0.1);
-    border: 1px solid rgba(102, 126, 234, 0.2);
-    color: rgba(31, 41, 55, 0.9);
 }
 
 /* KPI Cards Grid */
@@ -106,12 +86,6 @@
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.lightTheme .kpiCard {
-    background: rgba(255, 255, 255, 0.95);
-    border: 1px solid rgba(102, 126, 234, 0.15);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
 .kpiCard::before {
     content: '';
     position: absolute;
@@ -127,12 +101,6 @@
     background: rgba(255, 255, 255, 0.06);
     border-color: rgba(255, 255, 255, 0.15);
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-}
-
-.lightTheme .kpiCard:hover {
-    background: white;
-    border-color: rgba(102, 126, 234, 0.3);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
 .kpiCardTotal::before {
@@ -168,18 +136,10 @@
     letter-spacing: -0.02em;
 }
 
-.lightTheme .kpiValue {
-    color: #1f2937;
-}
-
 .kpiLabel {
     color: rgba(255, 255, 255, 0.6);
     font-size: 0.9rem;
     font-weight: 500;
-}
-
-.lightTheme .kpiLabel {
-    color: rgba(31, 41, 55, 0.7);
 }
 
 .kpiTrend {
@@ -217,22 +177,12 @@
     overflow: hidden;
 }
 
-.lightTheme .card {
-    background: rgba(255, 255, 255, 0.95);
-    border: 1px solid rgba(102, 126, 234, 0.15);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
 .cardHeader {
     padding: 1.25rem 1.5rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     display: flex;
     justify-content: space-between;
     align-items: center;
-}
-
-.lightTheme .cardHeader {
-    border-bottom: 1px solid rgba(102, 126, 234, 0.1);
 }
 
 .cardTitle {
@@ -243,10 +193,6 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-}
-
-.lightTheme .cardTitle {
-    color: #1f2937;
 }
 
 .cardTitleIcon {
@@ -269,20 +215,9 @@
     transition: all 0.2s ease;
 }
 
-.lightTheme .viewAllBtn {
-    background: rgba(102, 126, 234, 0.1);
-    border: 1px solid rgba(102, 126, 234, 0.2);
-    color: #667eea;
-}
-
 .viewAllBtn:hover {
     background: rgba(102, 126, 234, 0.3);
     color: white;
-}
-
-.lightTheme .viewAllBtn:hover {
-    background: rgba(102, 126, 234, 0.2);
-    color: #5568d3;
 }
 
 /* Ideas List */
@@ -301,21 +236,10 @@
     transition: all 0.2s ease;
 }
 
-.lightTheme .ideaCard {
-    background: rgba(255, 255, 255, 0.9);
-    border: 1px solid rgba(102, 126, 234, 0.12);
-}
-
 .ideaCard:hover {
     background: rgba(255, 255, 255, 0.05);
     border-color: rgba(255, 255, 255, 0.12);
     transform: translateX(4px);
-}
-
-.lightTheme .ideaCard:hover {
-    background: white;
-    border-color: rgba(102, 126, 234, 0.25);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .ideaCardHeader {
@@ -333,10 +257,6 @@
     margin: 0;
     flex: 1;
     line-height: 1.4;
-}
-
-.lightTheme .ideaTitle {
-    color: #1f2937;
 }
 
 .ideaStatus {
@@ -391,20 +311,12 @@
     overflow: hidden;
 }
 
-.lightTheme .ideaDescription {
-    color: rgba(31, 41, 55, 0.7);
-}
-
 .ideaMeta {
     display: flex;
     flex-wrap: wrap;
     gap: 1rem;
     font-size: 0.8rem;
     color: rgba(255, 255, 255, 0.4);
-}
-
-.lightTheme .ideaMeta {
-    color: rgba(31, 41, 55, 0.6);
 }
 
 .ideaMetaItem {
@@ -417,10 +329,6 @@
     text-align: center;
     padding: 3rem 1rem;
     color: rgba(255, 255, 255, 0.4);
-}
-
-.lightTheme .emptyState {
-    color: rgba(31, 41, 55, 0.5);
 }
 
 .emptyIcon {
@@ -455,21 +363,10 @@
     width: 100%;
 }
 
-.lightTheme .actionBtn {
-    background: rgba(255, 255, 255, 0.9);
-    border: 1px solid rgba(102, 126, 234, 0.12);
-}
-
 .actionBtn:hover {
     background: rgba(255, 255, 255, 0.05);
     border-color: rgba(255, 255, 255, 0.12);
     transform: translateX(4px);
-}
-
-.lightTheme .actionBtn:hover {
-    background: white;
-    border-color: rgba(102, 126, 234, 0.25);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .actionIcon {
@@ -488,18 +385,10 @@
     margin: 0 0 0.25rem 0;
 }
 
-.lightTheme .actionTitle {
-    color: #1f2937;
-}
-
 .actionDescription {
     font-size: 0.8rem;
     color: rgba(255, 255, 255, 0.5);
     margin: 0;
-}
-
-.lightTheme .actionDescription {
-    color: rgba(31, 41, 55, 0.7);
 }
 
 .actionArrow {
@@ -508,17 +397,9 @@
     transition: transform 0.2s ease;
 }
 
-.lightTheme .actionArrow {
-    color: rgba(31, 41, 55, 0.4);
-}
-
 .actionBtn:hover .actionArrow {
     transform: translateX(4px);
     color: rgba(255, 255, 255, 0.6);
-}
-
-.lightTheme .actionBtn:hover .actionArrow {
-    color: rgba(31, 41, 55, 0.7);
 }
 
 /* Status Distribution */
@@ -538,19 +419,9 @@
     text-align: center;
 }
 
-.lightTheme .statusCard {
-    background: rgba(255, 255, 255, 0.9);
-    border: 1px solid rgba(102, 126, 234, 0.12);
-}
-
 .statusCard:hover {
     background: rgba(255, 255, 255, 0.05);
     transform: scale(1.02);
-}
-
-.lightTheme .statusCard:hover {
-    background: white;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .statusCardIcon {
@@ -565,19 +436,11 @@
     margin-bottom: 0.25rem;
 }
 
-.lightTheme .statusCardValue {
-    color: #1f2937;
-}
-
 .statusCardLabel {
     font-size: 0.8rem;
     color: rgba(255, 255, 255, 0.5);
     text-transform: uppercase;
     letter-spacing: 0.5px;
-}
-
-.lightTheme .statusCardLabel {
-    color: rgba(31, 41, 55, 0.7);
 }
 
 /* Activity Summary */
@@ -596,11 +459,6 @@
     border-radius: 8px;
 }
 
-.lightTheme .activityItem {
-    background: rgba(255, 255, 255, 0.8);
-    border: 1px solid rgba(102, 126, 234, 0.1);
-}
-
 .activityIcon {
     font-size: 1.5rem;
 }
@@ -616,18 +474,10 @@
     margin: 0 0 0.25rem 0;
 }
 
-.lightTheme .activityTitle {
-    color: #1f2937;
-}
-
 .activityMeta {
     font-size: 0.8rem;
     color: rgba(255, 255, 255, 0.5);
     margin: 0;
-}
-
-.lightTheme .activityMeta {
-    color: rgba(31, 41, 55, 0.7);
 }
 
 /* Progress Ring */
@@ -658,10 +508,6 @@
     stroke: rgba(255, 255, 255, 0.1);
 }
 
-.lightTheme .progressBg {
-    stroke: rgba(102, 126, 234, 0.15);
-}
-
 .progressFill {
     stroke: url(#progressGradient);
     transition: stroke-dashoffset 1s ease;
@@ -681,18 +527,10 @@
     color: white;
 }
 
-.lightTheme .progressValue {
-    color: #1f2937;
-}
-
 .progressLabel {
     font-size: 0.75rem;
     color: rgba(255, 255, 255, 0.5);
     text-transform: uppercase;
-}
-
-.lightTheme .progressLabel {
-    color: rgba(31, 41, 55, 0.7);
 }
 
 /* Tasks Section */
@@ -717,18 +555,8 @@
     transition: all 0.2s ease;
 }
 
-.lightTheme .taskCard {
-    background: rgba(255, 255, 255, 0.9);
-    border: 1px solid rgba(102, 126, 234, 0.12);
-}
-
 .taskCard:hover {
     background: rgba(255, 255, 255, 0.05);
-}
-
-.lightTheme .taskCard:hover {
-    background: white;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .taskHeader {
@@ -744,10 +572,6 @@
     color: white;
     margin: 0;
     flex: 1;
-}
-
-.lightTheme .taskTitle {
-    color: #1f2937;
 }
 
 .taskPriority {
@@ -778,10 +602,6 @@
     color: rgba(255, 255, 255, 0.4);
 }
 
-.lightTheme .taskMeta {
-    color: rgba(31, 41, 55, 0.6);
-}
-
 .taskProgress {
     margin-top: 0.75rem;
 }
@@ -791,10 +611,6 @@
     background: rgba(255, 255, 255, 0.1);
     border-radius: 2px;
     overflow: hidden;
-}
-
-.lightTheme .taskProgressBar {
-    background: rgba(102, 126, 234, 0.15);
 }
 
 .taskProgressFill {

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useIdeaData, Idea } from '../contexts/DataContext';
 import { useUser } from '../contexts/UserContext';
+import { useTheme } from '../contexts/ThemeContext';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import styles from './MainDashboard.module.css';
 
@@ -9,6 +10,7 @@ const MainDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { data, loading, error, loadIdeas, loadTasks, loadIdeaTrailEvents } = useIdeaData();
   const { user, isAdmin, isApprover } = useUser();
+  const { theme } = useTheme();
   const dataLoadedRef = useRef(false);
 
   useEffect(() => {
@@ -147,7 +149,7 @@ const MainDashboard: React.FC = () => {
 
   if (loading.ideas) {
     return (
-      <div className={styles.dashboard}>
+      <div className={`${styles.dashboard} ${theme === 'dark' ? styles.darkTheme : styles.lightTheme}`}>
         <div className={styles.header}>
           <div className={styles.headerContent}>
             <h1 className={styles.title}>Loading Dashboard...</h1>
@@ -161,7 +163,7 @@ const MainDashboard: React.FC = () => {
   }
 
   return (
-    <div className={styles.dashboard}>
+    <div className={`${styles.dashboard} ${theme === 'dark' ? styles.darkTheme : styles.lightTheme}`}>
       {/* Header */}
       <header className={styles.header}>
         <div className={styles.headerContent}>

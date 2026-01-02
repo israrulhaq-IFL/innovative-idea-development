@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { useIdeaData , ProcessedIdea } from "../contexts/DataContext";
+import { useIdeaData , Idea } from "../contexts/DataContext";
 import { useUser } from "../contexts/UserContext";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import StatusBar from "../components/common/StatusBar";
@@ -14,7 +14,7 @@ const MyIdeas: React.FC = () => {
   const { data, loading, error, loadIdeas, loadIdeaTrailEvents } =
     useIdeaData();
   const { user, isAdmin, isApprover, isContributor } = useUser();
-  const [selectedIdea, setSelectedIdea] = useState<ProcessedIdea | null>(null);
+  const [selectedIdea, setSelectedIdea] = useState<Idea | null>(null);
   const [isTrailModalOpen, setIsTrailModalOpen] = useState(false);
 
   useEffect(() => {
@@ -61,7 +61,7 @@ const MyIdeas: React.FC = () => {
     };
   }, [myIdeas]);
 
-  const handleIdeaClick = (idea: ProcessedIdea) => {
+  const handleIdeaClick = (idea: Idea) => {
     navigate(`/idea/${idea.id}`);
   };
 
@@ -244,8 +244,8 @@ const MyIdeas: React.FC = () => {
                   </div>
 
                   <div className={styles.compactCardDate}>
-                    {idea.created && idea.created instanceof Date && !isNaN(idea.created.getTime())
-                      ? idea.created.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+                    {idea.createdDate && idea.createdDate instanceof Date && !isNaN(idea.createdDate.getTime())
+                      ? idea.createdDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
                       : "Date unavailable"}
                   </div>
                 </motion.div>
@@ -320,16 +320,16 @@ const MyIdeas: React.FC = () => {
                     <div className={styles.detailItem}>
                       <span className={styles.detailLabel}>Created:</span>
                       <span className={styles.detailValue}>
-                        {selectedIdea.created && selectedIdea.created instanceof Date && !isNaN(selectedIdea.created.getTime())
-                          ? selectedIdea.created.toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+                        {selectedIdea.createdDate && selectedIdea.createdDate instanceof Date && !isNaN(selectedIdea.createdDate.getTime())
+                          ? selectedIdea.createdDate.toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
                           : "Date unavailable"}
                       </span>
                     </div>
                     <div className={styles.detailItem}>
                       <span className={styles.detailLabel}>Last Modified:</span>
                       <span className={styles.detailValue}>
-                        {selectedIdea.modified && selectedIdea.modified instanceof Date && !isNaN(selectedIdea.modified.getTime())
-                          ? selectedIdea.modified.toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+                        {selectedIdea.approvedDate && selectedIdea.approvedDate instanceof Date && !isNaN(selectedIdea.approvedDate.getTime())
+                          ? selectedIdea.approvedDate.toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
                           : "Date unavailable"}
                       </span>
                     </div>
@@ -383,9 +383,9 @@ const MyIdeas: React.FC = () => {
                           Idea was submitted for review
                         </p>
                         <span className={styles.trailDate}>
-                          {selectedIdea.created &&
-                          !isNaN(selectedIdea.created.getTime())
-                            ? selectedIdea.created.toLocaleString()
+                          {selectedIdea.createdDate &&
+                          !isNaN(selectedIdea.createdDate.getTime())
+                            ? selectedIdea.createdDate.toLocaleString()
                             : "Date unavailable"}
                         </span>
                       </div>
@@ -410,9 +410,9 @@ const MyIdeas: React.FC = () => {
                             Idea status changed to "{selectedIdea.status}"
                           </p>
                           <span className={styles.trailDate}>
-                            {selectedIdea.modified &&
-                            !isNaN(selectedIdea.modified.getTime())
-                              ? selectedIdea.modified.toLocaleString()
+                            {selectedIdea.approvedDate &&
+                            !isNaN(selectedIdea.approvedDate.getTime())
+                              ? selectedIdea.approvedDate.toLocaleString()
                               : "Date unavailable"}
                           </span>
                         </div>
