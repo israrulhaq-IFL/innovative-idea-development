@@ -283,8 +283,9 @@ const ApproverDashboard: React.FC = () => {
         type: 'image'
       });
     } else if (pdfExtensions.includes(fileExtension || '')) {
-      // Open PDF in new tab (SharePoint PDFs need authentication, iframe won't work)
-      window.open(attachment.serverRelativeUrl, '_blank');
+      // For PDFs, try opening with SharePoint's _layouts/download.aspx for better compatibility
+      const downloadUrl = `${attachment.serverRelativeUrl}?Web=1`;
+      window.open(downloadUrl, '_blank');
     } else {
       // Download other file types
       const link = document.createElement('a');
