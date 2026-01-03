@@ -861,9 +861,10 @@ const ApproverDashboard: React.FC = () => {
                                             })}
                                           </div>
                                         </div>
-                                        <div className={styles.messageBody}>
-                                          {msg.body}
-                                        </div>
+                                        <div 
+                                          className={styles.messageBody}
+                                          dangerouslySetInnerHTML={{ __html: msg.body }}
+                                        />
                                       </div>
                                     ))}
                                   </div>
