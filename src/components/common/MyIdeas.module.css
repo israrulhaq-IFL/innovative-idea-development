@@ -500,9 +500,11 @@
 }
 
 .emptyMessage {
-  color: var(--text-secondary, #6b7280);
+  color: var(--text-primary, #374151);
   margin-bottom: 2rem;
   max-width: 300px;
+  font-size: 0.95rem;
+  line-height: 1.5;
 }
 
 .noSelection {
@@ -528,8 +530,10 @@
 }
 
 .noSelectionMessage {
-  color: var(--text-secondary, #6b7280);
+  color: var(--text-primary, #374151);
   max-width: 300px;
+  font-size: 0.95rem;
+  line-height: 1.5;
 }
 
 /* Dark mode support */
