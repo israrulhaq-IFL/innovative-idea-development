@@ -424,7 +424,7 @@ const MyIdeas: React.FC = () => {
                         </div>
                       </div>
                       <button
-                        onClick={() => navigate('/discussions')}
+                        onClick={() => navigate(`/discussions?ideaId=${selectedIdea.id}`)}
                         style={{
                           padding: '0.75rem 1.5rem',
                           background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',

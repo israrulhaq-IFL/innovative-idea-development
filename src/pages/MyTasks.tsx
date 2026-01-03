@@ -576,7 +576,7 @@ const MyTasks: React.FC = () => {
                     <>
                       <div className={styles.discussionHeader}>
                         <button
-                          onClick={() => navigate('/discussions')}
+                          onClick={() => navigate(`/discussions?taskId=${selectedTask.id}`)}
                           className={styles.discussionToggleButton}
                         >
                           <div className={styles.discussionIconWrapper}>

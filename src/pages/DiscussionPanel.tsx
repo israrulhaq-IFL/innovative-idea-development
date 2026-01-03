@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useIdeaData } from '../contexts/DataContext';
 import { useUser } from '../contexts/UserContext';
 import { useToast } from '../components/common/Toast';
@@ -10,6 +10,7 @@ import styles from './DiscussionPanel.module.css';
 
 const DiscussionPanel: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { data, loading: dataLoading } = useIdeaData();
   const { user } = useUser();
   const { addToast } = useToast();
@@ -48,6 +49,39 @@ const DiscussionPanel: React.FC = () => {
   useEffect(() => {
     loadDiscussions();
   }, [user?.user?.Id]);
+
+  // Auto-select discussion based on URL parameters (taskId or ideaId)
+  useEffect(() => {
+    if (discussions.length === 0) return;
+
+    const taskIdParam = searchParams.get('taskId');
+    const ideaIdParam = searchParams.get('ideaId');
+
+    if (taskIdParam) {
+      const taskId = parseInt(taskIdParam);
+      const discussion = discussions.find(d => d.taskId === taskId);
+      if (discussion && discussion.id !== selectedDiscussion?.id) {
+        setSelectedDiscussion(discussion);
+        setTaskFolderExpanded(true);
+        // Clear URL params after selection
+        setSearchParams({});
+      }
+    } else if (ideaIdParam) {
+      const ideaId = parseInt(ideaIdParam);
+      const discussion = discussions.find(d => d.ideaId === ideaId && d.taskId === 0);
+      if (discussion && discussion.id !== selectedDiscussion?.id) {
+        setSelectedDiscussion(discussion);
+        // Expand the appropriate folder based on user role
+        if (discussion.userRole === 'approver') {
+          setApproverDiscussionsFolderExpanded(true);
+        } else {
+          setIdeaAuthorFolderExpanded(true);
+        }
+        // Clear URL params after selection
+        setSearchParams({});
+      }
+    }
+  }, [discussions, searchParams, selectedDiscussion?.id]);
 
   // Smooth background refresh - only update selected discussion without reloading the whole board
   useEffect(() => {
