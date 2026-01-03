@@ -151,15 +151,26 @@ class DiscussionApi {
    */
   async getMyIdeaDiscussions(userId: number): Promise<Discussion[]> {
     try {
-      // Get ideas where user is the owner or where they are HOD (approver)
-      const ideasEndpoint = `/_api/web/lists/getbytitle('${LISTS.ideas}')/items?$select=ID,Title,Status,OwnerUserId,Department&$top=500`;
+      // First, get all discussions that are idea-based (have IdeaIdId but no TaskIdId or TaskIdId=0)
+      const discussionsEndpoint = `/_api/web/lists/getbytitle('${this.listName}')/items?$select=IdeaIdId&$filter=IdeaIdId ne null&$top=500`;
+      const discussionsResponse = await sharePointApi.get<any>(discussionsEndpoint);
+      const discussionItems = discussionsResponse.d.results;
+      
+      // Get unique idea IDs that have discussions
+      const ideaIdsWithDiscussions = [...new Set(discussionItems.map((d: any) => d.IdeaIdId))];
+      
+      if (ideaIdsWithDiscussions.length === 0) {
+        return [];
+      }
+
+      // Get idea details for those IDs
+      const ideasEndpoint = `/_api/web/lists/getbytitle('${LISTS.ideas}')/items?$select=ID,Title,Status,AuthorId,Department&$top=500`;
       const ideasResponse = await sharePointApi.get<any>(ideasEndpoint);
       const allIdeas = ideasResponse.d.results;
       
-      // Filter ideas where user is owner or is HOD of the department
+      // Filter ideas that have discussions and where user is the author
       const myIdeas = allIdeas.filter((idea: any) => {
-        return idea.OwnerUserId === userId; // User owns the idea
-        // Note: We can't easily check if user is HOD here, so we'll include all ideas with discussions
+        return ideaIdsWithDiscussions.includes(idea.ID) && idea.AuthorId === userId;
       });
 
       const discussions: Discussion[] = [];
