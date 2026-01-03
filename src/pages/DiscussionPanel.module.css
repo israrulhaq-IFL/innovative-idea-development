@@ -140,6 +140,39 @@
   padding: 1rem;
 }
 
+/* Discussion Folders */
+.discussionFolder {
+  margin-bottom: 1.5rem;
+}
+
+.folderHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  margin-bottom: 0.75rem;
+}
+
+.folderHeader:hover {
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.folderHeader svg {
+  flex-shrink: 0;
+}
+
+.folderContent {
+  padding-left: 0.5rem;
+}
+
 /* Discussion Card */
 .discussionCard {
   padding: 1.25rem;
