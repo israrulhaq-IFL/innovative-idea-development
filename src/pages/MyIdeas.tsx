@@ -293,6 +293,7 @@ const MyIdeas: React.FC = () => {
               <div className={styles.detailHeader}>
                 <div className={styles.detailTitleSection}>
                   <h2 className={styles.detailTitle}>{selectedIdea.title}</h2>
+                  {/* HIDDEN: Status and Priority Badges - Uncomment to enable
                   <div className={styles.detailStatusBadges}>
                     <span
                       className={`${styles.status} ${
@@ -323,6 +324,7 @@ const MyIdeas: React.FC = () => {
                       {selectedIdea.priority}
                     </span>
                   </div>
+                  */}
                 </div>
               </div>
 
