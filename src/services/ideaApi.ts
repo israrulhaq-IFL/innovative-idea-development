@@ -18,7 +18,7 @@ const LISTS = DEFAULT_CONFIG.lists;
 
 // Field mappings for SharePoint 2016 compatibility
 const IDEA_SELECT =
-  "ID,Title,Description,Status,Category,Priority,Created,Modified,Author/Id,Author/Title,ApprovedBy/Id,ApprovedBy/Title,Attachments,AttachmentFiles";
+  "ID,Title,Description,Status,Category,Priority,ApproverRating,Created,Modified,Author/Id,Author/Title,ApprovedBy/Id,ApprovedBy/Title,Attachments,AttachmentFiles";
 const TASK_SELECT =
   "ID,Title,Body,Status,Priority,PercentComplete,DueDate,StartDate,AssignedTo/Id,AssignedTo/Title,AssignedTo/EMail,IdeaId/Id,IdeaId/Title";
 const DISCUSSION_SELECT =
@@ -685,6 +685,7 @@ export class IdeaApiService {
             email: raw.ApprovedBy.EMail,
           }
         : undefined,
+      approverRating: raw.ApproverRating || undefined,
       attachments:
         raw.AttachmentFiles?.results?.map((file: any) => ({
           fileName: file.FileName,
@@ -851,6 +852,58 @@ export class IdeaApiService {
       comments: raw.Comments,
       metadata,
     };
+  }
+
+  // Rate an idea (1-5 stars) - only approvers can rate
+  async rateIdea(ideaId: number, rating: number): Promise<void> {
+    try {
+      // Validate rating (1-5 stars)
+      if (rating < 1 || rating > 5) {
+        throw new Error('Rating must be between 1 and 5 stars');
+      }
+
+      const endpoint = `/_api/web/lists/getbytitle('${LISTS.ideas}')/items(${ideaId})`;
+
+      const updateData = {
+        __metadata: { type: "SP.Data.Innovative_x005f_ideasListItem" },
+        ApproverRating: rating,
+      };
+
+      await sharePointApi.put(endpoint, updateData);
+
+      logInfo(`Idea ${ideaId} rated with ${rating} stars`);
+    } catch (error) {
+      logError(`Failed to rate idea ${ideaId}`, error);
+      throw error;
+    }
+  }
+
+  // Get idea rating
+  async getIdeaRating(ideaId: number): Promise<number | null> {
+    try {
+      const endpoint = `/_api/web/lists/getbytitle('${LISTS.ideas}')/items(${ideaId})?$select=ApproverRating`;
+
+      const response = await sharePointApi.get<any>(endpoint);
+
+      return response.d.ApproverRating || null;
+    } catch (error) {
+      logError(`Failed to get rating for idea ${ideaId}`, error);
+      throw error;
+    }
+  }
+
+  // Get top rated ideas
+  async getTopRatedIdeas(limit: number = 10): Promise<ProcessedIdea[]> {
+    try {
+      const endpoint = `/_api/web/lists/getbytitle('${LISTS.ideas}')/items?$select=${IDEA_SELECT}&$expand=Author,ApprovedBy,AttachmentFiles&$filter=ApproverRating ne null&$orderby=ApproverRating desc,Created desc&$top=${limit}`;
+
+      const response = await sharePointApi.get<any>(endpoint);
+
+      return response.d.results.map(this.processIdea);
+    } catch (error) {
+      logError("Failed to fetch top rated ideas", error);
+      throw error;
+    }
   }
 }
 

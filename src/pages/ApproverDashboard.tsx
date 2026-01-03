@@ -15,11 +15,13 @@ import {
   Send,
   Lock,
   Unlock,
+  Star,
 } from 'lucide-react';
 import { useIdeaData } from "../contexts/DataContext";
 import { useUser } from "../contexts/UserContext";
 import { useToast } from "../components/common/Toast";
 import { discussionApi, DiscussionMessage } from "../services/discussionApi";
+import { ideaApi } from "../services/ideaApi";
 import styles from "./ApproverDashboard.module.css";
 
 interface Idea {
@@ -32,6 +34,7 @@ interface Idea {
   createdBy: string;
   created: string;
   modified: string;
+  approverRating?: number;
   attachments?: Array<{
     fileName: string;
     serverRelativeUrl: string;
@@ -57,6 +60,10 @@ const ApproverDashboard: React.FC = () => {
   const [discussionExists, setDiscussionExists] = useState(false);
   const [loadingDiscussions, setLoadingDiscussions] = useState(false);
   const [sendingMessage, setSendingMessage] = useState(false);
+  const [currentRating, setCurrentRating] = useState<number>(0);
+  const [hoverRating, setHoverRating] = useState<number>(0);
+  const [isSubmittingRating, setIsSubmittingRating] = useState(false);
+  const [topRatedIdea, setTopRatedIdea] = useState<{title: string; rating: number} | null>(null);
   const [previewAttachment, setPreviewAttachment] = useState<{
     fileName: string;
     url: string;
@@ -138,6 +145,33 @@ const ApproverDashboard: React.FC = () => {
     }
   }, [selectedIdea?.id, isExpanded]);
 
+  // Load rating when idea is selected
+  React.useEffect(() => {
+    const currentIdea = viewMode === 'list' ? selectedListIdea : selectedIdea;
+    if (currentIdea) {
+      setCurrentRating(currentIdea.approverRating || 0);
+    }
+  }, [selectedIdea, selectedListIdea, viewMode]);
+
+  // Load top-rated idea for stats
+  React.useEffect(() => {
+    const loadTopRated = async () => {
+      try {
+        const topRated = await ideaApi.getTopRatedIdeas(1);
+        if (topRated.length > 0 && topRated[0].approverRating) {
+          setTopRatedIdea({
+            title: topRated[0].title,
+            rating: topRated[0].approverRating
+          });
+        }
+      } catch (error) {
+        console.error('Failed to load top-rated idea:', error);
+      }
+    };
+
+    loadTopRated();
+  }, [data?.ideas]); // Reload when ideas change
+
   // Initialize pending ideas from server data and maintain local state
   React.useEffect(() => {
     if (data?.ideas && Array.isArray(data.ideas)) {
@@ -162,6 +196,7 @@ const ApproverDashboard: React.FC = () => {
           createdBy: idea.createdBy || idea.Author?.Title || idea.CreatedBy,
           created: idea.createdDate || idea.created || idea.Created,
           modified: idea.modified || idea.Modified,
+          approverRating: idea.approverRating,
           attachments: idea.attachments || [],
         }));
 
@@ -305,6 +340,47 @@ const ApproverDashboard: React.FC = () => {
   const handleClose = () => {
     setIsExpanded(false);
     setSelectedIdea(null);
+  };
+
+  // Handle rating submission
+  const handleRatingSubmit = async (rating: number) => {
+    const currentIdea = viewMode === 'list' ? selectedListIdea : selectedIdea;
+    if (!currentIdea || isSubmittingRating) return;
+
+    try {
+      setIsSubmittingRating(true);
+      await ideaApi.rateIdea(parseInt(currentIdea.id), rating);
+      
+      // Update local state
+      setCurrentRating(rating);
+      
+      // Update the idea in the state
+      if (viewMode === 'list' && selectedListIdea) {
+        setSelectedListIdea({ ...selectedListIdea, approverRating: rating });
+      } else if (selectedIdea) {
+        setSelectedIdea({ ...selectedIdea, approverRating: rating });
+      }
+
+      addToast({
+        type: 'success',
+        title: 'Rating Submitted',
+        message: `You rated this idea ${rating} star${rating > 1 ? 's' : ''}`,
+        duration: 3000,
+      });
+
+      // Reload ideas to update the list
+      await loadIdeas();
+    } catch (error) {
+      console.error('Failed to submit rating:', error);
+      addToast({
+        type: 'error',
+        title: 'Rating Failed',
+        message: 'Failed to submit rating. Please try again.',
+        duration: 4000,
+      });
+    } finally {
+      setIsSubmittingRating(false);
+    }
   };
 
   const handleApprove = async () => {
@@ -616,6 +692,15 @@ const ApproverDashboard: React.FC = () => {
           <div className={styles.statNumber}>{pendingIdeas.length}</div>
           <div className={styles.statLabel}>Pending Approvals</div>
         </div>
+        {topRatedIdea && (
+          <div className={styles.statItem}>
+            <div className={styles.statNumber} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Star size={24} fill="#FFD700" stroke="#FFD700" />
+              {topRatedIdea.rating}
+            </div>
+            <div className={styles.statLabel}>Top Rated: {topRatedIdea.title.substring(0, 30)}{topRatedIdea.title.length > 30 ? '...' : ''}</div>
+          </div>
+        )}
       </div>
 
       <div className={styles.mainContent}>
@@ -805,6 +890,31 @@ const ApproverDashboard: React.FC = () => {
                     <div className={styles.detailSection}>
                       <h3>Description</h3>
                       <p>{selectedListIdea.description}</p>
+                    </div>
+
+                    {/* Star Rating Section */}
+                    <div className={styles.ratingSection}>
+                      <h3>Rate this Idea</h3>
+                      <div className={styles.starRating}>
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={star}
+                            size={32}
+                            className={styles.star}
+                            fill={star <= (hoverRating || currentRating) ? '#FFD700' : 'none'}
+                            stroke={star <= (hoverRating || currentRating) ? '#FFD700' : '#cbd5e0'}
+                            onMouseEnter={() => !isSubmittingRating && setHoverRating(star)}
+                            onMouseLeave={() => setHoverRating(0)}
+                            onClick={() => !isSubmittingRating && handleRatingSubmit(star)}
+                            style={{ cursor: isSubmittingRating ? 'wait' : 'pointer' }}
+                          />
+                        ))}
+                      </div>
+                      {currentRating > 0 && (
+                        <p className={styles.ratingText}>
+                          You rated this idea {currentRating} star{currentRating > 1 ? 's' : ''}
+                        </p>
+                      )}
                     </div>
 
                     <div className={styles.detailTags}>

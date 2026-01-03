@@ -32,6 +32,7 @@ export interface Idea {
   approvedDate?: Date;
   category: string;
   priority: "Low" | "Medium" | "High" | "Critical";
+  approverRating?: number; // 1-5 stars rating by approver
   attachments?: Array<{
     fileName: string;
     serverRelativeUrl: string;
@@ -112,6 +113,7 @@ export interface ProcessedIdea {
     | "Completed";
   category: string;
   priority: "Low" | "Medium" | "High" | "Critical";
+  approverRating?: number; // 1-5 stars rating by approver
   created: Date;
   modified: Date;
   createdBy: {

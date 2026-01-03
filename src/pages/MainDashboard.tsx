@@ -92,6 +92,14 @@ const MainDashboard: React.FC = () => {
       .slice(0, 6);
   }, [allTasks]);
 
+  // Get top-rated ideas (sorted by rating, highest first)
+  const topRatedIdeas = useMemo(() => {
+    return [...allIdeas]
+      .filter(idea => idea.approverRating && idea.approverRating > 0)
+      .sort((a, b) => (b.approverRating || 0) - (a.approverRating || 0))
+      .slice(0, 5);
+  }, [allIdeas]);
+
   // Get status class
   const getStatusClass = (status: string) => {
     switch (status) {
@@ -241,6 +249,53 @@ const MainDashboard: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* Top Rated Ideas Showcase */}
+      {topRatedIdeas.length > 0 && (
+        <section className={`${styles.topRatedSection} ${styles.fadeInUp} ${styles.delay2}`}>
+          <div className={styles.topRatedHeader}>
+            <h2 className={styles.topRatedTitle}>
+              <span className={styles.starIcon}>⭐</span>
+              Top Rated Ideas
+            </h2>
+            <p className={styles.topRatedSubtitle}>Ideas with highest approver ratings</p>
+          </div>
+          <div className={styles.topRatedGrid}>
+            {topRatedIdeas.map((idea, index) => (
+              <div
+                key={idea.id}
+                className={styles.topRatedCard}
+                onClick={() => navigate(`/idea/${idea.id}`)}
+              >
+                <div className={styles.topRatedRank}>#{index + 1}</div>
+                <div className={styles.topRatedStars}>
+                  {[...Array(5)].map((_, i) => (
+                    <span
+                      key={i}
+                      className={i < (idea.approverRating || 0) ? styles.starFilled : styles.starEmpty}
+                    >
+                      ⭐
+                    </span>
+                  ))}
+                </div>
+                <h3 className={styles.topRatedIdeaTitle}>{idea.title}</h3>
+                <p className={styles.topRatedIdeaDesc}>
+                  {idea.description.substring(0, 100)}{idea.description.length > 100 ? '...' : ''}
+                </p>
+                <div className={styles.topRatedMeta}>
+                  <span className={styles.topRatedAuthor}>👤 {idea.createdBy}</span>
+                  <span className={`${styles.topRatedStatus} ${getStatusClass(idea.status)}`}>
+                    {idea.status}
+                  </span>
+                </div>
+                <div className={styles.topRatedRating}>
+                  {idea.approverRating} / 5 stars
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Main Content Grid */}
       <div className={styles.contentGrid}>
