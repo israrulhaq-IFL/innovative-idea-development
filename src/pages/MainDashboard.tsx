@@ -335,9 +335,11 @@ const MainDashboard: React.FC = () => {
                       {idea.description || 'No description provided'}
                     </p>
                     <div className={styles.ideaMeta}>
-                      <span className={styles.ideaMetaItem}>
-                        <span>👤</span> {idea.createdBy}
-                      </span>
+                      {(isAdmin || isApprover) && (
+                        <span className={styles.ideaMetaItem}>
+                          <span>👤</span> {idea.createdBy}
+                        </span>
+                      )}
                       <span className={styles.ideaMetaItem}>
                         <span>📅</span> {formatDate(idea.createdDate)}
                       </span>
@@ -502,11 +504,12 @@ const MainDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Ideas by Status Grid */}
-      <section className={`${styles.fadeInUp} ${styles.delay5}`} style={{ marginBottom: '2rem' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }}>
-          {/* Pending Ideas */}
-          <div className={styles.card}>
+      {/* Ideas by Status Grid - Hidden for Contributors */}
+      {(isAdmin || isApprover) && (
+        <section className={`${styles.fadeInUp} ${styles.delay5}`} style={{ marginBottom: '2rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }}>
+            {/* Pending Ideas */}
+            <div className={styles.card}>
             <div className={styles.cardHeader}>
               <h2 className={styles.cardTitle}>
                 <span className={styles.cardTitleIcon}>⏳</span>
@@ -687,9 +690,10 @@ const MainDashboard: React.FC = () => {
                 </div>
               )}
             </div>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Recent Tasks */}
       {recentTasks.length > 0 && (
