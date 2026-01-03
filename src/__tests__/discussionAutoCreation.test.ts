@@ -1,6 +1,7 @@
 /**
- * Test Suite: Discussion Auto-Creation Workflow
- * Tests the automatic creation of discussion threads when tasks are assigned
+ * Test Suite: Task Discussion Creation Workflow
+ * Tests the manual creation of discussion threads for tasks via Create Discussion button
+ * Note: Discussions are no longer automatically created when tasks are assigned
  */
 
 import { discussionApi } from '../services/discussionApi';
@@ -11,7 +12,7 @@ import { sharePointApi } from '../utils/secureApi';
 jest.mock('../utils/secureApi');
 jest.mock('../utils/logger');
 
-describe('Discussion Auto-Creation Workflow', () => {
+describe('Task Discussion Creation Workflow', () => {
   const mockSharePointApi = sharePointApi as jest.Mocked<typeof sharePointApi>;
 
   beforeEach(() => {
@@ -19,7 +20,7 @@ describe('Discussion Auto-Creation Workflow', () => {
   });
 
   describe('createTaskDiscussion', () => {
-    it('should successfully create a discussion thread when task is created', async () => {
+    it('should successfully create a discussion thread when user clicks Create Discussion button', async () => {
       // Arrange
       const taskId = 13;
       const taskTitle = 'Test Task for Idea';
@@ -84,7 +85,7 @@ describe('Discussion Auto-Creation Workflow', () => {
       expect(mockSharePointApi.get).toHaveBeenCalledTimes(1);
     });
 
-    it('should include idea context in discussion body when provided', async () => {
+    it('should include idea context in discussion body when manually created with full context', async () => {
       // Arrange
       const taskId = 13;
       const taskTitle = 'Test Task';
@@ -308,8 +309,8 @@ describe('Discussion Auto-Creation Workflow', () => {
     });
   });
 
-  describe('End-to-End Task Creation with Discussion', () => {
-    it('should create discussion with full context successfully', async () => {
+  describe('End-to-End Manual Discussion Creation', () => {
+    it('should create discussion with full context when user manually initiates it', async () => {
       // Arrange
       const taskId = 13;
       const taskTitle = 'Task for: Test Idea';
@@ -368,7 +369,7 @@ describe('Discussion Auto-Creation Workflow', () => {
       expect(mockSharePointApi.get).toHaveBeenCalledTimes(1);
     });
 
-    it('should not fail task creation if discussion creation fails', async () => {
+    it('should handle discussion creation failure gracefully when manually created', async () => {
       // Arrange
       const taskId = 13;
       const taskTitle = 'Test Task';
@@ -436,6 +437,12 @@ describe('Discussion Auto-Creation Workflow', () => {
               }
             ]
           }
+        })
+        // Mock idea status response (fetched to check if locked)
+        .mockResolvedValueOnce({
+          d: {
+            Status: 'In Progress'
+          }
         });
 
       // Act
@@ -446,7 +453,7 @@ describe('Discussion Auto-Creation Workflow', () => {
       expect(discussions.length).toBe(1);
       expect(discussions[0].taskId).toBe(13);
       expect(discussions[0].messages.length).toBe(1);
-      expect(mockSharePointApi.get).toHaveBeenCalledTimes(2);
+      expect(mockSharePointApi.get).toHaveBeenCalledTimes(3); // tasks, discussions, idea status
     });
 
     it('should return empty array when user has no assigned tasks', async () => {

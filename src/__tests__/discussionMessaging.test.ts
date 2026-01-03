@@ -410,7 +410,7 @@ describe('Discussion Board Messaging', () => {
   });
 
   describe('createTaskDiscussion', () => {
-    it('should create initial discussion when task is created', async () => {
+    it('should create initial discussion when user clicks Create Discussion button in MyTasks', async () => {
       const taskId = 13;
       const taskTitle = 'Test Task';
       const taskDescription = 'Task description';
@@ -446,7 +446,7 @@ describe('Discussion Board Messaging', () => {
       expect(result.ideaId).toBe(ideaId);
     });
 
-    it('should include idea context in discussion body when provided', async () => {
+    it('should include idea context in discussion body when manually created with context', async () => {
       (sharePointApi.post as jest.Mock).mockResolvedValue({ d: { ID: 5 } });
       (sharePointApi.get as jest.Mock).mockResolvedValue({
         d: {
