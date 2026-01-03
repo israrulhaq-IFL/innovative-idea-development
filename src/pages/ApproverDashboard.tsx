@@ -309,9 +309,12 @@ const ApproverDashboard: React.FC = () => {
         type: 'image'
       });
     } else if (pdfExtensions.includes(fileExtension || '')) {
-      // For PDFs, try opening with SharePoint's _layouts/download.aspx for better compatibility
-      const downloadUrl = `${attachment.serverRelativeUrl}?Web=1`;
-      window.open(downloadUrl, '_blank');
+      // Preview PDF inline
+      setPreviewAttachment({
+        fileName: attachment.fileName,
+        url: attachment.serverRelativeUrl,
+        type: 'pdf'
+      });
     } else {
       // Download other file types
       const link = document.createElement('a');
@@ -698,7 +701,7 @@ const ApproverDashboard: React.FC = () => {
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-                padding: '20px',
+                padding: previewAttachment.type === 'pdf' ? '0' : '20px',
                 background: '#f9fafb'
               }}>
                 {previewAttachment.type === 'image' && (
@@ -709,6 +712,17 @@ const ApproverDashboard: React.FC = () => {
                       maxWidth: '100%',
                       maxHeight: '100%',
                       objectFit: 'contain'
+                    }}
+                  />
+                )}
+                {previewAttachment.type === 'pdf' && (
+                  <iframe
+                    src={`${previewAttachment.url}#toolbar=1&navpanes=0&view=FitH`}
+                    title={previewAttachment.fileName}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      border: 'none'
                     }}
                   />
                 )}

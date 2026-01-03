@@ -46,6 +46,11 @@ const ApprovedIdeasPage: React.FC = () => {
   const [selectedTask, setSelectedTask] = useState<ProcessedTask | null>(null);
   const [isCreatingTask, setIsCreatingTask] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [previewAttachment, setPreviewAttachment] = useState<{
+    fileName: string;
+    url: string;
+    type: 'image' | 'pdf';
+  } | null>(null);
 
   // Task form data
   const [taskFormData, setTaskFormData] = useState<TaskFormData>(() => {
@@ -821,7 +826,28 @@ const ApprovedIdeasPage: React.FC = () => {
                           <span className={styles.attachmentIcon}>📎</span>
                           <span className={styles.attachmentName}>{attachment.fileName || attachment}</span>
                           <button
-                            onClick={() => window.open(attachment.serverRelativeUrl || attachment, '_blank')}
+                            onClick={() => {
+                              const fileName = (attachment.fileName || attachment).toLowerCase();
+                              const fileExtension = fileName.split('.').pop();
+                              const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
+                              const pdfExtensions = ['pdf'];
+                              
+                              if (imageExtensions.includes(fileExtension || '')) {
+                                setPreviewAttachment({
+                                  fileName: attachment.fileName || attachment,
+                                  url: attachment.serverRelativeUrl || attachment,
+                                  type: 'image'
+                                });
+                              } else if (pdfExtensions.includes(fileExtension || '')) {
+                                setPreviewAttachment({
+                                  fileName: attachment.fileName || attachment,
+                                  url: attachment.serverRelativeUrl || attachment,
+                                  type: 'pdf'
+                                });
+                              } else {
+                                window.open(attachment.serverRelativeUrl || attachment, '_blank');
+                              }
+                            }}
                             className={styles.downloadButton}
                             title="Download attachment"
                           >
@@ -891,6 +917,97 @@ const ApprovedIdeasPage: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Attachment Preview Modal */}
+      {previewAttachment && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.75)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 10000
+          }}
+          onClick={() => setPreviewAttachment(null)}
+        >
+          <div
+            style={{
+              width: '90vw',
+              height: '90vh',
+              maxWidth: '1200px',
+              background: 'white',
+              borderRadius: '12px',
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{
+              padding: '16px 24px',
+              borderBottom: '1px solid #e5e7eb',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 600 }}>
+                {previewAttachment.fileName}
+              </h3>
+              <button
+                onClick={() => setPreviewAttachment(null)}
+                style={{
+                  border: 'none',
+                  background: 'none',
+                  fontSize: '28px',
+                  cursor: 'pointer',
+                  color: '#6b7280',
+                  padding: '0 8px',
+                  lineHeight: 1
+                }}
+              >
+                ×
+              </button>
+            </div>
+            <div style={{
+              flex: 1,
+              overflow: 'auto',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              padding: previewAttachment.type === 'pdf' ? '0' : '20px',
+              background: '#f9fafb'
+            }}>
+              {previewAttachment.type === 'image' && (
+                <img
+                  src={previewAttachment.url}
+                  alt={previewAttachment.fileName}
+                  style={{
+                    maxWidth: '100%',
+                    maxHeight: '100%',
+                    objectFit: 'contain'
+                  }}
+                />
+              )}
+              {previewAttachment.type === 'pdf' && (
+                <iframe
+                  src={`${previewAttachment.url}#toolbar=1&navpanes=0&view=FitH`}
+                  title={previewAttachment.fileName}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    border: 'none'
+                  }}
+                />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
