@@ -94,10 +94,13 @@ const MainDashboard: React.FC = () => {
 
   // Get top-rated ideas (sorted by rating, highest first)
   const topRatedIdeas = useMemo(() => {
-    return [...allIdeas]
+    const rated = [...allIdeas]
       .filter(idea => idea.approverRating && idea.approverRating > 0)
       .sort((a, b) => (b.approverRating || 0) - (a.approverRating || 0))
       .slice(0, 5);
+    
+    console.log('Top Rated Ideas:', rated.length, rated);
+    return rated;
   }, [allIdeas]);
 
   // Get status class

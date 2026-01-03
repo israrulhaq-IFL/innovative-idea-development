@@ -355,6 +355,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
         approvedDate: idea.modified,
         category: idea.category,
         priority: idea.priority,
+        approverRating: idea.approverRating,
         attachments: idea.attachments || [],
       }));
 
