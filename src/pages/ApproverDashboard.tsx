@@ -63,7 +63,6 @@ const ApproverDashboard: React.FC = () => {
   const [currentRating, setCurrentRating] = useState<number>(0);
   const [hoverRating, setHoverRating] = useState<number>(0);
   const [isSubmittingRating, setIsSubmittingRating] = useState(false);
-  const [topRatedIdea, setTopRatedIdea] = useState<{title: string; rating: number} | null>(null);
   const [previewAttachment, setPreviewAttachment] = useState<{
     fileName: string;
     url: string;
@@ -152,25 +151,6 @@ const ApproverDashboard: React.FC = () => {
       setCurrentRating(currentIdea.approverRating || 0);
     }
   }, [selectedIdea, selectedListIdea, viewMode]);
-
-  // Load top-rated idea for stats
-  React.useEffect(() => {
-    const loadTopRated = async () => {
-      try {
-        const topRated = await ideaApi.getTopRatedIdeas(1);
-        if (topRated.length > 0 && topRated[0].approverRating) {
-          setTopRatedIdea({
-            title: topRated[0].title,
-            rating: topRated[0].approverRating
-          });
-        }
-      } catch (error) {
-        console.error('Failed to load top-rated idea:', error);
-      }
-    };
-
-    loadTopRated();
-  }, [data?.ideas]); // Reload when ideas change
 
   // Initialize pending ideas from server data and maintain local state
   React.useEffect(() => {
@@ -692,15 +672,6 @@ const ApproverDashboard: React.FC = () => {
           <div className={styles.statNumber}>{pendingIdeas.length}</div>
           <div className={styles.statLabel}>Pending Approvals</div>
         </div>
-        {topRatedIdea && (
-          <div className={styles.statItem}>
-            <div className={styles.statNumber} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Star size={24} fill="#FFD700" stroke="#FFD700" />
-              {topRatedIdea.rating}
-            </div>
-            <div className={styles.statLabel}>Top Rated: {topRatedIdea.title.substring(0, 30)}{topRatedIdea.title.length > 30 ? '...' : ''}</div>
-          </div>
-        )}
       </div>
 
       <div className={styles.mainContent}>
