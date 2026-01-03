@@ -484,7 +484,7 @@ class DiscussionApi {
   /**
    * Update IsLocked field for all discussions related to an idea
    */
-  async updateDiscussionLockStatus(ideaId: number, isLocked: boolean): Promise<void> {
+  async updateIdeaDiscussionLockStatus(ideaId: number, isLocked: boolean): Promise<void> {
     try {
       logInfo('[DiscussionApi] Updating discussion lock status', { ideaId, isLocked });
 
@@ -501,7 +501,7 @@ class DiscussionApi {
           IsLocked: isLocked,
         };
 
-        await sharePointApi.update(updateEndpoint, data);
+        await sharePointApi.put(updateEndpoint, data);
       }
 
       logInfo('[DiscussionApi] Discussion lock status updated successfully', { ideaId, isLocked, count: discussions.length });
@@ -685,7 +685,7 @@ class DiscussionApi {
   /**
    * Update discussion lock status for a task
    */
-  async updateDiscussionLockStatus(taskId: number, isLocked: boolean): Promise<void> {
+  async updateTaskDiscussionLockStatus(taskId: number, isLocked: boolean): Promise<void> {
     try {
       // First, get the discussion ID for this task
       const endpoint = `/_api/web/lists/getbytitle('${this.listName}')/items?$filter=TaskIdId eq ${taskId}&$select=ID&$top=1`;
@@ -695,7 +695,7 @@ class DiscussionApi {
         const discussionId = response.d.results[0].ID;
         const updateEndpoint = `/_api/web/lists/getbytitle('${this.listName}')/items(${discussionId})`;
         
-        await sharePointApi.patch(updateEndpoint, {
+        await sharePointApi.put(updateEndpoint, {
           __metadata: { type: 'SP.Data.Innovative_x005f_idea_x005f_discussionsListItem' },
           IsLocked: isLocked
         });

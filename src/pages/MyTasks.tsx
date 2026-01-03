@@ -246,7 +246,7 @@ const MyTasks: React.FC = () => {
     if (!selectedTask) return;
 
     try {
-      await discussionApi.updateDiscussionLockStatus(
+      await discussionApi.updateTaskDiscussionLockStatus(
         selectedTask.id,
         !isDiscussionLocked
       );

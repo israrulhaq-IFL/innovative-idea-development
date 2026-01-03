@@ -501,7 +501,7 @@ const ApproverDashboard: React.FC = () => {
 
     try {
       const newLockStatus = !isDiscussionLocked;
-      await discussionApi.updateDiscussionLockStatus(parseInt(idea.id), newLockStatus);
+      await discussionApi.updateIdeaDiscussionLockStatus(parseInt(idea.id), newLockStatus);
       setIsDiscussionLocked(newLockStatus);
       
       addToast({
