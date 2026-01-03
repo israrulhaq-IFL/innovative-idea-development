@@ -10,7 +10,27 @@ This is a modern React-based Innovation Management System with SharePoint 2016 R
 - **Approval Workflow**: Approver dashboard with attachment preview (images in modal, PDFs in new tab)
 - **My Ideas**: Split-panel view showing user's submitted ideas with detailed information
 - **Task Management**: Task creation, assignment, progress tracking with percentage completion
-- **Discussion System**: Threaded discussions with auto-locking based on idea status, file attachments
+- **Discussion System**: Comprehensive discussion forums with role-based features
+  - **Manual Task Discussion Creation**: Task discussions created manually by approvers (not auto-created on task assignment)
+  - **Approver-Initiated Idea Discussions**: Approvers create discussions during idea approval process
+  - **Separate Discussion Folders in Discussion Board**: 
+    - "Discussions I Started as Approver" - Shows discussions created by current user as approver
+    - "Discussions on My Ideas" - Shows discussions where user is the idea author
+    - "Task Discussions" - Shows task-related discussions where user is a participant
+  - **Lock/Unlock Functionality**: 
+    - Approvers can lock/unlock discussions from multiple locations:
+      - Approver Dashboard (during approval process)
+      - Discussion Board (after idea is approved)
+      - MyTasks (for task discussions - approvers only)
+    - Contributors see lock status but cannot toggle it
+    - Locked discussions disable message input and show lock indicator
+  - **Auto-Load on Selection**: Discussions automatically load when idea/task is selected in any view
+  - **Real-time Updates**: 10-second auto-refresh when discussion panel is open in Approver Dashboard
+  - **Discussion State Management**: Proper state updates prevent duplicate discussion creation
+  - **API Methods**: 
+    - `updateIdeaDiscussionLockStatus(ideaId, isLocked)` - Lock/unlock idea discussions
+    - `updateTaskDiscussionLockStatus(taskId, isLocked)` - Lock/unlock task discussions
+    - `hasDiscussion(taskId)` / `hasIdeaDiscussions(ideaId)` - Check discussion existence
 - **Theme Support**: Complete light/dark theme toggle for all pages and components
 - **Idea Trail**: Event tracking system showing idea lifecycle and status changes
 - **SharePoint 2016 Integration**: REST API with MCP server for direct list operations
@@ -33,13 +53,23 @@ This is a modern React-based Innovation Management System with SharePoint 2016 R
 
 ### Lists Structure
 1. **innovative_ideas**: Main ideas list with Category, Priority, Status fields
-2. **innovative_idea_discussions**: Discussion threads with IsLocked field
-3. **innovative_idea_tasks**: Task assignments with progress tracking
+2. **innovative_idea_discussions**: Discussion threads with TaskIdId, IdeaIdId, IsLocked, InitiatedByApprover fields
+   - **TaskIdId**: Links discussion to a task (0 or null for idea-only discussions)
+   - **IdeaIdId**: Links discussion to an idea
+   - **IsLocked**: Boolean flag indicating if discussion is locked
+   - **InitiatedByApprover**: Boolean flag indicating if approver created the discussion
+   - **ContentTypeId**: Used to differentiate Discussion (0x0120) from Message (0x0107)
+3. **innovative_idea_tasks**: Task assignments with progress tracking and AssignedToId (multi-value user field)
 4. **innovative_idea_trail**: Event tracking for idea lifecycle
 
 ### Key Features
 - **File Attachments**: 1MB size limit with validation and Toast notifications
-- **Discussion Locking**: Auto-locks when idea status changes from "Pending Approval"
+- **Discussion Management**: 
+  - Manual creation by approvers (not auto-created)
+  - Lock/unlock functionality with role-based access
+  - Separate API methods for idea and task discussions
+  - Auto-load on selection to prevent duplicate creation
+  - Real-time updates with 10-second polling
 - **Date Handling**: ISO 8601 from SharePoint → Date objects → Proper formatting
 - **Category & Priority**: Properly mapped from SharePoint to UI (fixed hardcoding issue)
 - **Attachment Preview**: Images shown in modal, PDFs open in new tab with ?Web=1
@@ -160,10 +190,56 @@ src/
 - **SharePoint Access**: Use `serverRelativeUrl` field from attachments array
 
 ### Discussion System
-- **Auto-Locking**: Discussions locked when idea status changes from "Pending Approval"
-- **IsLocked Field**: Boolean field in discussion list
-- **Lock Trigger**: Status update in idea triggers discussion lock
-- **UI Behavior**: Show locked indicator, disable message input when locked
+- **Manual Creation**: 
+  - Task discussions: Created manually by approvers via "Create Discussion" button in MyTasks
+  - Idea discussions: Created by approvers during approval process in ApproverDashboard
+  - NOT auto-created on task assignment or idea approval
+- **Discussion State Management**:
+  - `discussionExists` state tracks if discussion already created
+  - Auto-loads discussions when idea/task selected (prevents duplicate "Create Discussion" buttons)
+  - State properly updated after creation: `setDiscussionExists(true)` before reload
+- **Lock/Unlock System**:
+  - **IsLocked Field**: Boolean field in innovative_idea_discussions list
+  - **Lock Methods**: 
+    - `updateIdeaDiscussionLockStatus(ideaId, isLocked)` - Updates ALL discussion items for an idea
+    - `updateTaskDiscussionLockStatus(taskId, isLocked)` - Updates discussion item for a task
+  - **API Method**: Uses `sharePointApi.put()` to update IsLocked field
+  - **Lock Locations**: 
+    - ApproverDashboard: Lock button visible during approval (approvers only)
+    - DiscussionPanel: Lock button in thread header (approvers only)
+    - MyTasks: Lock button in discussion section (approvers only)
+  - **UI Behavior**: 
+    - Locked: Shows 🔒 lock icon, "Unlock" button, message input disabled
+    - Unlocked: Shows 🔓 unlock icon, "Lock" button, message input enabled
+    - Contributors: Can see lock status but cannot toggle (button hidden)
+- **Discussion Folders** (DiscussionPanel):
+  - Separate folders based on user role:
+    - "Discussions I Started as Approver" (`userRole === 'approver'`)
+    - "Discussions on My Ideas" (`userRole === 'author'`)
+    - "Task Discussions" (`userRole === 'participant'`)
+  - `userRole` field added to Discussion interface
+- **Auto-Loading**:
+  - ApproverDashboard: useEffect triggers `loadDiscussionsForIdea()` on selection
+  - MyTasks: useEffect triggers `loadDiscussionsForTask()` on task selection
+  - Checks `hasDiscussion()` / `hasIdeaDiscussions()` to set proper state
+- **Real-Time Updates**:
+  - 10-second polling in ApproverDashboard when discussion panel open
+  - Auto-refreshes messages to show new replies
+  - Prevents need for manual page reload
+- **Discussion APIs**:
+  - `createDiscussionForIdea(ideaId, subject, body, isQuestion)` - Sets `InitiatedByApprover: true`
+  - `createTaskDiscussion(taskId, title, description, ideaId, assignees, ...)` - Creates task discussion
+  - `hasDiscussion(taskId)` - Checks if task has Discussion (0x0120) items
+  - `hasIdeaDiscussions(ideaId)` - Checks if idea has discussions with InitiatedByApprover
+  - `getDiscussionsByTask(taskId)` - Gets all Discussion and Message items for task
+  - `getDiscussionsByIdea(ideaId)` - Gets discussions for idea (only InitiatedByApprover)
+  - `getMyDiscussions(userId)` - Gets task discussions for user's assigned tasks
+  - `getMyIdeaDiscussions(userId)` - Gets idea discussions where user is author OR discussion creator
+  - `getAllMyDiscussions(userId)` - Combines task and idea discussions
+  - `updateIdeaDiscussionLockStatus(ideaId, isLocked)` - Locks/unlocks all idea discussions
+  - `updateTaskDiscussionLockStatus(taskId, isLocked)` - Locks/unlocks task discussion
+  - `getIdeaDiscussionLockStatus(ideaId)` - Gets lock status for idea
+  - `getDiscussionLockStatus(taskId)` - Gets lock status for task
 
 ### SharePoint Integration
 - Use `ideaApi` service for ideas CRUD operations
@@ -210,9 +286,48 @@ src/
 ### Implementing Idea Workflow
 1. **Idea Submission**: Use IdeaFormPage with validation and file upload
 2. **Approval Process**: ApproverDashboard for review and decision
-3. **Status Updates**: Trigger trail events and discussion locks
+3. **Status Updates**: Trigger trail events
 4. **Task Creation**: Create tasks for approved ideas
-5. **Discussion Threads**: Enable team collaboration with auto-locking
+5. **Discussion Management**: 
+   - Approvers manually create discussions during approval
+   - Discussions auto-load when idea/task selected
+   - Approvers can lock/unlock from multiple locations
+
+### Working with Discussions
+1. **Creating Discussions**:
+   - Check if discussion exists first: `hasDiscussion()` or `hasIdeaDiscussions()`
+   - Idea discussions: Call `createDiscussionForIdea()` in ApproverDashboard
+   - Task discussions: Call `createTaskDiscussion()` from MyTasks
+   - Update state: `setDiscussionExists(true)` immediately after creation
+2. **Loading Discussions**:
+   - Add useEffect to auto-load on selection
+   - Prevents showing "Create Discussion" when discussion exists
+   - Example:
+     ```typescript
+     useEffect(() => {
+       if (selectedIdea) {
+         loadDiscussionsForIdea(selectedIdea.id);
+       }
+     }, [selectedIdea?.id]);
+     ```
+3. **Lock/Unlock**:
+   - Only show button to approvers: `{isApprover && (<button...>)}`
+   - Use appropriate method:
+     - Idea discussions: `updateIdeaDiscussionLockStatus(ideaId, isLocked)`
+     - Task discussions: `updateTaskDiscussionLockStatus(taskId, isLocked)`
+   - Update local state after API call
+   - Reload discussions to ensure consistency
+4. **Discussion Folders**:
+   - Add `userRole` field to Discussion interface
+   - Set role during creation:
+     - 'approver': User created the discussion
+     - 'author': User is the idea author
+     - 'participant': User is assigned to task
+   - Filter discussions by userRole in DiscussionPanel
+5. **Real-Time Updates**:
+   - Add auto-refresh useEffect in components with discussion panels
+   - Poll every 10 seconds when panel is open
+   - Clear interval on unmount or when panel closes
 
 ### Working with Attachments
 1. **Validate File Size**: Check against 1MB limit (1048576 bytes)
