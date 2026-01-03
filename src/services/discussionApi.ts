@@ -164,7 +164,7 @@ class DiscussionApi {
       }
 
       // Get idea details for those IDs
-      const ideasEndpoint = `/_api/web/lists/getbytitle('${LISTS.ideas}')/items?$select=ID,Title,Status,AuthorId,Department&$top=500`;
+      const ideasEndpoint = `/_api/web/lists/getbytitle('${LISTS.ideas}')/items?$select=ID,Title,Status,AuthorId&$top=500`;
       const ideasResponse = await sharePointApi.get<any>(ideasEndpoint);
       const allIdeas = ideasResponse.d.results;
       
