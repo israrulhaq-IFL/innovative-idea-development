@@ -472,6 +472,7 @@ const MyIdeas: React.FC = () => {
                   )}
                 </div>
 
+                {/* HIDDEN: Idea Trail Section - Uncomment to enable
                 <div className={styles.detailSection}>
                   <div
                     style={{
@@ -556,6 +557,7 @@ const MyIdeas: React.FC = () => {
                     )}
                   </div>
                 </div>
+                */}
               </div>
             </div>
           ) : (
