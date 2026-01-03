@@ -5,11 +5,13 @@ import { useIdeaData, ProcessedTask } from "../contexts/DataContext";
 import { useUser } from "../contexts/UserContext";
 import { useNotification } from "../contexts/NotificationContext";
 import { ideaApi } from "../services/ideaApi";
+import { discussionApi } from "../services/discussionApi";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import StatusBar from "../components/common/StatusBar";
 import { ValidatedInput } from "../components/common/ValidatedInput.tsx";
 import { ValidatedSelect } from "../components/common/ValidatedSelect.tsx";
 import { logInfo, logError } from "../utils/logger";
+import { MessageCircle, Send, Lock, Unlock } from 'lucide-react';
 import styles from './MyTasks.module.css';
 
 const MyTasks: React.FC = () => {
@@ -22,6 +24,15 @@ const MyTasks: React.FC = () => {
   const [tasksLoading, setTasksLoading] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editedTask, setEditedTask] = useState<Partial<ProcessedTask> | null>(null);
+  
+  // Discussion state
+  const [discussionExists, setDiscussionExists] = useState(false);
+  const [discussions, setDiscussions] = useState<any[]>([]);
+  const [showDiscussionPanel, setShowDiscussionPanel] = useState(false);
+  const [discussionMessage, setDiscussionMessage] = useState('');
+  const [isDiscussionLocked, setIsDiscussionLocked] = useState(false);
+  const [loadingDiscussions, setLoadingDiscussions] = useState(false);
+  const [sendingMessage, setSendingMessage] = useState(false);
 
   useEffect(() => {
     // Load tasks assigned to current user
@@ -83,6 +94,14 @@ const MyTasks: React.FC = () => {
     setSelectedTask(task);
     setIsEditMode(false); // Reset edit mode when selecting a new task
     setEditedTask(null); // Reset edited task
+    setShowDiscussionPanel(false); // Close discussion panel when switching tasks
+    setDiscussionExists(false);
+    setDiscussions([]);
+    
+    // Load discussions for the selected task
+    if (task) {
+      loadDiscussionsForTask(task.id);
+    }
   };
 
   const handleEditClick = () => {
@@ -151,6 +170,146 @@ const MyTasks: React.FC = () => {
 
   const handleProgressChange = (newProgress: number) => {
     setEditedTask(prev => prev ? { ...prev, percentComplete: newProgress } : { percentComplete: newProgress });
+  };
+
+  // Discussion handlers
+  const loadDiscussionsForTask = async (taskId: number) => {
+    try {
+      setLoadingDiscussions(true);
+      
+      // Check if discussion exists for this task
+      const hasDiscussion = await discussionApi.hasDiscussion(taskId);
+      setDiscussionExists(hasDiscussion);
+      
+      if (hasDiscussion) {
+        const messages = await discussionApi.getDiscussionsByTask(taskId);
+        setDiscussions(messages);
+        
+        // Check lock status
+        const locked = await discussionApi.getDiscussionLockStatus(taskId);
+        setIsDiscussionLocked(locked);
+      } else {
+        setDiscussions([]);
+        setIsDiscussionLocked(false);
+      }
+    } catch (error) {
+      console.error('Failed to load discussions:', error);
+      addNotification({ 
+        message: 'Failed to load discussions', 
+        type: 'error' 
+      });
+    } finally {
+      setLoadingDiscussions(false);
+    }
+  };
+
+  // Toggle discussion panel
+  const handleToggleDiscussion = async () => {
+    if (!selectedTask) return;
+
+    if (!showDiscussionPanel) {
+      await loadDiscussionsForTask(selectedTask.id);
+    }
+    setShowDiscussionPanel(!showDiscussionPanel);
+  };
+
+  // Create new discussion
+  const handleCreateDiscussion = async () => {
+    if (!selectedTask) return;
+
+    try {
+      setSendingMessage(true);
+      
+      // Get the idea details for context
+      const idea = data.ideas.find(i => i.id === selectedTask.ideaId);
+      
+      // Create initial discussion with rich context
+      await discussionApi.createTaskDiscussion(
+        selectedTask.id,
+        selectedTask.title,
+        selectedTask.description || 'No description provided',
+        selectedTask.ideaId || 0,
+        selectedTask.assignedTo.map(u => ({ id: parseInt(u.id), name: u.name })),
+        idea?.createdBy || 'Unknown',
+        idea?.description || ''
+      );
+
+      // Reload discussions
+      await loadDiscussionsForTask(selectedTask.id);
+      setShowDiscussionPanel(true);
+      
+      addNotification({ 
+        message: 'Discussion created successfully!', 
+        type: 'success' 
+      });
+    } catch (error) {
+      console.error('Failed to create discussion:', error);
+      addNotification({ 
+        message: 'Failed to create discussion. Please try again.', 
+        type: 'error' 
+      });
+    } finally {
+      setSendingMessage(false);
+    }
+  };
+
+  // Send discussion message
+  const handleSendMessage = async () => {
+    if (!selectedTask || !discussionMessage.trim() || sendingMessage) return;
+
+    try {
+      setSendingMessage(true);
+      
+      // Add reply to existing discussion
+      await discussionApi.addReplyToDiscussion(
+        selectedTask.id,
+        `Re: ${selectedTask.title}`,
+        discussionMessage,
+        false
+      );
+
+      // Clear message and reload discussions
+      setDiscussionMessage('');
+      await loadDiscussionsForTask(selectedTask.id);
+      
+      addNotification({ 
+        message: 'Message sent successfully!', 
+        type: 'success' 
+      });
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      addNotification({ 
+        message: 'Failed to send message. Please try again.', 
+        type: 'error' 
+      });
+    } finally {
+      setSendingMessage(false);
+    }
+  };
+
+  // Toggle discussion lock
+  const handleToggleLock = async () => {
+    if (!selectedTask) return;
+
+    try {
+      await discussionApi.updateDiscussionLockStatus(
+        selectedTask.id,
+        !isDiscussionLocked
+      );
+      
+      setIsDiscussionLocked(!isDiscussionLocked);
+      
+      addNotification({ 
+        message: isDiscussionLocked ? 'Discussion unlocked' : 'Discussion locked', 
+        type: 'success' 
+      });
+    } catch (error) {
+      console.error('Failed to toggle lock:', error);
+      addNotification({ 
+        message: 'Failed to toggle lock status', 
+        type: 'error' 
+      });
+    }
   };
 
   // Helper functions for status and priority classes
@@ -440,6 +599,112 @@ const MyTasks: React.FC = () => {
                     </div>
                   </div>
                 )}
+
+                {/* Discussion Section */}
+                <div className={styles.detailSection}>
+                  <h3 className={styles.detailSectionTitle}>Discussion</h3>
+                  
+                  {!discussionExists ? (
+                    <div className={styles.discussionPlaceholder}>
+                      <MessageCircle size={48} className={styles.discussionPlaceholderIcon} />
+                      <p className={styles.discussionPlaceholderText}>
+                        No discussion created yet
+                      </p>
+                      <button
+                        onClick={handleCreateDiscussion}
+                        className={styles.createDiscussionButton}
+                        disabled={sendingMessage}
+                      >
+                        {sendingMessage ? '⏳ Creating...' : '💬 Create Discussion'}
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <div className={styles.discussionHeader}>
+                        <button
+                          onClick={handleToggleDiscussion}
+                          className={styles.discussionToggleButton}
+                        >
+                          <div className={styles.discussionIconWrapper}>
+                            <MessageCircle size={20} />
+                            {discussions.length > 0 && (
+                              <span className={styles.discussionBadge}>
+                                {discussions.length}
+                              </span>
+                            )}
+                          </div>
+                          {showDiscussionPanel ? 'Hide' : 'Show'} Discussion
+                        </button>
+                        <button
+                          onClick={handleToggleLock}
+                          className={styles.lockButton}
+                          title={isDiscussionLocked ? 'Unlock discussion' : 'Lock discussion'}
+                        >
+                          {isDiscussionLocked ? <Lock size={16} /> : <Unlock size={16} />}
+                        </button>
+                      </div>
+
+                      {showDiscussionPanel && (
+                        <div className={styles.discussionPanel}>
+                          {loadingDiscussions ? (
+                            <div className={styles.discussionLoading}>Loading discussions...</div>
+                          ) : (
+                            <>
+                              <div className={styles.discussionMessages}>
+                                {discussions.map((msg) => (
+                                  <div key={msg.id} className={styles.discussionMessage}>
+                                    <div className={styles.messageHeader}>
+                                      <span className={styles.messageAuthor}>
+                                        {msg.author || 'Unknown User'}
+                                      </span>
+                                      <span className={styles.messageDate}>
+                                        {new Date(msg.created).toLocaleString()}
+                                      </span>
+                                    </div>
+                                    {msg.subject && (
+                                      <div className={styles.messageSubject}>{msg.subject}</div>
+                                    )}
+                                    <div 
+                                      className={styles.messageBody}
+                                      dangerouslySetInnerHTML={{ __html: msg.body }}
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+
+                              {!isDiscussionLocked && (
+                                <div className={styles.discussionReply}>
+                                  <textarea
+                                    value={discussionMessage}
+                                    onChange={(e) => setDiscussionMessage(e.target.value)}
+                                    placeholder="Type your message here..."
+                                    className={styles.messageTextarea}
+                                    rows={3}
+                                    disabled={sendingMessage}
+                                  />
+                                  <button
+                                    onClick={handleSendMessage}
+                                    disabled={!discussionMessage.trim() || sendingMessage}
+                                    className={styles.sendButton}
+                                  >
+                                    <Send size={16} />
+                                    {sendingMessage ? 'Sending...' : 'Send'}
+                                  </button>
+                                </div>
+                              )}
+
+                              {isDiscussionLocked && (
+                                <div className={styles.lockedMessage}>
+                                  🔒 This discussion has been locked
+                                </div>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           ) : (

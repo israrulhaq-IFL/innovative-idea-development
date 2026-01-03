@@ -249,30 +249,6 @@ const ApprovedIdeasPage: React.FC = () => {
 
       logInfo("[ApprovedIdeasPage] Task created successfully:", result);
 
-      // Auto-create discussion for the task
-      try {
-        logInfo("[ApprovedIdeasPage] Creating discussion for task:", result.id);
-        
-        await discussionApi.createTaskDiscussion(
-          result.id,
-          taskFormData.title,
-          taskFormData.description || 'No description provided',
-          parseInt(taskFormData.ideaId),
-          taskFormData.assignees.map(u => ({ id: u.id, name: u.name })),
-          selectedIdea?.createdBy || 'Unknown',
-          selectedIdea?.description || ''
-        );
-        
-        logInfo("[ApprovedIdeasPage] Discussion created successfully for task:", result.id);
-      } catch (discussionError) {
-        logError("[ApprovedIdeasPage] Failed to create discussion for task:", discussionError);
-        // Don't fail the task creation if discussion creation fails
-        addNotification({ 
-          message: "Task created but discussion creation failed. You can manually create a discussion later.", 
-          type: "warning" 
-        });
-      }
-
       // Reload tasks and discussions to show the new data
       await loadTasks();
       await loadDiscussions();
