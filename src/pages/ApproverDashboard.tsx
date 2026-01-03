@@ -124,6 +124,20 @@ const ApproverDashboard: React.FC = () => {
     };
   }, [showDiscussionPanel, discussionExists, selectedIdea, selectedListIdea, viewMode]);
 
+  // Load discussions when an idea is selected in list view
+  React.useEffect(() => {
+    if (selectedListIdea) {
+      loadDiscussionsForIdea(selectedListIdea.id);
+    }
+  }, [selectedListIdea?.id]);
+
+  // Load discussions when an idea is selected in stack view (expanded modal)
+  React.useEffect(() => {
+    if (selectedIdea && isExpanded) {
+      loadDiscussionsForIdea(selectedIdea.id);
+    }
+  }, [selectedIdea?.id, isExpanded]);
+
   // Initialize pending ideas from server data and maintain local state
   React.useEffect(() => {
     if (data?.ideas && Array.isArray(data.ideas)) {
