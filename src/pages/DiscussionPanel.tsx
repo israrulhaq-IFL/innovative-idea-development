@@ -195,21 +195,15 @@ const DiscussionPanel: React.FC = () => {
         await discussionApi.uploadAttachment(newMessage.id, selectedFile.name, selectedFile);
       }
 
-      // Reload discussions
-      await loadDiscussions();
-      
-      // Update selected discussion
+      // Silently update only the selected discussion without full board reload
       if (selectedDiscussion.taskId === 0 && selectedDiscussion.ideaId) {
         // Reload idea-based discussion
         const messages = await discussionApi.getDiscussionsByIdea(selectedDiscussion.ideaId);
         setSelectedDiscussion({ ...selectedDiscussion, messages });
       } else {
         // Reload task-based discussion
-        const updated = discussions.find(d => d.taskId === selectedDiscussion.taskId);
-        if (updated) {
-          const messages = await discussionApi.getDiscussionsByTask(updated.taskId);
-          setSelectedDiscussion({ ...updated, messages });
-        }
+        const messages = await discussionApi.getDiscussionsByTask(selectedDiscussion.taskId);
+        setSelectedDiscussion({ ...selectedDiscussion, messages });
       }
 
       setReplyText('');

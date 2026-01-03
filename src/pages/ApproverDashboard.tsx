@@ -380,15 +380,11 @@ const ApproverDashboard: React.FC = () => {
     
     setIsReloading(true);
     try {
+      // Silent background reload without toast notification
       await loadIdeas();
-      addToast({
-        type: 'success',
-        title: 'Refreshed',
-        message: 'Approval cards reloaded successfully',
-        duration: 3000,
-      });
     } catch (error) {
       console.error('Error reloading ideas:', error);
+      // Only show toast on error
       addToast({
         type: 'error',
         title: 'Reload Failed',
@@ -541,8 +537,10 @@ const ApproverDashboard: React.FC = () => {
         false
       );
 
-      // Reload discussions
-      await loadDiscussionsForIdea(idea.id);
+      // Silently reload discussions in the background without full reload
+      const messages = await discussionApi.getDiscussionsByIdea(ideaId);
+      setDiscussions(messages);
+      
       setDiscussionMessage('');
       
       addToast({
