@@ -639,7 +639,8 @@ class DiscussionApi {
    */
   async hasDiscussion(taskId: number): Promise<boolean> {
     try {
-      const endpoint = `/_api/web/lists/getbytitle('${this.listName}')/items?$filter=TaskIdId eq ${taskId}&$select=ID&$top=1`;
+      // Check for Discussion content type items (0x0120) only
+      const endpoint = `/_api/web/lists/getbytitle('${this.listName}')/items?$filter=TaskIdId eq ${taskId} and startswith(ContentTypeId,'0x0120')&$select=ID&$top=1`;
       const response = await sharePointApi.get<any>(endpoint);
       return response.d.results && response.d.results.length > 0;
     } catch (error) {
