@@ -5,6 +5,8 @@ import { useIdeaData , Idea } from "../contexts/DataContext";
 import { useUser } from "../contexts/UserContext";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import StatusBar from "../components/common/StatusBar";
+import { MessageCircle } from 'lucide-react';
+import { discussionApi } from '../services/discussionApi';
 
 import IdeaTrailModal from './IdeaTrailModal';
 import styles from '../components/common/MyIdeas.module.css';
@@ -16,6 +18,8 @@ const MyIdeas: React.FC = () => {
   const { user, isAdmin, isApprover, isContributor } = useUser();
   const [selectedIdea, setSelectedIdea] = useState<Idea | null>(null);
   const [isTrailModalOpen, setIsTrailModalOpen] = useState(false);
+  const [discussionCount, setDiscussionCount] = useState(0);
+  const [loadingDiscussions, setLoadingDiscussions] = useState(false);
 
   useEffect(() => {
     // Load ideas data and trail events when component mounts
@@ -29,12 +33,38 @@ const MyIdeas: React.FC = () => {
     return data.ideas.filter((idea) => idea.createdBy === user.user.Title);
   }, [data.ideas, user]);
 
+  // Load discussion count for selected idea
+  const loadDiscussionCount = async (ideaId: string) => {
+    try {
+      setLoadingDiscussions(true);
+      const hasDiscussions = await discussionApi.hasIdeaDiscussions(parseInt(ideaId));
+      if (hasDiscussions) {
+        const messages = await discussionApi.getDiscussionsByIdea(parseInt(ideaId));
+        setDiscussionCount(messages.length);
+      } else {
+        setDiscussionCount(0);
+      }
+    } catch (error) {
+      console.error('Failed to load discussion count:', error);
+      setDiscussionCount(0);
+    } finally {
+      setLoadingDiscussions(false);
+    }
+  };
+
   // Set first idea as selected when ideas load
   useEffect(() => {
     if (myIdeas.length > 0 && !selectedIdea) {
       setSelectedIdea(myIdeas[0]);
     }
   }, [myIdeas, selectedIdea]);
+
+  // Load discussion count when selected idea changes
+  useEffect(() => {
+    if (selectedIdea) {
+      loadDiscussionCount(selectedIdea.id);
+    }
+  }, [selectedIdea?.id]);
 
   // Calculate statistics for user's ideas
   const stats = useMemo(() => {
@@ -334,6 +364,110 @@ const MyIdeas: React.FC = () => {
                       </span>
                     </div>
                   </div>
+                </div>
+
+                {/* Discussion Notification Section */}
+                <div className={styles.detailSection}>
+                  <h3 className={styles.detailSectionTitle}>Discussions from Approver</h3>
+                  {loadingDiscussions ? (
+                    <div style={{ padding: '1rem', textAlign: 'center', color: '#6b7280' }}>
+                      Loading discussions...
+                    </div>
+                  ) : discussionCount > 0 ? (
+                    <div
+                      style={{
+                        padding: '1rem',
+                        background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%)',
+                        border: '2px solid #8b5cf6',
+                        borderRadius: '12px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <div
+                          style={{
+                            position: 'relative',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <MessageCircle size={32} style={{ color: '#8b5cf6' }} />
+                          <span
+                            style={{
+                              position: 'absolute',
+                              top: '-8px',
+                              right: '-8px',
+                              background: '#ef4444',
+                              color: 'white',
+                              fontSize: '0.75rem',
+                              fontWeight: 'bold',
+                              padding: '2px 8px',
+                              borderRadius: '12px',
+                              minWidth: '24px',
+                              textAlign: 'center',
+                              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+                            }}
+                          >
+                            {discussionCount}
+                          </span>
+                        </div>
+                        <div>
+                          <h4 style={{ margin: '0 0 0.25rem 0', color: '#7c3aed', fontSize: '1.1rem', fontWeight: '600' }}>
+                            {discussionCount} {discussionCount === 1 ? 'Message' : 'Messages'} from Approver
+                          </h4>
+                          <p style={{ margin: 0, color: '#6b7280', fontSize: '0.9rem' }}>
+                            The approver has started a discussion about your idea
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => navigate('/discussions')}
+                        style={{
+                          padding: '0.75rem 1.5rem',
+                          background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          fontSize: '0.95rem',
+                          fontWeight: '600',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.5rem',
+                          transition: 'all 0.3s ease',
+                          whiteSpace: 'nowrap',
+                        }}
+                        onMouseOver={(e) => {
+                          e.currentTarget.style.transform = 'translateY(-2px)';
+                          e.currentTarget.style.boxShadow = '0 4px 12px rgba(139, 92, 246, 0.3)';
+                        }}
+                        onMouseOut={(e) => {
+                          e.currentTarget.style.transform = 'translateY(0)';
+                          e.currentTarget.style.boxShadow = 'none';
+                        }}
+                      >
+                        <MessageCircle size={18} />
+                        View Discussion
+                      </button>
+                    </div>
+                  ) : (
+                    <div
+                      style={{
+                        padding: '2rem',
+                        textAlign: 'center',
+                        color: '#9ca3af',
+                        background: '#f9fafb',
+                        borderRadius: '8px',
+                        border: '1px dashed #e5e7eb',
+                      }}
+                    >
+                      <MessageCircle size={48} style={{ color: '#d1d5db', margin: '0 auto 0.5rem' }} />
+                      <p style={{ margin: 0, fontSize: '0.95rem' }}>No discussions from approver yet</p>
+                    </div>
+                  )}
                 </div>
 
                 <div className={styles.detailSection}>
