@@ -286,7 +286,9 @@ const MainDashboard: React.FC = () => {
                   {idea.description.substring(0, 100)}{idea.description.length > 100 ? '...' : ''}
                 </p>
                 <div className={styles.topRatedMeta}>
-                  <span className={styles.topRatedAuthor}>👤 {idea.createdBy}</span>
+                  {(isAdmin || isApprover) && (
+                    <span className={styles.topRatedAuthor}>👤 {idea.createdBy}</span>
+                  )}
                   <span className={`${styles.topRatedStatus} ${getStatusClass(idea.status)}`}>
                     {idea.status}
                   </span>
