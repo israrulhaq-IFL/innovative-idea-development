@@ -49,14 +49,43 @@ const DiscussionPanel: React.FC = () => {
     loadDiscussions();
   }, [user?.user?.Id]);
 
-  // Auto-reload discussions every 10 seconds
+  // Smooth background refresh - only update selected discussion without reloading the whole board
   useEffect(() => {
-    const interval = setInterval(() => {
-      loadDiscussions();
-    }, 10000); // Reload every 10 seconds
+    if (!selectedDiscussion) return;
+
+    const refreshSelectedDiscussion = async () => {
+      try {
+        // Silently refresh the selected discussion's messages and lock status
+        if (selectedDiscussion.taskId === 0 && selectedDiscussion.ideaId) {
+          // Idea-based discussion
+          const messages = await discussionApi.getDiscussionsByIdea(selectedDiscussion.ideaId);
+          const lockStatus = await discussionApi.getIdeaDiscussionLockStatus(selectedDiscussion.ideaId);
+          
+          setSelectedDiscussion(prev => prev ? {
+            ...prev,
+            messages,
+            isLocked: lockStatus
+          } : null);
+        } else if (selectedDiscussion.taskId !== 0) {
+          // Task-based discussion
+          const messages = await discussionApi.getDiscussionsByTask(selectedDiscussion.taskId);
+          const lockStatus = await discussionApi.getDiscussionLockStatus(selectedDiscussion.taskId);
+          
+          setSelectedDiscussion(prev => prev ? {
+            ...prev,
+            messages,
+            isLocked: lockStatus
+          } : null);
+        }
+      } catch (error) {
+        console.error('Failed to refresh discussion:', error);
+      }
+    };
+
+    const interval = setInterval(refreshSelectedDiscussion, 10000); // Refresh every 10 seconds
 
     return () => clearInterval(interval);
-  }, [user?.user?.Id]);
+  }, [selectedDiscussion?.id, selectedDiscussion?.taskId, selectedDiscussion?.ideaId]);
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
