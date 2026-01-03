@@ -28,8 +28,6 @@ const MyTasks: React.FC = () => {
   // Discussion state
   const [discussionExists, setDiscussionExists] = useState(false);
   const [discussions, setDiscussions] = useState<any[]>([]);
-  const [showDiscussionPanel, setShowDiscussionPanel] = useState(false);
-  const [discussionMessage, setDiscussionMessage] = useState('');
   const [isDiscussionLocked, setIsDiscussionLocked] = useState(false);
   const [loadingDiscussions, setLoadingDiscussions] = useState(false);
   const [sendingMessage, setSendingMessage] = useState(false);
@@ -132,7 +130,6 @@ const MyTasks: React.FC = () => {
     setSelectedTask(task);
     setIsEditMode(false); // Reset edit mode when selecting a new task
     setEditedTask(null); // Reset edited task
-    setShowDiscussionPanel(false); // Close discussion panel when switching tasks
     setDiscussionExists(false);
     setDiscussions([]);
   };
@@ -205,16 +202,6 @@ const MyTasks: React.FC = () => {
     setEditedTask(prev => prev ? { ...prev, percentComplete: newProgress } : { percentComplete: newProgress });
   };
 
-  // Toggle discussion panel
-  const handleToggleDiscussion = async () => {
-    if (!selectedTask) return;
-
-    if (!showDiscussionPanel) {
-      await loadDiscussionsForTask(selectedTask.id);
-    }
-    setShowDiscussionPanel(!showDiscussionPanel);
-  };
-
   // Create new discussion
   const handleCreateDiscussion = async () => {
     if (!selectedTask) return;
@@ -238,50 +225,15 @@ const MyTasks: React.FC = () => {
 
       // Reload discussions
       await loadDiscussionsForTask(selectedTask.id);
-      setShowDiscussionPanel(true);
       
       addNotification({ 
-        message: 'Discussion created successfully!', 
+        message: 'Discussion created successfully! Click "View Discussion" to see it.', 
         type: 'success' 
       });
     } catch (error) {
       console.error('Failed to create discussion:', error);
       addNotification({ 
         message: 'Failed to create discussion. Please try again.', 
-        type: 'error' 
-      });
-    } finally {
-      setSendingMessage(false);
-    }
-  };
-
-  // Send discussion message
-  const handleSendMessage = async () => {
-    if (!selectedTask || !discussionMessage.trim() || sendingMessage) return;
-
-    try {
-      setSendingMessage(true);
-      
-      // Add reply to existing discussion
-      await discussionApi.addReplyToDiscussion(
-        selectedTask.id,
-        `Re: ${selectedTask.title}`,
-        discussionMessage,
-        false
-      );
-
-      // Clear message and reload discussions
-      setDiscussionMessage('');
-      await loadDiscussionsForTask(selectedTask.id);
-      
-      addNotification({ 
-        message: 'Message sent successfully!', 
-        type: 'success' 
-      });
-    } catch (error) {
-      console.error('Failed to send message:', error);
-      addNotification({ 
-        message: 'Failed to send message. Please try again.', 
         type: 'error' 
       });
     } finally {
@@ -624,7 +576,7 @@ const MyTasks: React.FC = () => {
                     <>
                       <div className={styles.discussionHeader}>
                         <button
-                          onClick={handleToggleDiscussion}
+                          onClick={() => navigate('/discussions')}
                           className={styles.discussionToggleButton}
                         >
                           <div className={styles.discussionIconWrapper}>
@@ -635,75 +587,34 @@ const MyTasks: React.FC = () => {
                               </span>
                             )}
                           </div>
-                          {showDiscussionPanel ? 'Hide' : 'Show'} Discussion
+                          View Discussion
                         </button>
-                        <button
-                          onClick={handleToggleLock}
-                          className={styles.lockButton}
-                          title={isDiscussionLocked ? 'Unlock discussion' : 'Lock discussion'}
-                        >
-                          {isDiscussionLocked ? <Lock size={16} /> : <Unlock size={16} />}
-                        </button>
+                        {isApprover && (
+                          <button
+                            onClick={handleToggleLock}
+                            className={styles.lockButton}
+                            title={isDiscussionLocked ? 'Unlock discussion' : 'Lock discussion'}
+                          >
+                            {isDiscussionLocked ? <Lock size={16} /> : <Unlock size={16} />}
+                          </button>
+                        )}
                       </div>
 
-                      {showDiscussionPanel && (
-                        <div className={styles.discussionPanel}>
-                          {loadingDiscussions ? (
-                            <div className={styles.discussionLoading}>Loading discussions...</div>
-                          ) : (
-                            <>
-                              <div className={styles.discussionMessages}>
-                                {discussions.map((msg) => (
-                                  <div key={msg.id} className={styles.discussionMessage}>
-                                    <div className={styles.messageHeader}>
-                                      <span className={styles.messageAuthor}>
-                                        {msg.author || 'Unknown User'}
-                                      </span>
-                                      <span className={styles.messageDate}>
-                                        {new Date(msg.created).toLocaleString()}
-                                      </span>
-                                    </div>
-                                    {msg.subject && (
-                                      <div className={styles.messageSubject}>{msg.subject}</div>
-                                    )}
-                                    <div 
-                                      className={styles.messageBody}
-                                      dangerouslySetInnerHTML={{ __html: msg.body }}
-                                    />
-                                  </div>
-                                ))}
-                              </div>
-
-                              {!isDiscussionLocked && (
-                                <div className={styles.discussionReply}>
-                                  <textarea
-                                    value={discussionMessage}
-                                    onChange={(e) => setDiscussionMessage(e.target.value)}
-                                    placeholder="Type your message here..."
-                                    className={styles.messageTextarea}
-                                    rows={3}
-                                    disabled={sendingMessage}
-                                  />
-                                  <button
-                                    onClick={handleSendMessage}
-                                    disabled={!discussionMessage.trim() || sendingMessage}
-                                    className={styles.sendButton}
-                                  >
-                                    <Send size={16} />
-                                    {sendingMessage ? 'Sending...' : 'Send'}
-                                  </button>
-                                </div>
-                              )}
-
-                              {isDiscussionLocked && (
-                                <div className={styles.lockedMessage}>
-                                  🔒 This discussion has been locked
-                                </div>
-                              )}
-                            </>
-                          )}
-                        </div>
-                      )}
+                      <div
+                        style={{
+                          padding: '1rem',
+                          background: '#f9fafb',
+                          borderRadius: '8px',
+                          border: '1px solid #e5e7eb',
+                          textAlign: 'center',
+                          color: '#6b7280',
+                          marginTop: '1rem',
+                        }}
+                      >
+                        <p style={{ margin: 0, fontSize: '0.9rem' }}>
+                          💬 Click "View Discussion" to see messages and reply in the Discussion Board
+                        </p>
+                      </div>
                     </>
                   )}
                 </div>
