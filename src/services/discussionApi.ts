@@ -151,8 +151,8 @@ class DiscussionApi {
    */
   async getMyIdeaDiscussions(userId: number): Promise<Discussion[]> {
     try {
-      // First, get all discussions that are idea-based (have IdeaIdId but no TaskIdId or TaskIdId=0)
-      const discussionsEndpoint = `/_api/web/lists/getbytitle('${this.listName}')/items?$select=IdeaIdId&$filter=IdeaIdId ne null&$top=500`;
+      // First, get all discussions that are idea-based and initiated by approver
+      const discussionsEndpoint = `/_api/web/lists/getbytitle('${this.listName}')/items?$select=IdeaIdId&$filter=IdeaIdId ne null and InitiatedByApprover eq 1&$top=500`;
       const discussionsResponse = await sharePointApi.get<any>(discussionsEndpoint);
       const discussionItems = discussionsResponse.d.results;
       
@@ -500,7 +500,7 @@ class DiscussionApi {
    */
   async getDiscussionsByIdea(ideaId: number): Promise<DiscussionMessage[]> {
     try {
-      const endpoint = `/_api/web/lists/getbytitle('${this.listName}')/items?$select=ID,Title,Body,IsQuestion,TaskIdId,IdeaIdId,IsLocked,Author/Id,Author/Title,Author/EMail,Created,Modified,Attachments,ParentItemID,ContentTypeId&$expand=Author,AttachmentFiles&$filter=(IdeaIdId eq ${ideaId}) and (startswith(ContentTypeId,'0x0120') or startswith(ContentTypeId,'0x0107'))&$orderby=Created asc&$top=500`;
+      const endpoint = `/_api/web/lists/getbytitle('${this.listName}')/items?$select=ID,Title,Body,IsQuestion,TaskIdId,IdeaIdId,IsLocked,InitiatedByApprover,Author/Id,Author/Title,Author/EMail,Created,Modified,Attachments,ParentItemID,ContentTypeId&$expand=Author,AttachmentFiles&$filter=(IdeaIdId eq ${ideaId}) and (InitiatedByApprover eq 1) and (startswith(ContentTypeId,'0x0120') or startswith(ContentTypeId,'0x0107'))&$orderby=Created asc&$top=500`;
       
       const response = await sharePointApi.get<any>(endpoint);
       return response.d.results.map((item: any) => this.mapToDiscussionMessage(item));
@@ -529,6 +529,7 @@ class DiscussionApi {
         IdeaIdId: ideaId,
         IsQuestion: isQuestion,
         IsLocked: false, // New discussions start unlocked
+        InitiatedByApprover: true, // Mark as approver-initiated
       };
 
       const response = await sharePointApi.post<any>(endpoint, data);
@@ -581,6 +582,7 @@ class DiscussionApi {
         Body: body,
         IdeaIdId: ideaId,
         IsQuestion: isQuestion,
+        InitiatedByApprover: true, // Mark reply as approver-initiated
       };
       
       logInfo('[DiscussionApi] Posting message with data:', data);
@@ -606,7 +608,7 @@ class DiscussionApi {
    */
   async hasIdeaDiscussions(ideaId: number): Promise<boolean> {
     try {
-      const endpoint = `/_api/web/lists/getbytitle('${this.listName}')/items?$filter=IdeaIdId eq ${ideaId}&$select=ID&$top=1`;
+      const endpoint = `/_api/web/lists/getbytitle('${this.listName}')/items?$filter=IdeaIdId eq ${ideaId} and InitiatedByApprover eq 1&$select=ID&$top=1`;
       const response = await sharePointApi.get<any>(endpoint);
       return response.d.results && response.d.results.length > 0;
     } catch (error) {
@@ -620,7 +622,7 @@ class DiscussionApi {
    */
   async getIdeaDiscussionLockStatus(ideaId: number): Promise<boolean> {
     try {
-      const endpoint = `/_api/web/lists/getbytitle('${this.listName}')/items?$filter=IdeaIdId eq ${ideaId}&$select=IsLocked&$top=1`;
+      const endpoint = `/_api/web/lists/getbytitle('${this.listName}')/items?$filter=IdeaIdId eq ${ideaId} and InitiatedByApprover eq 1&$select=IsLocked&$top=1`;
       const response = await sharePointApi.get<any>(endpoint);
       if (response.d.results && response.d.results.length > 0) {
         return response.d.results[0].IsLocked || false;
