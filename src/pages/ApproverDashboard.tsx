@@ -103,6 +103,27 @@ const ApproverDashboard: React.FC = () => {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [lastAction]);
 
+  // Auto-refresh discussions when panel is open
+  React.useEffect(() => {
+    let refreshInterval: NodeJS.Timeout;
+    
+    if (showDiscussionPanel && discussionExists) {
+      const idea = viewMode === 'list' ? selectedListIdea : selectedIdea;
+      if (idea) {
+        // Refresh discussions every 10 seconds
+        refreshInterval = setInterval(() => {
+          loadDiscussionsForIdea(idea.id);
+        }, 10000);
+      }
+    }
+    
+    return () => {
+      if (refreshInterval) {
+        clearInterval(refreshInterval);
+      }
+    };
+  }, [showDiscussionPanel, discussionExists, selectedIdea, selectedListIdea, viewMode]);
+
   // Initialize pending ideas from server data and maintain local state
   React.useEffect(() => {
     if (data?.ideas && Array.isArray(data.ideas)) {
@@ -406,6 +427,10 @@ const ApproverDashboard: React.FC = () => {
         'Discussion created by approver',
         false
       );
+
+      // Update state immediately to reflect discussion exists
+      setDiscussionExists(true);
+      setShowDiscussionPanel(true);
 
       // Reload discussions
       await loadDiscussionsForIdea(idea.id);

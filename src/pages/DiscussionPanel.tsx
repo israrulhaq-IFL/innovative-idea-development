@@ -20,7 +20,8 @@ const DiscussionPanel: React.FC = () => {
   const [replyText, setReplyText] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [sending, setSending] = useState(false);
-  const [ideaFolderExpanded, setIdeaFolderExpanded] = useState(true);
+  const [approverDiscussionsFolderExpanded, setApproverDiscussionsFolderExpanded] = useState(true);
+  const [ideaAuthorFolderExpanded, setIdeaAuthorFolderExpanded] = useState(true);
   const [taskFolderExpanded, setTaskFolderExpanded] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -74,9 +75,13 @@ const DiscussionPanel: React.FC = () => {
     );
   }, [discussions, searchQuery]);
 
-  // Separate idea-based and task-based discussions
-  const ideaDiscussions = useMemo(() => {
-    return filteredDiscussions.filter(d => d.taskId === 0);
+  // Separate idea-based discussions by user role
+  const myApproverDiscussions = useMemo(() => {
+    return filteredDiscussions.filter(d => d.taskId === 0 && d.userRole === 'approver');
+  }, [filteredDiscussions]);
+
+  const myIdeaDiscussions = useMemo(() => {
+    return filteredDiscussions.filter(d => d.taskId === 0 && d.userRole === 'author');
   }, [filteredDiscussions]);
 
   const taskDiscussions = useMemo(() => {
@@ -276,20 +281,68 @@ const DiscussionPanel: React.FC = () => {
               </div>
             ) : (
               <>
-                {/* Idea Discussions Folder */}
-                {ideaDiscussions.length > 0 && (
+                {/* Approver-Created Idea Discussions Folder */}
+                {myApproverDiscussions.length > 0 && (
                   <div className={styles.discussionFolder}>
                     <div 
                       className={styles.folderHeader}
-                      onClick={() => setIdeaFolderExpanded(!ideaFolderExpanded)}
+                      onClick={() => setApproverDiscussionsFolderExpanded(!approverDiscussionsFolderExpanded)}
                     >
-                      {ideaFolderExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                      {approverDiscussionsFolderExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
                       <Lightbulb size={18} />
-                      <span>Idea Discussions ({ideaDiscussions.length})</span>
+                      <span>Discussions I Started as Approver ({myApproverDiscussions.length})</span>
                     </div>
-                    {ideaFolderExpanded && (
+                    {approverDiscussionsFolderExpanded && (
                       <div className={styles.folderContent}>
-                        {ideaDiscussions.map((discussion) => (
+                        {myApproverDiscussions.map((discussion) => (
+                          <div
+                            key={discussion.id}
+                            className={`${styles.discussionCard} ${
+                              selectedDiscussion?.id === discussion.id ? styles.selected : ''
+                            }`}
+                            onClick={() => setSelectedDiscussion(discussion)}
+                          >
+                            <div className={styles.discussionHeader}>
+                              <h3>{discussion.ideaTitle || discussion.taskTitle}</h3>
+                            </div>
+                            <div className={styles.discussionMeta}>
+                              <div className={styles.metaItem}>
+                                <MessageCircle size={14} />
+                                <span>{discussion.messages.length} messages</span>
+                              </div>
+                              <div className={styles.metaItem}>
+                                <Users size={14} />
+                                <span>{discussion.participants.length} participants</span>
+                              </div>
+                              <div className={styles.metaItem}>
+                                <Clock size={14} />
+                                <span>{formatDate(discussion.lastActivity)}</span>
+                              </div>
+                            </div>
+                            {discussion.unreadCount > 0 && (
+                              <div className={styles.unreadBadge}>{discussion.unreadCount}</div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Idea Author Discussions Folder (discussions on my ideas) */}
+                {myIdeaDiscussions.length > 0 && (
+                  <div className={styles.discussionFolder}>
+                    <div 
+                      className={styles.folderHeader}
+                      onClick={() => setIdeaAuthorFolderExpanded(!ideaAuthorFolderExpanded)}
+                    >
+                      {ideaAuthorFolderExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                      <Lightbulb size={18} />
+                      <span>Discussions on My Ideas ({myIdeaDiscussions.length})</span>
+                    </div>
+                    {ideaAuthorFolderExpanded && (
+                      <div className={styles.folderContent}>
+                        {myIdeaDiscussions.map((discussion) => (
                           <div
                             key={discussion.id}
                             className={`${styles.discussionCard} ${

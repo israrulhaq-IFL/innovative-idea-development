@@ -32,6 +32,7 @@ export interface Discussion {
   ideaTitle?: string;
   ideaStatus?: string;
   isLocked?: boolean;
+  userRole?: 'approver' | 'author' | 'participant'; // Role of current user in this discussion
   participants: Array<{
     id: number;
     name: string;
@@ -127,6 +128,7 @@ class DiscussionApi {
             ideaTitle: task.IdeaId?.Title,
             ideaStatus: ideaStatus,
             isLocked: isLocked,
+            userRole: 'participant',
             participants,
             messages,
             lastActivity,
@@ -152,11 +154,16 @@ class DiscussionApi {
   async getMyIdeaDiscussions(userId: number): Promise<Discussion[]> {
     try {
       // First, get all discussions that are idea-based and initiated by approver
-      const discussionsEndpoint = `/_api/web/lists/getbytitle('${this.listName}')/items?$select=IdeaIdId&$filter=IdeaIdId ne null and InitiatedByApprover eq 1&$top=500`;
+      // Include discussions where current user is the author (approver who created the discussion)
+      const discussionsEndpoint = `/_api/web/lists/getbytitle('${this.listName}')/items?$select=IdeaIdId,Author/Id&$expand=Author&$filter=IdeaIdId ne null and InitiatedByApprover eq 1&$top=500`;
       const discussionsResponse = await sharePointApi.get<any>(discussionsEndpoint);
       const discussionItems = discussionsResponse.d.results;
       
-      // Get unique idea IDs that have discussions
+      // Get unique idea IDs where user created the discussion (as approver)
+      const userCreatedDiscussionIdeaIds = discussionItems
+        .filter((d: any) => d.Author?.Id === userId)
+        .map((d: any) => d.IdeaIdId);
+      
       const ideaIdsWithDiscussions = [...new Set(discussionItems.map((d: any) => d.IdeaIdId))];
       
       if (ideaIdsWithDiscussions.length === 0) {
@@ -168,14 +175,17 @@ class DiscussionApi {
       const ideasResponse = await sharePointApi.get<any>(ideasEndpoint);
       const allIdeas = ideasResponse.d.results;
       
-      // Filter ideas that have discussions and where user is the author
-      const myIdeas = allIdeas.filter((idea: any) => {
-        return ideaIdsWithDiscussions.includes(idea.ID) && idea.AuthorId === userId;
+      // Filter ideas where user is the author OR user created the discussion
+      const relevantIdeas = allIdeas.filter((idea: any) => {
+        const hasDiscussion = ideaIdsWithDiscussions.includes(idea.ID);
+        const isIdeaAuthor = idea.AuthorId === userId;
+        const isDiscussionCreator = userCreatedDiscussionIdeaIds.includes(idea.ID);
+        return hasDiscussion && (isIdeaAuthor || isDiscussionCreator);
       });
 
       const discussions: Discussion[] = [];
       
-      for (const idea of myIdeas) {
+      for (const idea of relevantIdeas) {
         const messages = await this.getDiscussionsByIdea(idea.ID);
         
         if (messages.length > 0) {
@@ -196,6 +206,11 @@ class DiscussionApi {
           const participants = Array.from(participantMap.values());
 
           const isLocked = await this.getIdeaDiscussionLockStatus(idea.ID);
+          
+          // Determine user's role in this discussion
+          const isIdeaAuthor = idea.AuthorId === userId;
+          const isDiscussionCreator = userCreatedDiscussionIdeaIds.includes(idea.ID);
+          const userRole: 'approver' | 'author' = isDiscussionCreator ? 'approver' : 'author';
 
           discussions.push({
             id: idea.ID,
@@ -205,6 +220,7 @@ class DiscussionApi {
             ideaTitle: idea.Title,
             ideaStatus: idea.Status,
             isLocked: isLocked,
+            userRole: userRole,
             participants,
             messages,
             lastActivity,
