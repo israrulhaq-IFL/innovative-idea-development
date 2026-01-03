@@ -397,6 +397,143 @@ class DiscussionApi {
       throw error;
     }
   }
+
+  /**
+   * Get all discussions for a specific idea (before approval)
+   */
+  async getDiscussionsByIdea(ideaId: number): Promise<DiscussionMessage[]> {
+    try {
+      const endpoint = `/_api/web/lists/getbytitle('${this.listName}')/items?$select=ID,Title,Body,IsQuestion,TaskIdId,IdeaIdId,IsLocked,Author/Id,Author/Title,Author/EMail,Created,Modified,Attachments,ParentItemID,ContentTypeId&$expand=Author,AttachmentFiles&$filter=(IdeaIdId eq ${ideaId}) and (startswith(ContentTypeId,'0x0120') or startswith(ContentTypeId,'0x0107'))&$orderby=Created asc&$top=500`;
+      
+      const response = await sharePointApi.get<any>(endpoint);
+      return response.d.results.map((item: any) => this.mapToDiscussionMessage(item));
+    } catch (error) {
+      logError('Failed to get discussions by idea', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Create a new discussion thread for an idea (during approval process)
+   * This creates a standalone discussion without a task, just linked to the idea
+   */
+  async createDiscussionForIdea(
+    ideaId: number,
+    subject: string,
+    body: string,
+    isQuestion = false
+  ): Promise<DiscussionMessage> {
+    try {
+      const endpoint = `/_api/web/lists/getbytitle('${this.listName}')/items`;
+      const data = {
+        __metadata: { type: 'SP.Data.Innovative_x005f_idea_x005f_discussionsListItem' },
+        Title: subject,
+        Body: body,
+        IdeaIdId: ideaId,
+        IsQuestion: isQuestion,
+        IsLocked: false, // New discussions start unlocked
+      };
+
+      const response = await sharePointApi.post<any>(endpoint, data);
+      const itemId = response.d.ID;
+
+      // Get the created item with all details
+      const getEndpoint = `/_api/web/lists/getbytitle('${this.listName}')/items(${itemId})?$select=ID,Title,Body,IsQuestion,TaskIdId,IdeaIdId,IsLocked,Author/Id,Author/Title,Author/EMail,Created,Modified,Attachments&$expand=Author`;
+      const createdItem = await sharePointApi.get<any>(getEndpoint);
+
+      logInfo('Discussion created for idea', { ideaId, discussionId: itemId });
+      return this.mapToDiscussionMessage(createdItem.d);
+    } catch (error) {
+      logError('Failed to create discussion for idea', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Add a reply to an idea discussion (during approval process)
+   */
+  async addReplyToIdeaDiscussion(
+    ideaId: number,
+    subject: string,
+    body: string,
+    isQuestion = false
+  ): Promise<DiscussionMessage> {
+    try {
+      // Verify that a parent discussion exists for this idea
+      const discussionsEndpoint = `/_api/web/lists/getbytitle('${this.listName}')/items?$select=ID,Title,ContentTypeId&$filter=(IdeaIdId eq ${ideaId}) and startswith(ContentTypeId,'0x0120')&$top=1`;
+      const discussionsResponse = await sharePointApi.get<any>(discussionsEndpoint);
+      
+      if (!discussionsResponse.d.results || discussionsResponse.d.results.length === 0) {
+        throw new Error('Parent discussion not found for this idea');
+      }
+      
+      const parentDiscussion = discussionsResponse.d.results[0];
+      
+      logInfo('[DiscussionApi] Creating message reply for idea discussion:', { 
+        ideaId,
+        parentDiscussionId: parentDiscussion.ID,
+        subject
+      });
+      
+      // Create the message using standard List API with Message content type
+      const endpoint = `/_api/web/lists/getbytitle('${this.listName}')/items`;
+      const data = {
+        __metadata: { type: 'SP.Data.Innovative_x005f_idea_x005f_discussionsListItem' },
+        ContentTypeId: '0x0107000184D056442E7742904D37B7FE5AFF4C', // Message content type
+        Title: subject,
+        Body: body,
+        IdeaIdId: ideaId,
+        IsQuestion: isQuestion,
+      };
+      
+      logInfo('[DiscussionApi] Posting message with data:', data);
+
+      const response = await sharePointApi.post<any>(endpoint, data);
+      const itemId = response.d.ID;
+      
+      logInfo('[DiscussionApi] Message created successfully with ID:', itemId);
+
+      // Get the created item with all details
+      const getEndpoint = `/_api/web/lists/getbytitle('${this.listName}')/items(${itemId})?$select=ID,Title,Body,IsQuestion,TaskIdId,IdeaIdId,IsLocked,Author/Id,Author/Title,Author/EMail,Created,Modified,Attachments,ParentItemID,ContentTypeId&$expand=Author`;
+      const createdItem = await sharePointApi.get<any>(getEndpoint);
+
+      return this.mapToDiscussionMessage(createdItem.d);
+    } catch (error) {
+      logError('Failed to add reply to idea discussion', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Check if an idea has any discussions
+   */
+  async hasIdeaDiscussions(ideaId: number): Promise<boolean> {
+    try {
+      const endpoint = `/_api/web/lists/getbytitle('${this.listName}'}/items?$filter=IdeaIdId eq ${ideaId}&$select=ID&$top=1`;
+      const response = await sharePointApi.get<any>(endpoint);
+      return response.d.results && response.d.results.length > 0;
+    } catch (error) {
+      logError('Failed to check idea discussions', error);
+      return false;
+    }
+  }
+
+  /**
+   * Get discussion lock status for an idea
+   */
+  async getIdeaDiscussionLockStatus(ideaId: number): Promise<boolean> {
+    try {
+      const endpoint = `/_api/web/lists/getbytitle('${this.listName}'}/items?$filter=IdeaIdId eq ${ideaId}&$select=IsLocked&$top=1`;
+      const response = await sharePointApi.get<any>(endpoint);
+      if (response.d.results && response.d.results.length > 0) {
+        return response.d.results[0].IsLocked || false;
+      }
+      return false;
+    } catch (error) {
+      logError('Failed to get idea discussion lock status', error);
+      return false;
+    }
+  }
 }
 
 export const discussionApi = new DiscussionApi();
