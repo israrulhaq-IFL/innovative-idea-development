@@ -509,7 +509,7 @@ class DiscussionApi {
    */
   async hasIdeaDiscussions(ideaId: number): Promise<boolean> {
     try {
-      const endpoint = `/_api/web/lists/getbytitle('${this.listName}'}/items?$filter=IdeaIdId eq ${ideaId}&$select=ID&$top=1`;
+      const endpoint = `/_api/web/lists/getbytitle('${this.listName}')/items?$filter=IdeaIdId eq ${ideaId}&$select=ID&$top=1`;
       const response = await sharePointApi.get<any>(endpoint);
       return response.d.results && response.d.results.length > 0;
     } catch (error) {
@@ -523,7 +523,7 @@ class DiscussionApi {
    */
   async getIdeaDiscussionLockStatus(ideaId: number): Promise<boolean> {
     try {
-      const endpoint = `/_api/web/lists/getbytitle('${this.listName}'}/items?$filter=IdeaIdId eq ${ideaId}&$select=IsLocked&$top=1`;
+      const endpoint = `/_api/web/lists/getbytitle('${this.listName}')/items?$filter=IdeaIdId eq ${ideaId}&$select=IsLocked&$top=1`;
       const response = await sharePointApi.get<any>(endpoint);
       if (response.d.results && response.d.results.length > 0) {
         return response.d.results[0].IsLocked || false;
