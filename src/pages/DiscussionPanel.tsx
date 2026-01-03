@@ -5,7 +5,7 @@ import { useUser } from '../contexts/UserContext';
 import { useToast } from '../components/common/Toast';
 import { discussionApi, Discussion } from '../services/discussionApi';
 import LoadingSpinner from '../components/common/LoadingSpinner';
-import { MessageCircle, Search, Clock, Users, AlertCircle, Send, Paperclip, X, CheckCheck, Smile, ChevronDown, ChevronRight, Lightbulb, ClipboardList } from 'lucide-react';
+import { MessageCircle, Search, Clock, Users, AlertCircle, Send, Paperclip, X, CheckCheck, Smile, ChevronDown, ChevronRight, Lightbulb, ClipboardList, Lock, Unlock } from 'lucide-react';
 import styles from './DiscussionPanel.module.css';
 
 const DiscussionPanel: React.FC = () => {
@@ -170,6 +170,50 @@ const DiscussionPanel: React.FC = () => {
       }
       
       setSelectedFile(file);
+    }
+  };
+
+  // Handle toggle lock/unlock for approvers
+  const handleToggleLock = async () => {
+    if (!selectedDiscussion || !user?.isApprover) return;
+    
+    try {
+      const newLockStatus = !isDiscussionLocked;
+      
+      // Check if this is an idea-based or task-based discussion
+      if (selectedDiscussion.taskId === 0 && selectedDiscussion.ideaId) {
+        // Idea-based discussion
+        await discussionApi.updateIdeaDiscussionLockStatus(selectedDiscussion.ideaId, newLockStatus);
+      } else {
+        // Task-based discussion
+        await discussionApi.updateTaskDiscussionLockStatus(selectedDiscussion.taskId, newLockStatus);
+      }
+      
+      // Update local state
+      setSelectedDiscussion({
+        ...selectedDiscussion,
+        isLocked: newLockStatus
+      });
+      
+      // Reload discussions to ensure consistency
+      await loadDiscussions();
+      
+      addToast({
+        type: 'success',
+        title: newLockStatus ? 'Discussion Locked' : 'Discussion Unlocked',
+        message: newLockStatus 
+          ? 'Participants can no longer send messages' 
+          : 'Participants can now send messages',
+        duration: 3000
+      });
+    } catch (error) {
+      console.error('Failed to toggle lock:', error);
+      addToast({
+        type: 'error',
+        title: 'Lock Failed',
+        message: 'Failed to change lock status. Please try again.',
+        duration: 4000
+      });
     }
   };
 
@@ -459,6 +503,25 @@ const DiscussionPanel: React.FC = () => {
                       title="View idea trail and details"
                     >
                       📊 View Idea Trail
+                    </button>
+                  )}
+                  {user?.isApprover && (
+                    <button
+                      className={styles.lockButton}
+                      onClick={handleToggleLock}
+                      title={isDiscussionLocked ? 'Unlock discussion' : 'Lock discussion'}
+                    >
+                      {isDiscussionLocked ? (
+                        <>
+                          <Lock size={16} />
+                          <span>Unlock</span>
+                        </>
+                      ) : (
+                        <>
+                          <Unlock size={16} />
+                          <span>Lock</span>
+                        </>
+                      )}
                     </button>
                   )}
                   <div className={styles.participants}>
