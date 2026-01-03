@@ -53,21 +53,17 @@ export class IdeaApiService {
   ): Promise<void> {
     try {
       const uploadPromises = attachments.map(async (file) => {
-        const endpoint = `/_api/web/lists/getbytitle('${LISTS.ideas}')/items(${ideaId})/AttachmentFiles/add(FileName='${file.name}')`;
+        const encodedFileName = encodeURIComponent(file.name).replace(/'/g, "''");
+        const endpoint = `/_api/web/lists/getbytitle('${LISTS.ideas}')/items(${ideaId})/AttachmentFiles/add(FileName='${encodedFileName}')`;
 
-        // For SharePoint 2016, we need to use FormData for file uploads
-        const formData = new FormData();
-        formData.append("file", file);
-
-        await sharePointApi.post(endpoint, formData, {
-          headers: {
-            "Content-Type": undefined, // Let browser set content-type for FormData
-          },
-        });
+        // Use postFile method which handles binary data correctly for SharePoint
+        await sharePointApi.postFile(endpoint, file);
 
         logInfo("Attachment uploaded successfully", {
           ideaId,
           fileName: file.name,
+          fileSize: file.size,
+          fileType: file.type,
         });
       });
 
