@@ -9,6 +9,8 @@ import {
   Calendar,
   FileText,
   Paperclip,
+  List,
+  LayoutGrid,
 } from 'lucide-react';
 import { useIdeaData } from "../contexts/DataContext";
 import { useUser } from "../contexts/UserContext";
@@ -41,6 +43,8 @@ const ApproverDashboard: React.FC = () => {
   const [isReloading, setIsReloading] = useState(false);
   const [isProcessingAction, setIsProcessingAction] = useState(false);
   const [pendingIdeas, setPendingIdeas] = useState<Idea[]>([]);
+  const [viewMode, setViewMode] = useState<'stack' | 'list'>('stack');
+  const [selectedListIdea, setSelectedListIdea] = useState<Idea | null>(null);
   const [previewAttachment, setPreviewAttachment] = useState<{
     fileName: string;
     url: string;
@@ -337,6 +341,27 @@ const ApproverDashboard: React.FC = () => {
         <p className={styles.subtitle}>
           Review and approve innovative ideas from your team
         </p>
+        
+        {/* View Toggle Buttons */}
+        <div className={styles.viewToggle}>
+          <button
+            className={`${styles.viewToggleButton} ${viewMode === 'stack' ? styles.active : ''}`}
+            onClick={() => setViewMode('stack')}
+            title="Stack View"
+          >
+            <LayoutGrid size={20} />
+            <span>Stack View</span>
+          </button>
+          <button
+            className={`${styles.viewToggleButton} ${viewMode === 'list' ? styles.active : ''}`}
+            onClick={() => setViewMode('list')}
+            title="List View"
+          >
+            <List size={20} />
+            <span>List View</span>
+          </button>
+        </div>
+
         <button
           className={styles.reloadButton}
           onClick={handleReload}
@@ -404,7 +429,7 @@ const ApproverDashboard: React.FC = () => {
               No pending ideas to review at the moment.
             </p>
           </div>
-        ) : (
+        ) : viewMode === 'stack' ? (
           <div className={styles.cardStack}>
             {pendingIdeas.map((idea, index) => (
               <div
@@ -520,6 +545,126 @@ const ApproverDashboard: React.FC = () => {
                 )}
               </div>
             ))}
+          </div>
+        ) : (
+          /* List View - Split Screen Layout */
+          <div className={styles.splitView}>
+            {/* Left Panel - Ideas List */}
+            <div className={styles.listPanel}>
+              <div className={styles.listHeader}>
+                <h3>Pending Ideas ({pendingIdeas.length})</h3>
+              </div>
+              <div className={styles.ideaList}>
+                {pendingIdeas.map((idea) => (
+                  <div
+                    key={idea.id}
+                    className={`${styles.ideaListItem} ${selectedListIdea?.id === idea.id ? styles.active : ''}`}
+                    onClick={() => setSelectedListIdea(idea)}
+                  >
+                    <div className={styles.ideaListItemHeader}>
+                      <h4 className={styles.ideaListItemTitle}>{idea.title}</h4>
+                      <span className={`${styles.listPriority} ${styles[`priority${idea.priority}`]}`}>
+                        {idea.priority}
+                      </span>
+                    </div>
+                    <p className={styles.ideaListItemMeta}>
+                      <User size={14} /> {idea.createdBy} • <Calendar size={14} /> {new Date(idea.created).toLocaleDateString()}
+                    </p>
+                    <p className={styles.ideaListItemDescription}>
+                      {idea.description.length > 100 ? `${idea.description.substring(0, 100)}...` : idea.description}
+                    </p>
+                    <div className={styles.ideaListItemFooter}>
+                      <span className={styles.categoryBadge}>{idea.category}</span>
+                      {idea.attachments && idea.attachments.length > 0 && (
+                        <span className={styles.attachmentBadge}>
+                          <Paperclip size={12} /> {idea.attachments.length}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Right Panel - Detail View */}
+            <div className={styles.detailPanel}>
+              {selectedListIdea ? (
+                <div className={styles.detailContent}>
+                  <div className={styles.detailHeader}>
+                    <h2>{selectedListIdea.title}</h2>
+                    <div className={styles.detailMeta}>
+                      <span><User size={16} /> {selectedListIdea.createdBy}</span>
+                      <span><Calendar size={16} /> {new Date(selectedListIdea.created).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+
+                  <div className={styles.detailBody}>
+                    <div className={styles.detailSection}>
+                      <h3>Description</h3>
+                      <p>{selectedListIdea.description}</p>
+                    </div>
+
+                    <div className={styles.detailTags}>
+                      <div className={styles.tagGroup}>
+                        <label>Category:</label>
+                        <span className={styles.tagValue}>{selectedListIdea.category}</span>
+                      </div>
+                      <div className={styles.tagGroup}>
+                        <label>Priority:</label>
+                        <span className={`${styles.tagValue} ${styles[`priority${selectedListIdea.priority}`]}`}>
+                          {selectedListIdea.priority}
+                        </span>
+                      </div>
+                    </div>
+
+                    {selectedListIdea.attachments && selectedListIdea.attachments.length > 0 && (
+                      <div className={styles.detailSection}>
+                        <h3>Attachments ({selectedListIdea.attachments.length})</h3>
+                        <div className={styles.attachmentList}>
+                          {selectedListIdea.attachments.map((attachment, index) => (
+                            <div key={index} className={styles.attachmentItem}>
+                              <Paperclip size={16} />
+                              <span>{attachment.fileName}</span>
+                              <button
+                                onClick={() => handleAttachmentClick(attachment)}
+                                className={styles.attachmentViewButton}
+                              >
+                                View
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className={styles.detailActions}>
+                    <button
+                      className={styles.rejectActionButton}
+                      onClick={() => handleCardAction(selectedListIdea, 'reject')}
+                      disabled={isProcessingAction}
+                    >
+                      <XCircle size={20} />
+                      Reject
+                    </button>
+                    <button
+                      className={styles.approveActionButton}
+                      onClick={() => handleCardAction(selectedListIdea, 'approve')}
+                      disabled={isProcessingAction}
+                    >
+                      <CheckCircle size={20} />
+                      Approve
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className={styles.detailEmpty}>
+                  <Eye size={64} />
+                  <h3>Select an Idea</h3>
+                  <p>Choose an idea from the list to view details and take action</p>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
