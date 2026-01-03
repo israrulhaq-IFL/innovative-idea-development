@@ -633,6 +633,85 @@ class DiscussionApi {
       return false;
     }
   }
+
+  /**
+   * Check if a task has any discussions
+   */
+  async hasDiscussion(taskId: number): Promise<boolean> {
+    try {
+      const endpoint = `/_api/web/lists/getbytitle('${this.listName}')/items?$filter=TaskIdId eq ${taskId}&$select=ID&$top=1`;
+      const response = await sharePointApi.get<any>(endpoint);
+      return response.d.results && response.d.results.length > 0;
+    } catch (error) {
+      logError('Failed to check task discussions', error);
+      return false;
+    }
+  }
+
+  /**
+   * Get discussion lock status for a task
+   */
+  async getDiscussionLockStatus(taskId: number): Promise<boolean> {
+    try {
+      const endpoint = `/_api/web/lists/getbytitle('${this.listName}')/items?$filter=TaskIdId eq ${taskId}&$select=IsLocked&$top=1`;
+      const response = await sharePointApi.get<any>(endpoint);
+      if (response.d.results && response.d.results.length > 0) {
+        return response.d.results[0].IsLocked || false;
+      }
+      return false;
+    } catch (error) {
+      logError('Failed to get task discussion lock status', error);
+      return false;
+    }
+  }
+
+  /**
+   * Update discussion lock status for a task
+   */
+  async updateDiscussionLockStatus(taskId: number, isLocked: boolean): Promise<void> {
+    try {
+      // First, get the discussion ID for this task
+      const endpoint = `/_api/web/lists/getbytitle('${this.listName}')/items?$filter=TaskIdId eq ${taskId}&$select=ID&$top=1`;
+      const response = await sharePointApi.get<any>(endpoint);
+      
+      if (response.d.results && response.d.results.length > 0) {
+        const discussionId = response.d.results[0].ID;
+        const updateEndpoint = `/_api/web/lists/getbytitle('${this.listName}')/items(${discussionId})`;
+        
+        await sharePointApi.patch(updateEndpoint, {
+          __metadata: { type: 'SP.Data.Innovative_x005f_idea_x005f_discussionsListItem' },
+          IsLocked: isLocked
+        });
+        
+        logInfo('Discussion lock status updated successfully');
+      }
+    } catch (error) {
+      logError('Failed to update discussion lock status', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Add reply to an existing task discussion
+   */
+  async addReplyToDiscussion(
+    taskId: number,
+    subject: string,
+    body: string,
+    isQuestion: boolean = false
+  ): Promise<DiscussionMessage> {
+    try {
+      // Get the idea ID from the task
+      const taskEndpoint = `/_api/web/lists/getbytitle('${LISTS.tasks}')/items(${taskId})?$select=IdeaIdId`;
+      const taskResponse = await sharePointApi.get<any>(taskEndpoint);
+      const ideaId = taskResponse.d.IdeaIdId || 0;
+
+      return await this.addReply(taskId, ideaId, subject, body, isQuestion);
+    } catch (error) {
+      logError('Failed to add reply to task discussion', error);
+      throw error;
+    }
+  }
 }
 
 export const discussionApi = new DiscussionApi();
