@@ -146,6 +146,92 @@ class DiscussionApi {
   }
 
   /**
+   * Get all discussions for ideas where user is involved (as owner or approver)
+   * This includes idea-based discussions created during approval process
+   */
+  async getMyIdeaDiscussions(userId: number): Promise<Discussion[]> {
+    try {
+      // Get ideas where user is the owner or where they are HOD (approver)
+      const ideasEndpoint = `/_api/web/lists/getbytitle('${LISTS.ideas}')/items?$select=ID,Title,Status,OwnerUserId,Department&$top=500`;
+      const ideasResponse = await sharePointApi.get<any>(ideasEndpoint);
+      const allIdeas = ideasResponse.d.results;
+      
+      // Filter ideas where user is owner or is HOD of the department
+      const myIdeas = allIdeas.filter((idea: any) => {
+        return idea.OwnerUserId === userId; // User owns the idea
+        // Note: We can't easily check if user is HOD here, so we'll include all ideas with discussions
+      });
+
+      const discussions: Discussion[] = [];
+      
+      for (const idea of myIdeas) {
+        const messages = await this.getDiscussionsByIdea(idea.ID);
+        
+        if (messages.length > 0) {
+          const lastActivity = messages.reduce((latest, msg) => {
+            const msgDate = new Date(msg.modified);
+            return msgDate > latest ? msgDate : latest;
+          }, new Date(0));
+
+          // Get unique participants from message authors
+          const participantMap = new Map();
+          messages.forEach(msg => {
+            participantMap.set(msg.author.id, {
+              id: msg.author.id,
+              name: msg.author.name,
+              email: msg.author.email,
+            });
+          });
+          const participants = Array.from(participantMap.values());
+
+          const isLocked = await this.getIdeaDiscussionLockStatus(idea.ID);
+
+          discussions.push({
+            id: idea.ID,
+            taskId: 0, // No task associated with idea discussions
+            taskTitle: `Idea Discussion: ${idea.Title}`,
+            ideaId: idea.ID,
+            ideaTitle: idea.Title,
+            ideaStatus: idea.Status,
+            isLocked: isLocked,
+            participants,
+            messages,
+            lastActivity,
+            unreadCount: 0, // TODO: Implement read tracking
+          });
+        }
+      }
+
+      return discussions.sort(
+        (a, b) => b.lastActivity.getTime() - a.lastActivity.getTime()
+      );
+    } catch (error) {
+      logError('Failed to get my idea discussions', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get all discussions (both task-based and idea-based) for current user
+   */
+  async getAllMyDiscussions(userId: number): Promise<Discussion[]> {
+    try {
+      const [taskDiscussions, ideaDiscussions] = await Promise.all([
+        this.getMyDiscussions(userId),
+        this.getMyIdeaDiscussions(userId)
+      ]);
+      
+      // Combine and sort by last activity
+      return [...taskDiscussions, ...ideaDiscussions].sort(
+        (a, b) => b.lastActivity.getTime() - a.lastActivity.getTime()
+      );
+    } catch (error) {
+      logError('Failed to get all my discussions', error);
+      throw error;
+    }
+  }
+
+  /**
    * Create a new discussion thread for a task
    */
   async createDiscussion(

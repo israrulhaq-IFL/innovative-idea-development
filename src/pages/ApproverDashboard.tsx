@@ -820,8 +820,15 @@ const ApproverDashboard: React.FC = () => {
                               className={styles.discussionToggle}
                               onClick={handleToggleDiscussion}
                             >
-                              <MessageCircle size={20} />
-                              <span>Discussion ({discussions.length})</span>
+                              <div className={styles.discussionIconWrapper}>
+                                <MessageCircle size={20} />
+                                {discussions.length > 0 && (
+                                  <span className={styles.discussionBadge}>
+                                    {discussions.length}
+                                  </span>
+                                )}
+                              </div>
+                              <span>Discussion</span>
                             </button>
                             {showDiscussionPanel && discussionExists && (
                               <button

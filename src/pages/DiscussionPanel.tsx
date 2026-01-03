@@ -32,7 +32,7 @@ const DiscussionPanel: React.FC = () => {
     
     try {
       setLoading(true);
-      const myDiscussions = await discussionApi.getMyDiscussions(user.user.Id);
+      const myDiscussions = await discussionApi.getAllMyDiscussions(user.user.Id);
       setDiscussions(myDiscussions);
     } catch (error) {
       console.error('Failed to load discussions:', error);
@@ -80,13 +80,27 @@ const DiscussionPanel: React.FC = () => {
       setSending(true);
       const subject = `Re: ${selectedDiscussion.taskTitle}`;
       
-      const newMessage = await discussionApi.addReply(
-        selectedDiscussion.taskId,
-        selectedDiscussion.ideaId || 0,
-        subject,
-        replyText,
-        false
-      );
+      let newMessage;
+      
+      // Check if this is an idea-based discussion (taskId === 0) or task-based
+      if (selectedDiscussion.taskId === 0 && selectedDiscussion.ideaId) {
+        // Idea-based discussion
+        newMessage = await discussionApi.addReplyToIdeaDiscussion(
+          selectedDiscussion.ideaId,
+          subject,
+          replyText,
+          false
+        );
+      } else {
+        // Task-based discussion
+        newMessage = await discussionApi.addReply(
+          selectedDiscussion.taskId,
+          selectedDiscussion.ideaId || 0,
+          subject,
+          replyText,
+          false
+        );
+      }
 
       // Upload attachment if selected
       if (selectedFile) {
@@ -97,10 +111,17 @@ const DiscussionPanel: React.FC = () => {
       await loadDiscussions();
       
       // Update selected discussion
-      const updated = discussions.find(d => d.taskId === selectedDiscussion.taskId);
-      if (updated) {
-        const messages = await discussionApi.getDiscussionsByTask(updated.taskId);
-        setSelectedDiscussion({ ...updated, messages });
+      if (selectedDiscussion.taskId === 0 && selectedDiscussion.ideaId) {
+        // Reload idea-based discussion
+        const messages = await discussionApi.getDiscussionsByIdea(selectedDiscussion.ideaId);
+        setSelectedDiscussion({ ...selectedDiscussion, messages });
+      } else {
+        // Reload task-based discussion
+        const updated = discussions.find(d => d.taskId === selectedDiscussion.taskId);
+        if (updated) {
+          const messages = await discussionApi.getDiscussionsByTask(updated.taskId);
+          setSelectedDiscussion({ ...updated, messages });
+        }
       }
 
       setReplyText('');
@@ -206,8 +227,8 @@ const DiscussionPanel: React.FC = () => {
         <div className={styles.headerTitle}>
           <MessageCircle size={32} />
           <div>
-            <h1>Task Discussions</h1>
-            <p>Collaborate with your team on assigned tasks</p>
+            <h1>Discussions</h1>
+            <p>Collaborate on tasks and ideas with your team</p>
           </div>
         </div>
         <div className={styles.headerStats}>
