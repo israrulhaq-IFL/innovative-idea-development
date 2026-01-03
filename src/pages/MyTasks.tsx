@@ -34,6 +34,37 @@ const MyTasks: React.FC = () => {
   const [loadingDiscussions, setLoadingDiscussions] = useState(false);
   const [sendingMessage, setSendingMessage] = useState(false);
 
+  // Discussion handlers (defined before useEffects that call them)
+  const loadDiscussionsForTask = async (taskId: number) => {
+    try {
+      setLoadingDiscussions(true);
+      
+      // Check if discussion exists for this task
+      const hasDiscussion = await discussionApi.hasDiscussion(taskId);
+      setDiscussionExists(hasDiscussion);
+      
+      if (hasDiscussion) {
+        const messages = await discussionApi.getDiscussionsByTask(taskId);
+        setDiscussions(messages);
+        
+        // Check lock status
+        const locked = await discussionApi.getDiscussionLockStatus(taskId);
+        setIsDiscussionLocked(locked);
+      } else {
+        setDiscussions([]);
+        setIsDiscussionLocked(false);
+      }
+    } catch (error) {
+      console.error('Failed to load discussions:', error);
+      addNotification({ 
+        message: 'Failed to load discussions', 
+        type: 'error' 
+      });
+    } finally {
+      setLoadingDiscussions(false);
+    }
+  };
+
   useEffect(() => {
     // Load tasks assigned to current user
     const loadMyTasks = async () => {
@@ -172,37 +203,6 @@ const MyTasks: React.FC = () => {
 
   const handleProgressChange = (newProgress: number) => {
     setEditedTask(prev => prev ? { ...prev, percentComplete: newProgress } : { percentComplete: newProgress });
-  };
-
-  // Discussion handlers
-  const loadDiscussionsForTask = async (taskId: number) => {
-    try {
-      setLoadingDiscussions(true);
-      
-      // Check if discussion exists for this task
-      const hasDiscussion = await discussionApi.hasDiscussion(taskId);
-      setDiscussionExists(hasDiscussion);
-      
-      if (hasDiscussion) {
-        const messages = await discussionApi.getDiscussionsByTask(taskId);
-        setDiscussions(messages);
-        
-        // Check lock status
-        const locked = await discussionApi.getDiscussionLockStatus(taskId);
-        setIsDiscussionLocked(locked);
-      } else {
-        setDiscussions([]);
-        setIsDiscussionLocked(false);
-      }
-    } catch (error) {
-      console.error('Failed to load discussions:', error);
-      addNotification({ 
-        message: 'Failed to load discussions', 
-        type: 'error' 
-      });
-    } finally {
-      setLoadingDiscussions(false);
-    }
   };
 
   // Toggle discussion panel
