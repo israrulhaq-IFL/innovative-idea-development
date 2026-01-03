@@ -229,6 +229,7 @@ const MyIdeas: React.FC = () => {
                 >
                   <div className={styles.compactCardHeader}>
                     <h4 className={styles.compactCardTitle}>{idea.title}</h4>
+                    {/* HIDDEN: Status badge - Uncomment to enable
                     <div className={styles.compactStatusBadge}>
                       <span
                         className={`${styles.status} ${
@@ -246,6 +247,7 @@ const MyIdeas: React.FC = () => {
                         {idea.status}
                       </span>
                     </div>
+                    */}
                   </div>
 
                   <p className={styles.compactCardDescription}>

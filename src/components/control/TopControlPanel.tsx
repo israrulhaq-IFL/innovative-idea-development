@@ -88,6 +88,7 @@ export const TopControlPanel: React.FC<TopControlPanelProps> = ({
     ];
 
     // Add role-specific navigation
+    /* HIDDEN: My Tasks - Uncomment to enable
     if (isContributor) {
       items.push({
         path: '/my-tasks',
@@ -96,6 +97,7 @@ export const TopControlPanel: React.FC<TopControlPanelProps> = ({
         description: 'My Assigned Tasks',
       });
     }
+    */
 
     if (isApprover && !isAdmin) {
       items.push({
@@ -144,6 +146,7 @@ export const TopControlPanel: React.FC<TopControlPanelProps> = ({
     );
 
     // Role-specific actions
+    /* HIDDEN: Approved Ideas (Create Task) - Uncomment to enable
     if (isAdmin) {
       controls.push(
         <button
@@ -157,6 +160,7 @@ export const TopControlPanel: React.FC<TopControlPanelProps> = ({
         </button>,
       );
     }
+    */
 
     if (isAdmin) {
       controls.push(

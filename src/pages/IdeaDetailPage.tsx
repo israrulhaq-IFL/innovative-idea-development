@@ -144,6 +144,7 @@ const IdeaDetailPage: React.FC = () => {
 
         <div className={styles.titleSection}>
           <h1 className={styles.title}>{idea.title}</h1>
+          {/* HIDDEN: Status badge - Uncomment to enable
           <span className={`${styles.statusBadge} ${
             idea.status === 'Approved' ? styles.statusApproved :
             idea.status === 'Pending Approval' ? styles.statusPending :
@@ -153,6 +154,7 @@ const IdeaDetailPage: React.FC = () => {
           }`}>
             {idea.status}
           </span>
+          */}
         </div>
 
         <div className={styles.metaGrid}>
@@ -287,6 +289,7 @@ const IdeaDetailPage: React.FC = () => {
         </div>
       )}
       
+      {/* HIDDEN: Idea Trail section - Uncomment to enable
       <div className={styles.timelineSection}>
         <div className={styles.timelineTitle}>
           <span className={styles.timelineIcon}>📋</span>
@@ -389,7 +392,9 @@ const IdeaDetailPage: React.FC = () => {
           )}
         </div>
       </div>
+      */}
 
+      {/* HIDDEN: Actions Section with View Full Trail button - Uncomment to enable
       <div className={styles.actionsSection}>
         <h2 className={styles.actionsTitle}>Actions</h2>
         <div className={styles.actionsGrid}>
@@ -409,6 +414,7 @@ const IdeaDetailPage: React.FC = () => {
           </button>
         </div>
       </div>
+      */}
 
       <IdeaTrailModal
         isOpen={isTrailModalOpen}
