@@ -49,6 +49,15 @@ const DiscussionPanel: React.FC = () => {
     loadDiscussions();
   }, [user?.user?.Id]);
 
+  // Auto-reload discussions every 10 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      loadDiscussions();
+    }, 10000); // Reload every 10 seconds
+
+    return () => clearInterval(interval);
+  }, [user?.user?.Id]);
+
   // Auto-scroll to bottom when messages change
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -619,10 +628,10 @@ const DiscussionPanel: React.FC = () => {
               <div className={styles.replyBox}>
                 {isDiscussionLocked ? (
                   <div className={styles.completedNotice}>
-                    <CheckCheck size={20} />
+                    <Lock size={20} />
                     <div>
-                      <strong>This idea has been completed</strong>
-                      <p>Discussion is closed. No new messages can be sent.</p>
+                      <strong>Discussion Locked by Approver</strong>
+                      <p>This discussion has been locked. No new messages can be sent.</p>
                     </div>
                   </div>
                 ) : (
