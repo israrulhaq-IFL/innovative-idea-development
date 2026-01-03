@@ -11,10 +11,15 @@ import {
   Paperclip,
   List,
   LayoutGrid,
+  MessageCircle,
+  Send,
+  Lock,
+  Unlock,
 } from 'lucide-react';
 import { useIdeaData } from "../contexts/DataContext";
 import { useUser } from "../contexts/UserContext";
 import { useToast } from "../components/common/Toast";
+import { discussionApi, DiscussionMessage } from "../services/discussionApi";
 import styles from "./ApproverDashboard.module.css";
 
 interface Idea {
@@ -45,6 +50,12 @@ const ApproverDashboard: React.FC = () => {
   const [pendingIdeas, setPendingIdeas] = useState<Idea[]>([]);
   const [viewMode, setViewMode] = useState<'stack' | 'list'>('stack');
   const [selectedListIdea, setSelectedListIdea] = useState<Idea | null>(null);
+  const [showDiscussionPanel, setShowDiscussionPanel] = useState(false);
+  const [discussions, setDiscussions] = useState<DiscussionMessage[]>([]);
+  const [discussionMessage, setDiscussionMessage] = useState('');
+  const [isDiscussionLocked, setIsDiscussionLocked] = useState(false);
+  const [loadingDiscussions, setLoadingDiscussions] = useState(false);
+  const [sendingMessage, setSendingMessage] = useState(false);
   const [previewAttachment, setPreviewAttachment] = useState<{
     fileName: string;
     url: string;
@@ -332,6 +343,122 @@ const ApproverDashboard: React.FC = () => {
 
   const closePreview = () => {
     setPreviewAttachment(null);
+  };
+
+  // Load discussions for selected idea
+  const loadDiscussionsForIdea = async (ideaId: string) => {
+    try {
+      setLoadingDiscussions(true);
+      const messages = await discussionApi.getDiscussionsByIdea(parseInt(ideaId));
+      setDiscussions(messages);
+      
+      // Check lock status
+      const locked = await discussionApi.getIdeaDiscussionLockStatus(parseInt(ideaId));
+      setIsDiscussionLocked(locked);
+    } catch (error) {
+      console.error('Failed to load discussions:', error);
+      addToast({
+        type: 'error',
+        title: 'Load Failed',
+        message: 'Failed to load discussions',
+        duration: 3000,
+      });
+    } finally {
+      setLoadingDiscussions(false);
+    }
+  };
+
+  // Toggle discussion panel
+  const handleToggleDiscussion = async () => {
+    const idea = viewMode === 'list' ? selectedListIdea : selectedIdea;
+    if (!idea) return;
+
+    if (!showDiscussionPanel) {
+      await loadDiscussionsForIdea(idea.id);
+    }
+    setShowDiscussionPanel(!showDiscussionPanel);
+  };
+
+  // Send discussion message
+  const handleSendMessage = async () => {
+    const idea = viewMode === 'list' ? selectedListIdea : selectedIdea;
+    if (!idea || !discussionMessage.trim() || sendingMessage) return;
+
+    try {
+      setSendingMessage(true);
+      const ideaId = parseInt(idea.id);
+      
+      // Check if discussion exists, if not create one
+      const hasDiscussion = await discussionApi.hasIdeaDiscussions(ideaId);
+      
+      if (!hasDiscussion) {
+        // Create initial discussion
+        await discussionApi.createDiscussionForIdea(
+          ideaId,
+          `Discussion for: ${idea.title}`,
+          discussionMessage,
+          false
+        );
+      } else {
+        // Add reply to existing discussion
+        await discussionApi.addReplyToIdeaDiscussion(
+          ideaId,
+          `Re: ${idea.title}`,
+          discussionMessage,
+          false
+        );
+      }
+
+      // Reload discussions
+      await loadDiscussionsForIdea(idea.id);
+      setDiscussionMessage('');
+      
+      addToast({
+        type: 'success',
+        title: 'Message Sent',
+        message: 'Your message has been sent',
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      addToast({
+        type: 'error',
+        title: 'Send Failed',
+        message: 'Failed to send message. Please try again.',
+        duration: 4000,
+      });
+    } finally {
+      setSendingMessage(false);
+    }
+  };
+
+  // Toggle discussion lock
+  const handleToggleLock = async () => {
+    const idea = viewMode === 'list' ? selectedListIdea : selectedIdea;
+    if (!idea) return;
+
+    try {
+      const newLockStatus = !isDiscussionLocked;
+      await discussionApi.updateDiscussionLockStatus(parseInt(idea.id), newLockStatus);
+      setIsDiscussionLocked(newLockStatus);
+      
+      addToast({
+        type: 'success',
+        title: newLockStatus ? 'Discussion Locked' : 'Discussion Unlocked',
+        message: newLockStatus 
+          ? 'Discussion has been locked' 
+          : 'Discussion has been unlocked',
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error('Failed to toggle lock:', error);
+      addToast({
+        type: 'error',
+        title: 'Lock Failed',
+        message: 'Failed to change lock status',
+        duration: 4000,
+      });
+    }
   };
 
   return (
@@ -636,6 +763,102 @@ const ApproverDashboard: React.FC = () => {
                         </div>
                       </div>
                     )}
+
+                    {/* Discussion Panel */}
+                    <div className={styles.discussionSection}>
+                      <div className={styles.discussionHeader}>
+                        <button
+                          className={styles.discussionToggle}
+                          onClick={handleToggleDiscussion}
+                        >
+                          <MessageCircle size={20} />
+                          <span>Discussion ({discussions.length})</span>
+                        </button>
+                        {showDiscussionPanel && (
+                          <button
+                            className={styles.lockButton}
+                            onClick={handleToggleLock}
+                            title={isDiscussionLocked ? 'Unlock Discussion' : 'Lock Discussion'}
+                          >
+                            {isDiscussionLocked ? <Lock size={18} /> : <Unlock size={18} />}
+                            <span>{isDiscussionLocked ? 'Locked' : 'Unlocked'}</span>
+                          </button>
+                        )}
+                      </div>
+
+                      {showDiscussionPanel && (
+                        <div className={styles.discussionPanel}>
+                          {loadingDiscussions ? (
+                            <div className={styles.discussionLoading}>
+                              <div className={styles.loadingSpinner}></div>
+                              <p>Loading discussion...</p>
+                            </div>
+                          ) : discussions.length === 0 ? (
+                            <div className={styles.discussionEmpty}>
+                              <MessageCircle size={48} />
+                              <p>No discussion yet. Start the conversation!</p>
+                            </div>
+                          ) : (
+                            <div className={styles.discussionMessages}>
+                              {discussions.map((msg) => (
+                                <div key={msg.id} className={styles.discussionMessage}>
+                                  <div className={styles.messageHeader}>
+                                    <div className={styles.messageAuthor}>
+                                      <User size={14} />
+                                      <strong>{msg.author.name}</strong>
+                                    </div>
+                                    <div className={styles.messageTime}>
+                                      {new Date(msg.created).toLocaleString('en-US', {
+                                        month: 'short',
+                                        day: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                      })}
+                                    </div>
+                                  </div>
+                                  <div className={styles.messageBody}>
+                                    {msg.body}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {!isDiscussionLocked && (
+                            <div className={styles.discussionInput}>
+                              <textarea
+                                className={styles.messageTextarea}
+                                placeholder="Type your message or question..."
+                                value={discussionMessage}
+                                onChange={(e) => setDiscussionMessage(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' && !e.shiftKey) {
+                                    e.preventDefault();
+                                    handleSendMessage();
+                                  }
+                                }}
+                                disabled={sendingMessage}
+                              />
+                              <button
+                                className={styles.sendButton}
+                                onClick={handleSendMessage}
+                                disabled={!discussionMessage.trim() || sendingMessage}
+                              >
+                                <Send size={18} />
+                                <span>{sendingMessage ? 'Sending...' : 'Send'}</span>
+                              </button>
+                            </div>
+                          )}
+
+                          {isDiscussionLocked && (
+                            <div className={styles.discussionLockedMessage}>
+                              <Lock size={16} />
+                              <span>This discussion has been locked</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <div className={styles.detailActions}>
