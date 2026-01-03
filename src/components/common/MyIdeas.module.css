@@ -500,11 +500,12 @@
 }
 
 .emptyMessage {
-  color: var(--text-primary, #374151);
+  color: #1f2937;
   margin-bottom: 2rem;
   max-width: 300px;
-  font-size: 0.95rem;
-  line-height: 1.5;
+  font-size: 1rem;
+  line-height: 1.6;
+  font-weight: 500;
 }
 
 .noSelection {
@@ -530,10 +531,11 @@
 }
 
 .noSelectionMessage {
-  color: var(--text-primary, #374151);
+  color: #1f2937;
   max-width: 300px;
-  font-size: 0.95rem;
-  line-height: 1.5;
+  font-size: 1rem;
+  line-height: 1.6;
+  font-weight: 500;
 }
 
 /* Dark mode support */
@@ -644,9 +646,12 @@
 }
 
 .emptyMessage {
-  color: var(--text-secondary, #6b7280);
+  color: #1f2937;
   margin-bottom: 1.5rem;
   max-width: 300px;
+  font-size: 1rem;
+  line-height: 1.6;
+  font-weight: 500;
 }
 
 /* Edit Actions */
