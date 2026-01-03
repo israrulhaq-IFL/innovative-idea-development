@@ -65,6 +65,13 @@ const MyTasks: React.FC = () => {
     }
   }, [myTasks, selectedTask]);
 
+  // Load discussions when selected task changes
+  useEffect(() => {
+    if (selectedTask) {
+      loadDiscussionsForTask(selectedTask.id);
+    }
+  }, [selectedTask?.id]);
+
   // Calculate statistics for user's tasks
   const stats = useMemo(() => {
     const totalTasks = myTasks.length;
@@ -97,11 +104,6 @@ const MyTasks: React.FC = () => {
     setShowDiscussionPanel(false); // Close discussion panel when switching tasks
     setDiscussionExists(false);
     setDiscussions([]);
-    
-    // Load discussions for the selected task
-    if (task) {
-      loadDiscussionsForTask(task.id);
-    }
   };
 
   const handleEditClick = () => {
