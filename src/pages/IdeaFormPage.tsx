@@ -64,7 +64,8 @@ const IdeaFormPage: React.FC = () => {
     { value: 'Cost Reduction', label: 'Cost Reduction' },
     { value: 'Quality Enhancement', label: 'Quality Enhancement' },
     { value: 'Innovation', label: 'Innovation' },
-    { value: 'Other', label: 'Other' },
+    { value: 'Department Improvement', label: 'Department Improvement' },
+    { value: 'Miscellaneous', label: 'Miscellaneous' },
   ];
 
   const priorities = [
@@ -296,9 +297,9 @@ const IdeaFormPage: React.FC = () => {
           >
             <CheckCircle className="w-12 h-12 text-white" />
           </motion.div>
-          <h2 className={styles.successTitle}>Innovation Launched! 🚀</h2>
+          <h2 className={styles.successTitle}>Idea Submitted! ✅</h2>
           <p className={styles.successMessage}>
-            Your groundbreaking idea has been successfully submitted and is now
+            Your idea has been successfully submitted and is now
             on its journey to transformation.
           </p>
           <div className={styles.successCard}>
@@ -628,7 +629,7 @@ const IdeaFormPage: React.FC = () => {
                 {isSubmitting ? (
                   <>
                     <div className={styles.spinner} />
-                    <span>Submitting Your Innovation...</span>
+                    <span>Submitting Your Idea...</span>
                   </>
                 ) : (
                   <>

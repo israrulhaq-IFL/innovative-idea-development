@@ -178,7 +178,7 @@ const MainDashboard: React.FC = () => {
       {/* Header */}
       <header className={styles.header}>
         <div className={styles.headerContent}>
-          <h1 className={styles.title}>🚀 Innovation Hub</h1>
+          <h1 className={styles.title}>🚀 Innovative Ideas Center</h1>
           <p className={styles.subtitle}>
             Enterprise Innovation Management Dashboard
           </p>
