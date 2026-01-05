@@ -167,10 +167,13 @@ const TopUtilityBar: React.FC<TopUtilityBarProps> = memo(({ lastUpdated }) => {
     removeNotification(id);
   };
 
+  // HIDDEN: Developer Testing Mode - Uncomment to enable role switcher for testing
   // Check if current user is the developer for testing mode
-  const isDeveloperUser =
-    user?.user?.Title?.toLowerCase().includes("israr") ||
-    user?.user?.Name?.toLowerCase().includes("israr");
+  const isDeveloperUser = false; // Set to true or use name check to enable
+  // Original code (uncomment to enable):
+  // const isDeveloperUser =
+  //   user?.user?.Title?.toLowerCase().includes("israr") ||
+  //   user?.user?.Name?.toLowerCase().includes("israr");
 
   // Testing functions for role switching (developer only)
   const handleSwitchToContributor = () => {
